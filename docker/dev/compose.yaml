@@ -1,0 +1,48 @@
+# Development (live reload for Go + hot reload for Vue)
+#   docker compose -f docker/dev/compose.yaml up --build
+#
+#   App:  http://localhost:5173   (Vite dev server, proxies /api to the backend)
+#   API:  http://localhost:8080
+#
+# First start creates user "admin" with a random password:
+#   docker compose -f docker/dev/compose.yaml logs backend | grep password
+
+name: filebrowser-dev
+
+x-app: &app
+  image: filebrowser-dev
+  build:
+    context: ../..
+    dockerfile: docker/dev/Dockerfile
+  volumes:
+    - ../..:/app
+    - node-modules:/app/frontend/node_modules
+    - go-mod:/go/pkg/mod
+    - go-build:/root/.cache/go-build
+    - files:/srv
+    - database:/database
+
+services:
+  backend:
+    <<: *app
+    working_dir: /app
+    command: air -c docker/dev/.air.toml
+    ports:
+      - "5173:5173"
+      - "8080:8080"
+
+  frontend:
+    <<: *app
+    working_dir: /app/frontend
+    command: sh -c "pnpm install --frozen-lockfile && pnpm dev --host 0.0.0.0 --port 5173"
+    # Share the backend's network so Vite's proxy to 127.0.0.1:8080 just works
+    network_mode: service:backend
+    depends_on:
+      - backend
+
+volumes:
+  node-modules:
+  go-mod:
+  go-build:
+  files:
+  database:

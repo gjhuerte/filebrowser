@@ -1,0 +1,26 @@
+# Live-reload config for the Go backend (used by docker/dev/compose.yaml).
+root = "."
+tmp_dir = "/tmp/air"
+
+[build]
+  cmd = "go build -o /tmp/air/filebrowser ."
+  bin = "/tmp/air/filebrowser"
+  args_bin = [
+    "--address", "0.0.0.0",
+    "--port", "8080",
+    "--database", "/database/filebrowser.db",
+    "--root", "/srv",
+  ]
+  include_ext = ["go"]
+  exclude_dir = [".git", "frontend", "docs", "docker", "img/testdata", "tmp"]
+  exclude_regex = ["_test\\.go$"]
+  delay = 500
+  send_interrupt = true
+  kill_delay = "1s"
+  stop_on_error = true
+
+[log]
+  time = false
+
+[misc]
+  clean_on_exit = true

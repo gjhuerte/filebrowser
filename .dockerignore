@@ -1,7 +1,13 @@
-.venv
-dist
+.git
+.github
 .idea
-frontend/node_modules
+.vscode
+.venv
+**/node_modules
 frontend/dist
-filebrowser.db
+frontend/test-results
+dist
+tmp
+*.db
+filebrowser
 docs/index.md

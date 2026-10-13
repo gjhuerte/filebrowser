@@ -1,0 +1,31 @@
+# Production
+#   docker compose -f docker/prod/compose.yaml up -d --build
+#
+# First start creates user "admin" with a random password:
+#   docker compose -f docker/prod/compose.yaml logs filebrowser | grep password
+
+name: filebrowser
+
+services:
+  filebrowser:
+    image: filebrowser:${FB_VERSION:-latest}
+    build:
+      context: ../..
+      dockerfile: docker/prod/Dockerfile
+      args:
+        VERSION: ${FB_VERSION:-dev}
+        COMMIT_SHA: ${FB_COMMIT:-unknown}
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8000}:80"
+    volumes:
+      - files:/srv
+      - config:/config
+      - database:/database
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  files:
+  config:
+  database:

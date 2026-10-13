@@ -19,8 +19,8 @@ RUN addgroup -g $GID user && \
 
 # Copy binary, scripts, and configurations into image with proper ownership
 COPY --chown=user:user filebrowser /bin/filebrowser
-COPY --chown=user:user docker/common/ /
-COPY --chown=user:user docker/alpine/ /
+COPY --chown=user:user docker/release/common/ /
+COPY --chown=user:user docker/release/alpine/ /
 COPY --chown=user:user --from=fetcher /sbin/tini-static /bin/tini
 COPY --from=fetcher /JSON.sh /JSON.sh
 COPY --from=fetcher /etc/ca-certificates.conf /etc/ca-certificates.conf
