@@ -1,46 +1,83 @@
 <template>
   <div id="login" :class="{ recaptcha: recaptcha }">
-    <form @submit="submit">
-      <img :src="logoURL" alt="File Browser" />
-      <h1>{{ name }}</h1>
-      <p v-if="reason != null" class="logout-message">
-        {{ t(`login.logout_reasons.${reason}`) }}
-      </p>
-      <div v-if="error !== ''" class="wrong">{{ error }}</div>
+    <div class="login__backdrop" aria-hidden="true">
+      <div class="login__orb login__orb--primary"></div>
+      <div class="login__orb login__orb--secondary"></div>
+    </div>
 
-      <input
-        autofocus
-        class="input input--block"
-        type="text"
-        autocapitalize="off"
-        v-model="username"
-        :placeholder="t('login.username')"
-      />
-      <input
-        class="input input--block"
-        type="password"
-        v-model="password"
-        :placeholder="t('login.password')"
-      />
-      <input
-        class="input input--block"
-        v-if="createMode"
-        type="password"
-        v-model="passwordConfirm"
-        :placeholder="t('login.passwordConfirm')"
-      />
+    <div class="login__card">
+      <div class="login__brand">
+        <span class="login__logo">
+          <img :src="logoURL" alt="" />
+        </span>
+        <h1 class="login__title">{{ name }}</h1>
+      </div>
 
-      <div v-if="recaptcha" id="recaptcha"></div>
-      <input
-        class="button button--block"
-        type="submit"
-        :value="createMode ? t('login.signup') : t('login.submit')"
-      />
+      <form class="login__form" @submit="submit">
+        <p v-if="reason != null" class="login__message" role="status">
+          <i class="material-icons" aria-hidden="true">info</i>
+          <span>{{ t(`login.logout_reasons.${reason}`) }}</span>
+        </p>
+        <p
+          v-if="error !== ''"
+          class="login__message login__message--error"
+          role="alert"
+        >
+          <i class="material-icons" aria-hidden="true">error_outline</i>
+          <span>{{ error }}</span>
+        </p>
 
-      <p @click="toggleMode" v-if="signup">
-        {{ createMode ? t("login.loginInstead") : t("login.createAnAccount") }}
-      </p>
-    </form>
+        <label class="login__field">
+          <span class="login__label">{{ t("login.username") }}</span>
+          <input
+            autofocus
+            class="login__input"
+            type="text"
+            autocapitalize="off"
+            autocomplete="username"
+            v-model="username"
+          />
+        </label>
+
+        <label class="login__field">
+          <span class="login__label">{{ t("login.password") }}</span>
+          <input
+            class="login__input"
+            type="password"
+            :autocomplete="createMode ? 'new-password' : 'current-password'"
+            v-model="password"
+          />
+        </label>
+
+        <label v-if="createMode" class="login__field">
+          <span class="login__label">{{ t("login.passwordConfirm") }}</span>
+          <input
+            class="login__input"
+            type="password"
+            autocomplete="new-password"
+            v-model="passwordConfirm"
+          />
+        </label>
+
+        <div v-if="recaptcha" id="recaptcha"></div>
+
+        <button class="login__submit" type="submit">
+          <span>{{ createMode ? t("login.signup") : t("login.submit") }}</span>
+          <i class="material-icons" aria-hidden="true">arrow_forward</i>
+        </button>
+
+        <button
+          v-if="signup"
+          class="login__switch"
+          type="button"
+          @click="toggleMode"
+        >
+          {{
+            createMode ? t("login.loginInstead") : t("login.createAnAccount")
+          }}
+        </button>
+      </form>
+    </div>
   </div>
 </template>
 
