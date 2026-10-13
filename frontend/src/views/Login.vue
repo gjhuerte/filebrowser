@@ -1,9 +1,6 @@
 <template>
   <div id="login" :class="{ recaptcha: recaptcha }">
-    <div class="login__backdrop" aria-hidden="true">
-      <div class="login__orb login__orb--primary"></div>
-      <div class="login__orb login__orb--secondary"></div>
-    </div>
+    <ThemeSwitcher class="login__theme" />
 
     <div class="login__card">
       <div class="login__brand">
@@ -11,6 +8,9 @@
           <img :src="logoURL" alt="" />
         </span>
         <h1 class="login__title">{{ name }}</h1>
+        <p class="login__subtitle">
+          {{ createMode ? t("login.subtitleSignup") : t("login.subtitle") }}
+        </p>
       </div>
 
       <form class="login__form" @submit="submit">
@@ -35,6 +35,7 @@
             type="text"
             autocapitalize="off"
             autocomplete="username"
+            :placeholder="t('login.usernamePlaceholder')"
             v-model="username"
           />
         </label>
@@ -45,8 +46,16 @@
             class="login__input"
             type="password"
             :autocomplete="createMode ? 'new-password' : 'current-password'"
+            :placeholder="t('login.passwordPlaceholder')"
             v-model="password"
+            @keydown="checkCapsLock"
+            @keyup="checkCapsLock"
+            @blur="capsLock = false"
           />
+          <span v-if="capsLock" class="login__hint" role="status">
+            <i class="material-icons" aria-hidden="true">keyboard_capslock</i>
+            {{ t("login.capsLock") }}
+          </span>
         </label>
 
         <label v-if="createMode" class="login__field">
@@ -55,6 +64,7 @@
             class="login__input"
             type="password"
             autocomplete="new-password"
+            :placeholder="t('login.passwordConfirmPlaceholder')"
             v-model="passwordConfirm"
           />
         </label>
@@ -77,6 +87,10 @@
           }}
         </button>
       </form>
+
+      <p v-if="!createMode" class="login__note">
+        {{ t("login.forgotPassword") }}
+      </p>
     </div>
   </div>
 </template>
@@ -84,6 +98,7 @@
 <script setup lang="ts">
 import { StatusError } from "@/api/utils";
 import * as auth from "@/utils/auth";
+import ThemeSwitcher from "@/components/ThemeSwitcher.vue";
 import {
   name,
   logoURL,
@@ -107,6 +122,11 @@ const router = useRouter();
 const { t } = useI18n({});
 // Define functions
 const toggleMode = () => (createMode.value = !createMode.value);
+
+const capsLock = ref<boolean>(false);
+const checkCapsLock = (event: KeyboardEvent) => {
+  capsLock.value = event.getModifierState?.("CapsLock") ?? false;
+};
 
 const $showError = inject<IToastError>("$showError")!;
 

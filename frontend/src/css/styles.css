@@ -475,3 +475,53 @@ html[dir="rtl"] .card.floating .card-content .file-list {
 .Vue-Toastification__toast--warning {
   background: #f59e0b;
 }
+
+/* * * * * * * * * * * * * * * *
+ *        THEME SWITCHER       *
+ * * * * * * * * * * * * * * * */
+
+.theme-switcher {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-switcher__option {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  color: var(--textPrimary);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    color 0.2s ease-out,
+    background-color 0.2s ease-out;
+}
+
+.theme-switcher__option i {
+  font-size: 1.125rem;
+}
+
+.theme-switcher__option:hover {
+  color: var(--textSecondary);
+  background: var(--surfaceSecondary);
+}
+
+.theme-switcher__option--active,
+.theme-switcher__option--active:hover {
+  color: var(--primary-text);
+  background: var(--primary-soft);
+}
+
+.theme-switcher__option:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}

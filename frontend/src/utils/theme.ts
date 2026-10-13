@@ -35,6 +35,46 @@ export const getMediaPreference = (): UserTheme => {
   }
 };
 
+/*
+ * Per-browser theme preference ("light", "dark" or "" for system).
+ * A saved choice overrides the instance default from Global Settings;
+ * "system" follows the OS setting live.
+ */
+const THEME_STORAGE_KEY = "theme";
+const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+const followSystem = () => {
+  document.documentElement.className = getMediaPreference();
+};
+
+export const getThemePreference = (): UserTheme => {
+  try {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved === "light" || saved === "dark") return saved;
+    if (saved === "system") return "";
+  } catch {
+    // storage unavailable (private mode, blocked cookies): use the default
+  }
+  return theme;
+};
+
+export const applyThemePreference = (preference: UserTheme) => {
+  darkQuery.removeEventListener("change", followSystem);
+  setTheme(preference);
+  if (!preference) {
+    darkQuery.addEventListener("change", followSystem);
+  }
+};
+
+export const setThemePreference = (preference: UserTheme) => {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, preference || "system");
+  } catch {
+    // not persisted, but still applied for this page view
+  }
+  applyThemePreference(preference);
+};
+
 export const getEditorTheme = (themeName: string) => {
   if (!themeName.startsWith("ace/theme/")) {
     themeName = `ace/theme/${themeName}`;

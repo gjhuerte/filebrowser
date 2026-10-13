@@ -126,7 +126,14 @@
     "passwordTooShort": "Password must be at least {min} characters",
     "logout_reasons": {
       "inactivity": "You have been logged out due to inactivity."
-    }
+    },
+    "subtitle": "Sign in to access your files.",
+    "subtitleSignup": "Create an account to get started.",
+    "usernamePlaceholder": "Enter your username",
+    "passwordPlaceholder": "Enter your password",
+    "passwordConfirmPlaceholder": "Re-enter your password",
+    "capsLock": "Caps Lock is on",
+    "forgotPassword": "Forgot your password? Contact your administrator."
   },
   "permanent": "Permanent",
   "prompts": {

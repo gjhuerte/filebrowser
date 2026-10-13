@@ -2,14 +2,6 @@
  *            LOGIN            *
  * * * * * * * * * * * * * * * */
 
-#login {
-  --login-orb-opacity: 0.4;
-}
-
-:root.dark #login {
-  --login-orb-opacity: 0.22;
-}
-
 /* * * * * * * * * * * * * * * *
  *            LAYOUT           *
  * * * * * * * * * * * * * * * */
@@ -30,38 +22,12 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* Atmospheric blurred orbs, clipped to the viewport so they never
-   make the page scrollable */
-.login__backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.login__orb {
+/* Theme switcher, top corner */
+.login__theme {
   position: absolute;
-  width: 560px;
-  height: 560px;
-  border-radius: 50%;
-  filter: blur(72px);
-  opacity: var(--login-orb-opacity);
-  pointer-events: none;
-  animation: login-drift 14s ease-in-out infinite alternate;
-}
-
-.login__orb--primary {
-  top: -220px;
-  left: -180px;
-  background: radial-gradient(circle at 35% 35%, #818cf8, #4f46e5 65%);
-}
-
-.login__orb--secondary {
-  right: -200px;
-  bottom: -240px;
-  background: radial-gradient(circle at 60% 60%, #c4b5fd, #7c3aed 65%);
-  animation-delay: -7s;
+  top: 16px;
+  inset-inline-end: 16px;
+  animation: login-fade 0.4s ease-out both;
 }
 
 /* * * * * * * * * * * * * * * *
@@ -127,6 +93,12 @@
   color: transparent;
 }
 
+.login__subtitle {
+  margin: 0.5rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--textPrimary);
+}
+
 /* * * * * * * * * * * * * * * *
  *             FORM            *
  * * * * * * * * * * * * * * * */
@@ -162,6 +134,11 @@
   transition:
     border-color 0.2s ease-out,
     box-shadow 0.2s ease-out;
+}
+
+.login__input::placeholder {
+  color: var(--textPrimary);
+  opacity: 0.75;
 }
 
 .login__input:hover {
@@ -265,6 +242,32 @@ html[dir="rtl"] .login__submit:hover i {
   outline-offset: 2px;
 }
 
+/* Inline hint under a field (e.g. Caps Lock) */
+.login__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--warning-text);
+}
+
+.login__hint i {
+  font-size: 1rem;
+}
+
+/* Help note under the form */
+.login__note {
+  margin: 1.25rem 0 0;
+  padding-top: 1.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--textPrimary);
+  border-top: 1px solid var(--divider);
+  text-wrap: balance;
+}
+
 /* Status + error messages */
 .login__message {
   display: flex;
@@ -302,11 +305,6 @@ html[dir="rtl"] .login__submit:hover i {
   .login__card {
     padding: 32px 18px 20px;
   }
-
-  .login__orb {
-    width: 380px;
-    height: 380px;
-  }
 }
 
 /* * * * * * * * * * * * * * * *
@@ -332,12 +330,6 @@ html[dir="rtl"] .login__submit:hover i {
   to {
     opacity: 1;
     transform: none;
-  }
-}
-
-@keyframes login-drift {
-  to {
-    transform: translate3d(48px, 36px, 0) scale(1.08);
   }
 }
 

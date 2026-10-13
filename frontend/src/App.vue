@@ -6,18 +6,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { setHtmlLocale } from "./i18n";
-import { getMediaPreference, getTheme, setTheme } from "./utils/theme";
+import { applyThemePreference, getThemePreference } from "./utils/theme";
 import { name } from "./utils/constants";
 
 const { locale } = useI18n();
 
-const userTheme = ref<UserTheme>(getTheme() || getMediaPreference());
-
 onMounted(() => {
-  setTheme(userTheme.value);
+  applyThemePreference(getThemePreference());
   setHtmlLocale(locale.value);
   // this might be null during HMR
   const loading = document.getElementById("loading");

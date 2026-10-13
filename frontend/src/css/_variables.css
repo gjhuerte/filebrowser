@@ -33,6 +33,7 @@
   --danger-text: #b91c1c; /* red-700 */
   --danger-soft: #fef2f2; /* red-50 */
   --danger-border: #fecaca; /* red-200 */
+  --warning-text: #b45309; /* amber-700 */
   --info-text: #3730a3; /* indigo-800 */
   --info-soft: #eef2ff;
   --info-border: #c7d2fe; /* indigo-200 */
@@ -115,6 +116,7 @@
   --danger-text: #fca5a5;
   --danger-soft: rgba(239, 68, 68, 0.12);
   --danger-border: rgba(248, 113, 113, 0.3);
+  --warning-text: #fbbf24; /* amber-400 */
   --info-text: #c7d2fe;
   --info-soft: rgba(99, 102, 241, 0.12);
   --info-border: rgba(129, 140, 248, 0.3);
