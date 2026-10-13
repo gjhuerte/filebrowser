@@ -26,7 +26,7 @@
 
 .shell__content {
   height: 100%;
-  font-family: monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   overflow: auto;
   font-size: 1rem;
   cursor: text;
@@ -74,7 +74,7 @@ body.rtl .shell-content {
 }
 
 .shell__prompt i {
-  color: var(--blue);
+  color: var(--primary-text);
 }
 
 .shell__text {

@@ -1,6 +1,9 @@
 # Production
 #   docker compose -f docker/prod/compose.yaml up -d --build
 #
+#   App:  http://localhost:${HTTP_PORT}
+#   Settings live in docker/prod/.env (template: .env.example)
+#
 # First start creates user "admin" with a random password:
 #   docker compose -f docker/prod/compose.yaml logs filebrowser | grep password
 
@@ -15,11 +18,16 @@ services:
       args:
         VERSION: ${FB_VERSION:-dev}
         COMMIT_SHA: ${FB_COMMIT:-unknown}
+        UID: ${PUID:-1000}
+        GID: ${PGID:-1000}
+        NODE_VERSION: ${NODE_VERSION:-24}
+        GO_VERSION: ${GO_VERSION:-1.25}
+        ALPINE_VERSION: ${ALPINE_VERSION:-3.23}
     restart: unless-stopped
     ports:
       - "${HTTP_PORT:-8000}:80"
     volumes:
-      - files:/srv
+      - ${FB_FILES_DIR:-files}:/srv
       - config:/config
       - database:/database
     security_opt:

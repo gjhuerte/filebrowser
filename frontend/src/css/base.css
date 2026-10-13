@@ -1,8 +1,15 @@
+html {
+  scrollbar-color: var(--borderSecondary) transparent;
+}
+
 body {
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
   padding-top: 4em;
   background: var(--background);
   color: var(--textSecondary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
@@ -14,6 +21,22 @@ body {
 *:active,
 *:focus {
   outline: 0;
+}
+
+/* Keyboard focus is always visible (mouse clicks don't trigger it) */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--primary-soft-strong);
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.01em;
 }
 
 a {
@@ -51,6 +74,10 @@ i.spin {
   padding-bottom: 4em;
 }
 
+/* * * * * * * * * * * * * * * *
+ *           SIDEBAR           *
+ * * * * * * * * * * * * * * * */
+
 nav {
   width: 16em;
   position: fixed;
@@ -58,6 +85,7 @@ nav {
   left: 0;
   height: calc(100vh - 4em);
   overflow-y: auto;
+  padding: 0.75em 0;
 }
 
 html[dir="rtl"] nav {
@@ -66,12 +94,39 @@ html[dir="rtl"] nav {
 }
 
 nav .action {
-  width: 100%;
-  display: block;
-  border-radius: 0;
-  font-size: 1.1em;
-  padding: 0.5em;
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  width: calc(100% - 1.5em);
+  margin: 0.125em 0.75em;
+  padding: 0.6em 0.75em;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--action);
+  border-radius: var(--radius-control);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+nav .action i {
+  padding: 0;
+  font-size: 1.35em;
+  color: var(--textPrimary);
+  transition: color 0.2s ease-out;
+}
+
+nav .action:hover {
+  color: var(--primary-text);
+  background: var(--primary-soft);
+}
+
+nav .action:hover i {
+  color: var(--primary-text);
+}
+
+nav .action > span {
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -81,12 +136,23 @@ html[dir="rtl"] nav .action {
 }
 
 nav > div {
+  margin: 0.5em 0.75em;
+  padding-top: 0.5em;
   border-top: 1px solid var(--divider);
+}
+
+nav > div .action {
+  width: 100%;
+  margin: 0.125em 0;
 }
 
 nav .action > * {
   vertical-align: middle;
 }
+
+/* * * * * * * * * * * * * * * *
+ *             MAIN            *
+ * * * * * * * * * * * * * * * */
 
 main {
   min-height: 1em;
@@ -101,6 +167,8 @@ main {
   position: sticky;
   z-index: 1000;
   top: 4em;
+  font-size: 0.9375rem;
+  font-weight: 500;
 }
 
 .breadcrumbs span,
@@ -111,9 +179,18 @@ main {
 }
 
 .breadcrumbs a {
+  display: inline-flex;
+  align-items: center;
   color: inherit;
-  transition: 0.1s ease-in;
-  border-radius: 0.125em;
+  transition:
+    background-color 0.2s ease-out,
+    color 0.2s ease-out;
+  border-radius: 6px;
+}
+
+.breadcrumbs > span:last-child a {
+  color: var(--textSecondary);
+  font-weight: 600;
 }
 
 html[dir="rtl"] .breadcrumbs a {
@@ -121,11 +198,21 @@ html[dir="rtl"] .breadcrumbs a {
 }
 
 .breadcrumbs a:hover {
-  background-color: var(--divider);
+  color: var(--primary-text);
+  background-color: var(--primary-soft);
+}
+
+.breadcrumbs > a {
+  padding: 0.25em;
 }
 
 .breadcrumbs span a {
-  padding: 0.2em;
+  padding: 0.25em 0.5em;
+}
+
+.breadcrumbs .chevron i {
+  font-size: 1.25em;
+  color: var(--borderSecondary);
 }
 
 .files {
@@ -134,6 +221,7 @@ html[dir="rtl"] .breadcrumbs a {
   width: 100%;
 }
 
+/* Upload progress across the top of the window */
 .progress {
   position: fixed;
   top: 0;
@@ -145,7 +233,8 @@ html[dir="rtl"] .breadcrumbs a {
 
 .progress div {
   height: 100%;
-  background-color: #40c4ff;
+  background: var(--gradient-primary);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
   width: 0;
   transition: 0.2s ease width;
 }
@@ -156,8 +245,10 @@ html[dir="rtl"] .breadcrumbs a {
 
 .vue-number-input > input {
   background: var(--surfacePrimary) !important;
-  border-color: var(--surfaceSecondary) !important;
+  border-color: var(--borderPrimary) !important;
   color: var(--textSecondary) !important;
+  border-radius: var(--radius-control) !important;
+  font-family: inherit !important;
 }
 
 .vue-number-input--small > input {
@@ -171,24 +262,24 @@ html[dir="rtl"] .breadcrumbs a {
 }
 
 .vue-number-input__button {
-  background: var(--surfacePrimary) !important;
+  background: transparent !important;
 }
 
 .vue-number-input__button--minus,
 .vue-number-input__button--plus {
-  border-color: var(--surfaceSecondary) !important;
+  border-color: var(--borderPrimary) !important;
 }
 
 .vue-number-input__button::before,
 .vue-number-input__button::after {
-  background: var(--textSecondary) !important;
+  background: var(--textPrimary) !important;
 }
 
 body > div[style*="z-index: 9990"] {
   z-index: 10000 !important;
 }
 
-#modal-background .button:focus {
-  outline: 1px solid #2195f32d;
-  outline-offset: 1px;
+#modal-background .button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }

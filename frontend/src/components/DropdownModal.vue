@@ -108,9 +108,12 @@ export default {
   background: var(--surfacePrimary);
   color: var(--textSecondary);
   border: 1px solid var(--borderPrimary);
-  border-radius: 0.1em;
-  padding: 0.5em 1em;
-  transition: 0.2s ease all;
+  border-radius: var(--radius-control);
+  padding: 0.625em 0.875em;
+  font: inherit;
+  transition:
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out;
   margin: 0;
   display: flex;
   justify-content: space-between;
@@ -127,8 +130,9 @@ export default {
   background-color: var(--surfacePrimary);
   color: var(--textSecondary);
   display: none;
-  border: 1px solid var(--borderPrimary);
-  border-radius: 0.1em;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-pop);
 }
 
 .dropdown-modal-list > div {

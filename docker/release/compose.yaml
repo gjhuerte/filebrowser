@@ -1,0 +1,35 @@
+# Run a published release image (no build)
+#   docker compose -f docker/release/compose.yaml up -d
+#
+#   App:  http://localhost:${HTTP_PORT}
+#   Settings live in docker/release/.env (template: .env.example)
+#
+# The Dockerfiles in this folder are used by .goreleaser.yml to build
+# those images; this compose file only runs them.
+#
+# First start creates user "admin" with a random password:
+#   docker compose -f docker/release/compose.yaml logs filebrowser | grep password
+
+name: filebrowser-release
+
+services:
+  filebrowser:
+    image: ${FB_IMAGE:-filebrowser/filebrowser}:${FB_TAG:-v2}
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8000}:80"
+    volumes:
+      - ${FB_FILES_DIR:-files}:/srv
+      - config:/config
+      - database:/database
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-UTC}
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  files:
+  config:
+  database:

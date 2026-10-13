@@ -3,10 +3,12 @@ html[dir="rtl"] #listing {
 }
 
 #listing h2 {
-  margin: 0 0 0 0.5em;
-  font-size: 0.9em;
+  margin: 0.5em 0 0 0.75em;
+  font-size: 0.75em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--textPrimary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 #listing .item div:last-of-type * {
@@ -28,8 +30,10 @@ html[dir="rtl"] #listing {
   flex-wrap: nowrap;
   color: var(--textPrimary);
   transition:
-    0.1s ease background,
-    0.1s ease opacity;
+    background-color 0.15s ease-out,
+    box-shadow 0.2s ease-out,
+    transform 0.2s ease-out,
+    opacity 0.15s ease-out;
   align-items: center;
   cursor: pointer;
   user-select: none;
@@ -47,11 +51,13 @@ html[dir="rtl"] #listing {
 
 #listing .item .size,
 #listing .item .modified {
-  font-size: 0.9em;
+  font-size: 0.875em;
+  font-variant-numeric: tabular-nums;
 }
 
 #listing .item .name {
-  font-weight: bold;
+  color: var(--textSecondary);
+  font-weight: 600;
 }
 
 #listing .item i {
@@ -70,18 +76,25 @@ html[dir="rtl"] #listing {
 
 .message {
   text-align: center;
-  font-size: 2em;
-  margin: 1em auto;
+  font-size: 1.5em;
+  margin: 1.5em auto;
   display: block !important;
   width: 95%;
   color: var(--textPrimary);
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .message i {
-  font-size: 2.5em;
-  margin-bottom: 0.2em;
-  display: block;
+  display: grid;
+  place-items: center;
+  width: 2.5em;
+  height: 2.5em;
+  margin: 0 auto 0.5em;
+  font-size: 2em;
+  color: var(--primary-text);
+  background: var(--primary-soft);
+  border-radius: 50%;
 }
 
 #listing.mosaic {
@@ -92,17 +105,19 @@ html[dir="rtl"] #listing {
 #listing.mosaic .item {
   width: calc(33% - 1em);
   margin: 0.5em;
-  padding: 0.5em;
-  border-radius: 0.2em;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.12);
+  padding: 0.625em;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
 }
 
 #listing.mosaic .item:hover {
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.12),
-    0 1px 2px rgba(0, 0, 0, 0.24) !important;
+  box-shadow: var(--shadow-card-hover) !important;
+  transform: translateY(-2px);
+}
+
+#listing.mosaic.gallery .item {
+  overflow: hidden;
 }
 
 #listing.mosaic .header {
@@ -124,15 +139,29 @@ html[dir="rtl"] #listing {
 
 #listing.mosaic.gallery .item div:last-of-type {
   position: absolute;
-  bottom: 0.5em;
+  bottom: 0.625em;
   padding: 1em;
-  width: calc(100% - 1em);
+  width: calc(100% - 1.25em);
   text-align: center;
+  border-radius: 0 0 8px 8px;
 }
 
 #listing.mosaic.gallery .item[data-type="image"] div:last-of-type {
   color: white;
-  background: linear-gradient(#0000, #0009);
+  background: linear-gradient(rgba(15, 23, 42, 0), rgba(15, 23, 42, 0.7));
+}
+
+#listing.mosaic.gallery .item[data-type="image"] .name {
+  color: #fff;
+}
+
+#listing.mosaic.gallery .item img {
+  border-radius: 8px;
+  transition: transform 0.5s var(--ease-out);
+}
+
+#listing.mosaic.gallery .item:hover img {
+  transform: scale(1.03);
 }
 
 #listing.mosaic.gallery .item i {
@@ -156,15 +185,25 @@ html[dir="rtl"] #listing {
   flex-direction: column;
   width: 100%;
   max-width: 100%;
-  margin: 0;
+  margin: 1em 0 0;
+  padding-bottom: 0.375em;
+  background: var(--surfacePrimary);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
 }
 
 #listing.list .item {
-  width: 100%;
-  margin: 0;
-  border: 1px solid var(--borderPrimary);
-  padding: 1em;
-  border-top: 0;
+  width: calc(100% - 0.75em);
+  margin: 0 0.375em;
+  border: 0;
+  border-radius: var(--radius-control);
+  padding: 0.7em 1em;
+  background: transparent;
+}
+
+#listing.list .item:not(.header):hover {
+  background: var(--hover);
 }
 
 #listing.list h2 {
@@ -172,8 +211,19 @@ html[dir="rtl"] #listing {
 }
 
 #listing .item[aria-selected="true"] {
-  background: var(--blue) !important;
-  color: var(--iconSecondary) !important;
+  background: var(--primary-soft) !important;
+  color: var(--primary-text) !important;
+  box-shadow: inset 0 0 0 1px var(--primary-soft-strong);
+}
+
+#listing .item[aria-selected="true"] .name {
+  color: var(--primary-text);
+}
+
+#listing.mosaic .item[aria-selected="true"] {
+  box-shadow:
+    0 0 0 2px var(--ring),
+    var(--shadow-card) !important;
 }
 
 #listing.list .item div:first-of-type {
@@ -181,7 +231,7 @@ html[dir="rtl"] #listing {
 }
 
 #listing.list .item div:first-of-type i {
-  font-size: 2em;
+  font-size: 1.75em;
 }
 
 #listing.list .item div:first-of-type img {
@@ -209,18 +259,35 @@ html[dir="rtl"] #listing {
 }
 
 #listing.list .header i {
-  font-size: 1.5em;
+  font-size: 1.25em;
   vertical-align: middle;
   margin-left: 0.2em;
 }
 
 #listing.list .item.header {
   display: flex !important;
-  background: var(--background);
+  width: 100%;
+  margin: 0 0 0.375em;
+  background: transparent;
   z-index: 999;
-  padding: 0.85em;
+  padding: 0.85em 1.375em;
   border: 0;
-  border-bottom: 1px solid var(--borderPrimary);
+  border-bottom: 1px solid var(--divider);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: default;
+}
+
+#listing.list .item.header p {
+  cursor: pointer;
+  transition: color 0.2s ease-out;
+}
+
+#listing.list .item.header p:hover {
+  color: var(--textSecondary);
 }
 
 #listing.list .item.header > div {
@@ -236,7 +303,7 @@ html[dir="rtl"] #listing {
 }
 
 #listing.list .name {
-  font-weight: normal;
+  font-weight: 500;
   word-wrap: break-word;
   word-break: break-all;
   white-space: pre-wrap;
@@ -257,7 +324,7 @@ html[dir="rtl"] #listing {
 }
 
 #listing.list .item.header .active {
-  font-weight: bold;
+  color: var(--primary-text);
 }
 
 #listing #multiple-selection {
@@ -266,18 +333,24 @@ html[dir="rtl"] #listing {
   left: 0;
   z-index: 99999;
   width: 100%;
-  background-color: var(--blue);
+  background: var(--gradient-primary);
   height: 4em;
   padding: 0.5em 0.5em 0.5em 1em;
   justify-content: space-between;
-  transition: 0.2s ease bottom;
+  transition: 0.25s var(--ease-out) bottom;
 }
 
 #listing #multiple-selection.active {
   bottom: 0;
+  box-shadow: 0 -8px 24px -8px rgba(79, 70, 229, 0.45);
 }
 
 #listing #multiple-selection p,
 #listing #multiple-selection i {
-  color: var(--iconSecondary);
+  color: #fff;
+  font-weight: 600;
+}
+
+#listing #multiple-selection .action:hover {
+  background: rgba(255, 255, 255, 0.16);
 }

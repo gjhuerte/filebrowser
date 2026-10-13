@@ -12,24 +12,29 @@
 }
 
 .share__box {
-  box-shadow:
-    rgba(0, 0, 0, 0.06) 0px 1px 3px,
-    rgba(0, 0, 0, 0.12) 0px 1px 2px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-card);
   background: var(--surfacePrimary);
   color: var(--textPrimary);
-  border-radius: 0.2em;
-  margin: 5px;
+  border-radius: var(--radius-card);
+  margin: 0.5em;
   overflow: hidden;
 }
 
 .share__box__header {
-  padding: 1em;
+  padding: 1.25em 1em;
   text-align: center;
+  color: var(--textSecondary);
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .share__box__icon i {
-  font-size: 10em;
-  color: #40c4ff;
+  font-size: 8em;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .share__box__center {
@@ -41,8 +46,8 @@
 }
 
 .share__box__element {
-  padding: 1em;
-  border-top: 1px solid var(--borderPrimary);
+  padding: 1em 1.25em;
+  border-top: 1px solid var(--divider);
   word-break: break-all;
 }
 
@@ -77,9 +82,14 @@
 }
 
 .share__wrong__password {
-  background: var(--red);
-  color: #fff;
-  padding: 0.5em;
+  margin-bottom: 0.75em;
+  padding: 0.625em 0.875em;
+  color: var(--danger-text);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-control);
+  font-size: 0.875rem;
+  font-weight: 500;
   text-align: center;
-  animation: 0.2s opac forwards;
+  animation: fade-in 0.2s ease-out both;
 }

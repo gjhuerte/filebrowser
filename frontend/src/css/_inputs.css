@@ -1,27 +1,45 @@
 .input {
-  background: var(--surfacePrimary);
-  color: var(--textSecondary);
-  border: 1px solid var(--borderPrimary);
-  border-radius: 0.1em;
-  padding: 0.5em 1em;
-  transition: 0.2s ease all;
   margin: 0;
+  padding: 0.625em 0.875em;
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--textSecondary);
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--radius-control);
+  transition:
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out;
 }
 
-.input:hover,
-.input:focus {
+.input::placeholder {
+  color: var(--textPrimary);
+  opacity: 1;
+}
+
+.input:hover {
   border-color: var(--borderSecondary);
 }
 
+.input:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow:
+    0 0 0 1px var(--surfacePrimary),
+    0 0 0 3px var(--ring);
+}
+
 .input--block {
-  margin-bottom: 0.5em;
+  margin-bottom: 0.75em;
   display: block;
   width: 100%;
 }
 
 .input--textarea {
-  line-height: 1.15;
-  font-family: monospace;
+  line-height: 1.5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.875rem;
   min-height: 10em;
   resize: vertical;
 }
@@ -32,4 +50,21 @@
 
 .input--green {
   background: var(--input-green) !important;
+}
+
+input[type="checkbox"],
+input[type="radio"],
+progress {
+  accent-color: var(--primary);
+}
+
+.card-content input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0 0.5em 0 0;
+  vertical-align: -0.15em;
+}
+
+html[dir="rtl"] .card-content input[type="checkbox"] {
+  margin: 0 0 0 0.5em;
 }

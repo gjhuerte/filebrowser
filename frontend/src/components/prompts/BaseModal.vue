@@ -41,7 +41,8 @@ window.addEventListener("keydown", (event) => {
 #modal-background {
   position: fixed;
   inset: 0;
-  background-color: #00000096;
+  background-color: var(--scrim);
+  backdrop-filter: blur(3px);
   display: flex;
   justify-content: center;
   align-items: center;

@@ -1,18 +1,36 @@
 .button {
-  outline: 0;
+  margin: 0;
+  padding: 0.625em 1.125em;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #fff;
+  background: var(--gradient-primary);
   border: 0;
-  padding: 0.5em 1em;
-  border-radius: 0.1em;
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-button);
   cursor: pointer;
-  background: var(--blue);
-  color: white;
-  border: 1px solid var(--divider);
-  box-shadow: 0 0 5px var(--divider);
-  transition: 0.1s ease all;
+  transition:
+    transform 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    background-color 0.2s ease-out,
+    color 0.2s ease-out;
 }
 
 .button:hover {
-  background-color: var(--dark-blue);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-button-hover);
+}
+
+.button:active {
+  transform: none;
+  box-shadow: var(--shadow-button);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 .button--block {
@@ -22,34 +40,76 @@
 }
 
 .button--red {
-  background: var(--red);
+  background: var(--danger);
+  box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.3);
+}
+
+.button--red:hover {
+  background: var(--danger-hover);
+  box-shadow: 0 8px 22px -2px rgba(239, 68, 68, 0.4);
 }
 
 .button--blue {
-  background: var(--blue);
+  background: var(--gradient-primary);
+}
+
+/* Flat (text) buttons — used for most dialog and card actions */
+.button--flat,
+.button--flat:hover,
+.button--flat:active {
+  transform: none;
+  box-shadow: none;
 }
 
 .button--flat {
-  color: var(--dark-blue);
+  color: var(--primary-text);
   background: transparent;
-  box-shadow: 0 0 0;
-  border: 0;
-  text-transform: uppercase;
 }
 
 .button--flat:hover {
-  background: var(--surfaceSecondary);
+  background: var(--primary-soft);
 }
 
 .button--flat.button--red {
-  color: var(--dark-red);
+  color: var(--danger-text);
+  background: transparent;
+}
+
+.button--flat.button--red:hover {
+  background: var(--danger-soft);
 }
 
 .button--flat.button--grey {
-  color: #6f6f6f;
+  color: var(--textPrimary);
 }
 
-.button[disabled] {
+.button--flat.button--grey:hover {
+  color: var(--textSecondary);
+  background: var(--surfaceSecondary);
+}
+
+/* In card/dialog footers the confirming flat button gets a tonal fill so
+   it reads as the primary action next to the grey "cancel" button. */
+.card .card-action .button--flat:not(.button--grey) {
+  background: var(--primary-soft);
+}
+
+.card .card-action .button--flat:not(.button--grey):hover {
+  background: var(--primary-soft-strong);
+}
+
+.card .card-action .button--flat.button--red {
+  background: var(--danger-soft);
+}
+
+.card .card-action .button--flat.button--red:hover {
+  background: var(--danger-border);
+}
+
+.button[disabled],
+.button[disabled]:hover {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }

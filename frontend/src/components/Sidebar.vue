@@ -88,7 +88,7 @@
     <div
       class="credits"
       v-if="isFiles && !disableUsedPercentage"
-      style="width: 90%; margin: 2em 2.5em 3em 2.5em"
+      style="margin: 1.5em 1.75em 2em"
     >
       <progress-bar :val="usage.usedPercentage" size="small"></progress-bar>
       <br />

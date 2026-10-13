@@ -24,8 +24,16 @@
   border-radius: 3px !important;
 } */
 
-.link {
-  color: var(--blue);
+.link,
+.card-content a:not(.button) {
+  color: var(--primary-text);
+  font-weight: 500;
+}
+
+.link:hover,
+.card-content a:not(.button):hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 #loading {
@@ -88,7 +96,7 @@ main .spinner .bounce2 {
   border: 0;
   margin: 0;
   color: var(--action);
-  border-radius: 50%;
+  border-radius: 10px;
   background: transparent;
   padding: 0;
   box-shadow: none;
@@ -105,11 +113,12 @@ main .spinner .bounce2 {
 
 .action i {
   padding: 0.4em;
-  transition: 0.1s ease-in-out all;
-  border-radius: 50%;
+  transition: color 0.2s ease-out;
+  border-radius: inherit;
 }
 
 .action:hover {
+  color: var(--primary-text);
   background-color: var(--hover);
 }
 
@@ -131,7 +140,7 @@ main .spinner .bounce2 {
 }
 
 .action ul li:hover {
-  background-color: var(--divider);
+  background-color: var(--hover);
 }
 
 #click-overlay {
@@ -153,16 +162,17 @@ main .spinner .bounce2 {
   position: absolute;
   bottom: 0;
   right: 0;
-  background: var(--blue);
-  color: var(--iconSecondary);
+  background: var(--gradient-primary);
+  color: #fff;
   border-radius: 50%;
   font-size: 0.75em;
   width: 1.8em;
   height: 1.8em;
   text-align: center;
   line-height: 1.55em;
-  font-weight: bold;
-  border: 2px solid var(--borderPrimary);
+  font-weight: 700;
+  border: 2px solid var(--surfacePrimary);
+  box-shadow: 0 0 12px rgba(79, 70, 229, 0.5);
 }
 
 /* PREVIEWER */
@@ -344,6 +354,7 @@ main .spinner .bounce2 {
 
 #editor-container .bar {
   background: var(--surfacePrimary);
+  border-bottom: 1px solid var(--divider);
 }
 
 #editor-container #editor {
@@ -375,9 +386,9 @@ html[dir="rtl"] .breadcrumbs .chevron {
  * * * * * * * * * * * * * * * */
 
 .credits {
-  font-size: 0.6em;
-  margin: 3em 2.5em;
-  color: #a5a5a5;
+  font-size: 0.75em;
+  margin: 2em 1.75em;
+  color: var(--textPrimary);
 }
 
 .credits > span {
@@ -385,10 +396,14 @@ html[dir="rtl"] .breadcrumbs .chevron {
   margin: 0.3em 0;
 }
 
-.credits a,
-.credits a:hover {
+.credits a {
   color: inherit;
   cursor: pointer;
+  transition: color 0.2s ease-out;
+}
+
+.credits a:hover {
+  color: var(--primary-text);
 }
 
 /* * * * * * * * * * * * * * * *
@@ -401,13 +416,24 @@ html[dir="rtl"] .breadcrumbs .chevron {
   }
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* * * * * * * * * * * * * * * *
  *         SETTINGS TUS        *
  * * * * * * * * * * * * * * * */
 
 .tusConditionalSettings input:disabled {
-  background-color: #ddd;
-  color: #999;
+  background-color: var(--surfaceSecondary);
+  color: var(--textPrimary);
   cursor: not-allowed;
 }
 
@@ -426,8 +452,12 @@ html[dir="rtl"] .breadcrumbs .chevron {
 }
 
 .rules input[type="text"] {
-  border: 1px solid#ddd;
-  padding: 0.2rem;
+  font: inherit;
+  color: var(--textSecondary);
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
 }
 
 .rules label {
@@ -460,4 +490,32 @@ html[dir="rtl"] .card-content .small + input {
 html[dir="rtl"] .card.floating .card-content .file-list {
   direction: ltr;
   text-align: left;
+}
+
+/* * * * * * * * * * * * * * * *
+ *            TOASTS           *
+ * * * * * * * * * * * * * * * */
+
+.Vue-Toastification__toast {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-pop);
+}
+
+.Vue-Toastification__toast--default,
+.Vue-Toastification__toast--info {
+  background: var(--gradient-primary);
+}
+
+.Vue-Toastification__toast--success {
+  background: var(--success);
+}
+
+.Vue-Toastification__toast--error {
+  background: var(--danger);
+}
+
+.Vue-Toastification__toast--warning {
+  background: #f59e0b;
 }

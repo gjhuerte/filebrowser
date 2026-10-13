@@ -33,18 +33,19 @@ a {
 }
 
 .dashboard p label {
-  margin-bottom: 0.2em;
+  margin-bottom: 0.375em;
   display: block;
-  font-size: 0.8em;
-  font-weight: 500;
-  color: var(--textPrimary);
+  font-size: 0.875em;
+  font-weight: 600;
+  color: var(--label);
 }
 
 li code,
 p code {
-  background: var(--divider);
-  padding: 0.1em;
-  border-radius: 0.2em;
+  background: var(--surfaceSecondary);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.9em;
 }
 
 .small {
@@ -61,7 +62,7 @@ p code {
 .dashboard #nav .wrapper {
   display: flex;
   flex-grow: 1;
-  border-bottom: 2px solid var(--divider);
+  border-bottom: 1px solid var(--borderPrimary);
 }
 
 html[dir="rtl"] .dashboard #nav .wrapper {
@@ -71,41 +72,44 @@ html[dir="rtl"] .dashboard #nav .wrapper {
 .dashboard #nav ul {
   list-style: none;
   display: flex;
-  color: var(--action);
-  font-weight: 500;
+  color: var(--textPrimary);
+  font-weight: 600;
   padding: 0;
-  margin: 0 0 -2px 0;
-  font-size: 0.8em;
+  margin: 0 0 -1px 0;
+  font-size: 0.875em;
+  gap: 0.25em;
   text-align: center;
   justify-content: left;
 }
 
 .dashboard #nav ul li {
   position: relative;
-  padding: 1.5em 2em;
+  padding: 1.25em 1.25em;
   white-space: nowrap;
-  border-bottom: 2px solid transparent;
-  transition: 0.1s ease-in-out all;
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
+  transition:
+    color 0.2s ease-out,
+    background-color 0.2s ease-out;
 }
 
 .dashboard #nav ul li:hover {
-  background: var(--surfaceSecondary);
+  color: var(--textSecondary);
+  background: var(--hover);
 }
 
 .dashboard #nav ul li.active {
-  border-color: var(--blue);
-  color: var(--blue);
+  color: var(--primary-text);
 }
 
-.dashboard #nav ul li.active::before {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
+.dashboard #nav ul li.active::after {
   content: "";
-  background: var(--blue);
-  opacity: 0.08;
+  position: absolute;
+  left: 0.75em;
+  right: 0.75em;
+  bottom: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--gradient-primary);
 }
 
 .dashboard #nav i {
@@ -119,7 +123,7 @@ table {
 }
 
 table tr {
-  border-bottom: 1px solid var(--iconTertiary);
+  border-bottom: 1px solid var(--divider);
 }
 
 table tr:last-child {
@@ -127,14 +131,26 @@ table tr:last-child {
 }
 
 table th {
-  font-weight: 500;
-  color: var(--textSecondary);
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--textPrimary);
   text-align: left;
 }
 
 table th,
 table td {
-  padding: 0.5em 0;
+  padding: 0.75em 0;
+}
+
+table tbody tr,
+table tr:has(td) {
+  transition: background-color 0.2s ease-out;
+}
+
+table tr:has(td):hover {
+  background: var(--background);
 }
 
 table td.small {
@@ -161,11 +177,9 @@ table tr > *:last-child {
   margin: 0 0 1rem 0;
   background: var(--surfacePrimary);
   color: var(--textSecondary);
-  border-radius: 2px;
-  box-shadow:
-    0 2px 2px 0 rgba(0, 0, 0, 0.14),
-    0 1px 5px 0 rgba(0, 0, 0, 0.12),
-    0 3px 1px -2px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
   overflow: auto;
 }
 
@@ -177,6 +191,8 @@ table tr > *:last-child {
   max-width: 25em;
   width: 90%;
   max-height: 95%;
+  box-shadow: var(--shadow-pop);
+  animation: card-pop 0.25s var(--ease-out) both;
   /* animation-duration: 0.3s;
   animation-fill-mode: forwards; */
 }
@@ -190,8 +206,9 @@ table tr > *:last-child {
 }
 
 .card .card-title {
-  padding: 1.5em 1em 1em;
+  padding: 1.5em 1.5em 1em;
   display: flex;
+  align-items: center;
 }
 
 .card .card-title > *:first-child {
@@ -204,7 +221,7 @@ html[dir="rtl"] .card .card-title > *:first-child {
 }
 
 .card > div {
-  padding: 1em 1em;
+  padding: 1em 1.5em;
 }
 
 .card > div:first-child {
@@ -220,6 +237,10 @@ html[dir="rtl"] .card .card-title > *:first-child {
 }
 
 .card .card-action {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5em;
   text-align: right;
 }
 
@@ -233,19 +254,26 @@ body.rtl .card .card-action {
 }
 
 .card h2 {
-  font-weight: 500;
+  font-size: 1.25em;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
 }
 
 .card h3 {
-  color: var(--textPrimary);
+  color: var(--textSecondary);
   font-size: 1em;
-  font-weight: 500;
-  margin: 2em 0 1em;
+  font-weight: 600;
+  margin: 2em 0 0.75em;
+}
+
+.card-content {
+  line-height: 1.6;
 }
 
 .card-content table {
-  margin: 0 -1em;
-  width: calc(100% + 2em);
+  margin: 0 -1.5em;
+  width: calc(100% + 3em);
 }
 
 .card code {
@@ -277,7 +305,8 @@ body.rtl .card .card-action {
 }
 
 .card#share ul li a {
-  color: var(--blue);
+  color: var(--primary-text);
+  font-weight: 500;
   cursor: pointer;
   margin-right: auto;
 }
@@ -288,9 +317,11 @@ body.rtl .card .card-action {
 
 .card#share ul li input,
 .card#share ul li select {
-  padding: 0.2em;
+  padding: 0.35em 0.5em;
   margin-right: 0.5em;
+  font: inherit;
   border: 1px solid var(--borderPrimary);
+  border-radius: 6px;
 }
 
 .card#share .action.copy-clipboard::after {
@@ -300,10 +331,10 @@ body.rtl .card .card-action {
   width: 150%;
   font-size: 0.6em;
   text-align: center;
-  background: #44a6f5;
-  color: #fff;
+  background: var(--textSecondary);
+  color: var(--surfacePrimary);
   padding: 0.5em 0.2em;
-  border-radius: 0.4em;
+  border-radius: 6px;
   top: -2em;
   transition: 0.1s ease opacity;
   opacity: 0;
@@ -326,7 +357,7 @@ body.rtl .card .card-action {
 }
 
 .overlay {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--scrim);
   position: fixed;
   top: 0;
   left: 0;
@@ -354,24 +385,25 @@ body.rtl .card .card-action {
 .file-list li {
   width: 100%;
   user-select: none;
-  border-radius: 0.2em;
-  padding: 0.3em;
+  border-radius: var(--radius-control);
+  padding: 0.35em 0.5em;
+  transition: background-color 0.15s ease-out;
 }
 
 .file-list li[aria-selected="true"] {
-  background: var(--blue) !important;
-  color: var(--iconSecondary) !important;
-  transition: 0.1s ease all;
+  background: var(--primary-soft-strong) !important;
+  color: var(--primary-text) !important;
+  font-weight: 600;
 }
 
 .file-list li:hover {
-  background: var(--surfaceSecondary);
+  background: var(--hover);
   cursor: pointer;
 }
 
 .file-list li:before {
   content: "folder";
-  color: var(--textPrimary);
+  color: var(--icon-blue);
   vertical-align: middle;
   line-height: 1.4;
   font-family: "Material Icons";
@@ -380,7 +412,7 @@ body.rtl .card .card-action {
 }
 
 .file-list li[aria-selected="true"]:before {
-  color: var(--iconSecondary);
+  color: var(--primary-text);
 }
 
 .help {
@@ -391,6 +423,17 @@ body.rtl .card .card-action {
   padding: 0;
   margin: 1em 0;
   list-style: none;
+}
+
+@keyframes card-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }
 
 @keyframes show {
@@ -431,7 +474,8 @@ body.rtl .card .card-action {
 
 .collapsible > label * {
   margin: 0;
-  color: var(--textPrimary);
+  color: var(--textSecondary);
+  font-weight: 600;
 }
 
 .collapsible > label i {
@@ -476,10 +520,23 @@ body.rtl .card .card-action {
 
 .card .card-action.full .action {
   flex: 1;
-  padding: 2em;
-  border-radius: 0.2em;
+  padding: 1.75em 1em;
+  border-radius: var(--radius-card);
   border: 1px solid var(--borderPrimary);
   text-align: center;
+  transition:
+    transform 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    border-color 0.2s ease-out,
+    background-color 0.2s ease-out;
+}
+
+.card .card-action.full .action:hover {
+  color: var(--textSecondary);
+  background: var(--surfacePrimary);
+  border-color: var(--primary-soft-strong);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
 }
 
 .card .card-action.full .action {
@@ -487,15 +544,21 @@ body.rtl .card .card-action {
 }
 
 .card .card-action.full .action i {
-  display: block;
+  display: grid;
+  place-items: center;
+  width: 2.25em;
+  height: 2.25em;
+  margin: 0 auto 0.5em;
   padding: 0;
-  margin-bottom: 0.25em;
-  font-size: 4em;
+  font-size: 1.75em;
+  color: var(--primary-text);
+  background: var(--primary-soft);
+  border-radius: var(--radius-card);
 }
 
 .card .card-action.full .action .title {
-  font-size: 1.5em;
-  font-weight: 500;
+  font-size: 1em;
+  font-weight: 600;
 }
 
 /*** RTL - Fix disk usage information (in english) ***/
