@@ -119,38 +119,38 @@
   --info-soft: rgba(99, 102, 241, 0.12);
   --info-border: rgba(129, 140, 248, 0.3);
 
-  --label: #cbd5e1; /* slate-300 */
-  --border-card: rgba(148, 163, 184, 0.12);
+  --label: #d4d4d8; /* zinc-300 */
+  --border-card: rgba(255, 255, 255, 0.07);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-card:
-    0 4px 24px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.06);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.7);
   --shadow-card-hover:
-    0 12px 32px -6px rgba(0, 0, 0, 0.6), 0 0 40px -10px rgba(99, 102, 241, 0.3);
+    0 12px 32px -6px rgba(0, 0, 0, 0.8), 0 0 40px -10px rgba(99, 102, 241, 0.3);
   --shadow-pop:
-    0 24px 48px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(148, 163, 184, 0.1);
+    0 24px 48px -12px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08);
   --shadow-logo: 0 10px 28px -6px rgba(99, 102, 241, 0.45);
-  --scrim: rgba(2, 6, 23, 0.7);
+  --scrim: rgba(0, 0, 0, 0.72);
 
-  --moon-grey: #1e293b;
+  --moon-grey: #1f1f23;
 
   --input-red: rgba(239, 68, 68, 0.22);
   --input-green: rgba(16, 185, 129, 0.22);
 
-  --action: #cbd5e1; /* slate-300 */
+  --action: #d4d4d8; /* zinc-300 */
 
-  --background: #020617; /* slate-950 */
-  --surfacePrimary: #0f172a; /* slate-900 */
-  --surfaceSecondary: #1e293b; /* slate-800 */
-  --textPrimary: #94a3b8; /* slate-400 */
-  --textSecondary: #f1f5f9; /* slate-100 */
-  --divider: rgba(148, 163, 184, 0.12);
+  /* Near-black neutrals (zinc) */
+  --background: #09090b; /* zinc-950 */
+  --surfacePrimary: #121214;
+  --surfaceSecondary: #1f1f23;
+  --textPrimary: #a1a1aa; /* zinc-400 */
+  --textSecondary: #f4f4f5; /* zinc-100 */
+  --divider: rgba(255, 255, 255, 0.07);
   --iconPrimary: var(--primary-text);
   --iconSecondary: #ffffff;
-  --iconTertiary: #334155;
-  --hover: rgba(129, 140, 248, 0.12);
-  --borderPrimary: #334155; /* slate-700 */
-  --borderSecondary: #475569; /* slate-600 */
-  --dividerPrimary: rgba(2, 6, 23, 0.5);
-  --dividerSecondary: rgba(15, 23, 42, 0.85);
+  --iconTertiary: #3f3f46;
+  --hover: rgba(255, 255, 255, 0.06);
+  --borderPrimary: #27272a; /* zinc-800 */
+  --borderSecondary: #3f3f46; /* zinc-700 */
+  --dividerPrimary: rgba(0, 0, 0, 0.5);
+  --dividerSecondary: rgba(9, 9, 11, 0.85);
 }
