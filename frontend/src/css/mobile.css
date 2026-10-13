@@ -172,10 +172,6 @@
     transform: translateX(16em);
   }
 
-  html[dir="rtl"] #nav .wrapper {
-    margin-right: unset;
-  }
-
   html[dir="rtl"] .dashboard .row {
     margin-right: unset;
   }

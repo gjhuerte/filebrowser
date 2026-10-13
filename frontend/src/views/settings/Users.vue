@@ -5,11 +5,10 @@
       <div class="card">
         <div class="card-title">
           <h2>{{ t("settings.users") }}</h2>
-          <router-link to="/settings/users/new"
-            ><button class="button">
-              {{ t("buttons.new") }}
-            </button></router-link
-          >
+          <router-link to="/settings/users/new" class="button button--icon">
+            <i class="material-icons" aria-hidden="true">add</i>
+            {{ t("buttons.new") }}
+          </router-link>
         </div>
 
         <div class="card-content full">
@@ -22,15 +21,33 @@
             </tr>
 
             <tr v-for="user in users" :key="user.id">
-              <td>{{ user.username }}</td>
               <td>
-                <i v-if="user.perm.admin" class="material-icons">done</i
-                ><i v-else class="material-icons">close</i>
+                <router-link
+                  :to="'/settings/users/' + user.id"
+                  class="cell-user"
+                >
+                  <span class="avatar" aria-hidden="true">{{
+                    user.username.charAt(0).toUpperCase()
+                  }}</span>
+                  {{ user.username }}
+                </router-link>
               </td>
-              <td>{{ user.scope }}</td>
-              <td class="small">
-                <router-link :to="'/settings/users/' + user.id"
-                  ><i class="material-icons">mode_edit</i></router-link
+              <td>
+                <span v-if="user.perm.admin" class="badge">{{
+                  t("settings.admin")
+                }}</span>
+                <span v-else class="badge badge--muted">—</span>
+              </td>
+              <td>
+                <code>{{ user.scope }}</code>
+              </td>
+              <td class="cell-actions">
+                <router-link
+                  :to="'/settings/users/' + user.id"
+                  class="action"
+                  :aria-label="`${t('settings.user')} ${user.username}`"
+                  :title="`${t('settings.user')} ${user.username}`"
+                  ><i class="material-icons">edit</i></router-link
                 >
               </td>
             </tr>

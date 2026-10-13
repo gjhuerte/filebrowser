@@ -113,3 +113,14 @@
   transform: none;
   box-shadow: none;
 }
+
+/* Button with a leading icon */
+.button--icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+}
+
+.button--icon i {
+  font-size: 1.125rem;
+}

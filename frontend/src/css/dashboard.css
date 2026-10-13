@@ -4,8 +4,9 @@
 
 .dashboard .row {
   display: flex;
-  margin: 0 -0.5em;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 1.5em;
+  margin: 0;
 }
 
 html[dir="rtl"] .dashboard .row {
@@ -13,19 +14,11 @@ html[dir="rtl"] .dashboard .row {
 }
 
 .dashboard .row .column {
-  display: flex;
-  padding: 0 0.5em;
-  width: 50%;
+  width: 100%;
 }
 
 .dashboard .row .column .card {
-  flex-grow: 1;
-}
-
-@media (max-width: 1200px) {
-  .dashboard .row .column {
-    width: 100%;
-  }
+  margin: 0;
 }
 
 a {
@@ -51,70 +44,6 @@ p code {
 .small {
   font-size: 0.8em;
   line-height: 1.5;
-}
-
-.dashboard #nav {
-  display: flex;
-  padding-bottom: 1em;
-  overflow: auto;
-}
-
-.dashboard #nav .wrapper {
-  display: flex;
-  flex-grow: 1;
-  border-bottom: 1px solid var(--borderPrimary);
-}
-
-html[dir="rtl"] .dashboard #nav .wrapper {
-  margin-right: 16em;
-}
-
-.dashboard #nav ul {
-  list-style: none;
-  display: flex;
-  color: var(--textPrimary);
-  font-weight: 600;
-  padding: 0;
-  margin: 0 0 -1px 0;
-  font-size: 0.875em;
-  gap: 0.25em;
-  text-align: center;
-  justify-content: left;
-}
-
-.dashboard #nav ul li {
-  position: relative;
-  padding: 1.25em 1.25em;
-  white-space: nowrap;
-  border-radius: var(--radius-control) var(--radius-control) 0 0;
-  transition:
-    color 0.2s ease-out,
-    background-color 0.2s ease-out;
-}
-
-.dashboard #nav ul li:hover {
-  color: var(--textSecondary);
-  background: var(--hover);
-}
-
-.dashboard #nav ul li.active {
-  color: var(--primary-text);
-}
-
-.dashboard #nav ul li.active::after {
-  content: "";
-  position: absolute;
-  left: 0.75em;
-  right: 0.75em;
-  bottom: 0;
-  height: 3px;
-  border-radius: 3px 3px 0 0;
-  background: var(--gradient-primary);
-}
-
-.dashboard #nav i {
-  font-size: 1em;
-  vertical-align: middle;
 }
 
 table {
@@ -562,7 +491,315 @@ body.rtl .card .card-action {
 }
 
 /*** RTL - Fix disk usage information (in english) ***/
-html[dir="rtl"] .credits {
-  text-align: right;
+html[dir="rtl"] .sidebar__usage-text,
+html[dir="rtl"] .sidebar__credits {
   direction: ltr;
+}
+
+/* * * * * * * * * * * * * * * *
+ *           SETTINGS          *
+ * * * * * * * * * * * * * * * */
+
+.settings {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 2em 0 3em;
+}
+
+.settings__title {
+  margin: 0 0 0.75em;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--textSecondary);
+}
+
+/* Segmented tabs */
+.tabs {
+  display: flex;
+  gap: 0.25em;
+  margin-bottom: 1.5em;
+  padding: 0.25em;
+  background: var(--surfaceSecondary);
+  border-radius: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs__tab {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 0.55em 1em;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--textPrimary);
+  border-radius: var(--radius-control);
+  transition:
+    color 0.2s ease-out,
+    background-color 0.2s ease-out,
+    box-shadow 0.2s ease-out;
+}
+
+.tabs__tab i {
+  font-size: 1.125rem;
+}
+
+.tabs__tab:hover {
+  color: var(--textSecondary);
+}
+
+.tabs__tab--active {
+  font-weight: 600;
+  color: var(--textSecondary);
+  background: var(--surfacePrimary);
+  box-shadow: var(--shadow-sm);
+}
+
+.tabs__tab--active i {
+  color: var(--primary-text);
+}
+
+/* Settings cards */
+.dashboard .card .card-title h2 {
+  font-size: 1.125rem;
+}
+
+.dashboard .card-content > p.small:first-child,
+.dashboard .card-content h3 + p.small {
+  margin-top: 0;
+}
+
+.dashboard .card-content p.small {
+  color: var(--textPrimary);
+  margin-bottom: 1em;
+}
+
+.dashboard .card-content h3 {
+  margin: 1.75em 0 0.375em;
+  padding-top: 1.5em;
+  font-size: 1rem;
+  border-top: 1px solid var(--divider);
+}
+
+.dashboard .card-content p {
+  margin: 0 0 1.25em;
+}
+
+.dashboard .card .card-action {
+  margin-top: 0.5em;
+  padding: 0.875em 1.5em;
+  background: var(--background);
+  border-top: 1px solid var(--divider);
+}
+
+.dashboard .card .card-action .button {
+  font-size: 0.875rem;
+}
+
+.card-action__start {
+  margin-right: auto;
+}
+
+html[dir="rtl"] .card-action__start {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+/* Toggle rows */
+.setting-list {
+  margin: 0 0 1.25em;
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.setting-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.75em 1em;
+  font-size: 0.9375rem;
+  color: var(--textSecondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease-out;
+}
+
+.setting-toggle + .setting-toggle {
+  border-top: 1px solid var(--borderPrimary);
+}
+
+.setting-toggle:hover {
+  background: var(--background);
+}
+
+.setting-toggle:has(input:disabled) {
+  color: var(--textPrimary);
+  cursor: not-allowed;
+}
+
+/* Switch: a styled native checkbox (keeps v-model + keyboard support) */
+.card-content input[type="checkbox"].switch,
+input[type="checkbox"].switch {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 2.25rem;
+  height: 1.25rem;
+  margin: 0;
+  vertical-align: middle;
+  background: var(--borderSecondary);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background 0.2s ease-out;
+}
+
+input[type="checkbox"].switch::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.25rem - 4px);
+  height: calc(1.25rem - 4px);
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.25);
+  transition: transform 0.2s var(--ease-out);
+}
+
+input[type="checkbox"].switch:checked {
+  background: var(--gradient-primary);
+}
+
+input[type="checkbox"].switch:checked::before {
+  transform: translateX(1rem);
+}
+
+html[dir="rtl"] input[type="checkbox"].switch::before {
+  left: auto;
+  right: 2px;
+}
+
+html[dir="rtl"] input[type="checkbox"].switch:checked::before {
+  transform: translateX(-1rem);
+}
+
+input[type="checkbox"].switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[type="checkbox"].switch:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Tables: users & shares */
+.cell-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  font-weight: 600;
+  color: var(--textSecondary);
+}
+
+.cell-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125em 0.625em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--primary-text);
+  background: var(--primary-soft);
+  border-radius: var(--radius-pill);
+}
+
+.badge--muted {
+  color: var(--textPrimary);
+  background: var(--surfaceSecondary);
+}
+
+/* Rules editor */
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin-bottom: 1em;
+}
+
+.rules__row {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+}
+
+.rules__row .input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.rules__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375em;
+  font-size: 0.875rem;
+  color: var(--textPrimary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rules__add {
+  align-self: flex-start;
+  margin-inline-start: -0.5em;
+  padding-inline: 0.5em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+}
+
+.rules__add i {
+  font-size: 1.125rem;
+}
+
+@media (max-width: 736px) {
+  .settings {
+    padding-top: 1.25em;
+  }
+
+  .tabs__tab span {
+    display: none;
+  }
+
+  .rules__row {
+    flex-wrap: wrap;
+  }
+
+  .rules__row .input {
+    flex-basis: 100%;
+  }
+}
+
+.dashboard a.cell-user {
+  color: var(--textSecondary);
+}
+
+.dashboard a.cell-user:hover {
+  color: var(--primary-text);
 }

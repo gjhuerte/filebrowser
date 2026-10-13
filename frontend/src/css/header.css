@@ -325,3 +325,54 @@ html[dir="rtl"] #search .boxes h3 {
   color: inherit !important;
   font-size: 2.5em;
 }
+
+/* Brand block — as wide as the sidebar so the search box lines up with
+   the page content below it */
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.625em;
+  width: 16.5em;
+  min-width: 0;
+  padding-right: 1em;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--textSecondary);
+}
+
+.header__brand img {
+  flex: none;
+  width: 2em;
+  height: 2em;
+  margin: 0;
+}
+
+.header__brand span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Separates selection actions (share, rename…) from general ones */
+.header__divider {
+  display: inline-block;
+  width: 1px;
+  height: 1.5em;
+  margin: 0 0.375em;
+  vertical-align: middle;
+  background: var(--borderPrimary);
+}
+
+@media (max-width: 1024px) {
+  .header__brand {
+    width: 10.5em;
+  }
+}
+
+@media (max-width: 736px) {
+  .header__brand,
+  .header__divider {
+    display: none;
+  }
+}

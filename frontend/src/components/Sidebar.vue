@@ -1,22 +1,35 @@
 <template>
   <div v-show="active" @click="closeHovers" class="overlay"></div>
-  <nav :class="{ active }">
+  <nav :class="{ active }" class="sidebar">
     <template v-if="isLoggedIn">
-      <button @click="toAccountSettings" class="action">
-        <i class="material-icons">person</i>
-        <span>{{ user.username }}</span>
-      </button>
-      <button
-        class="action"
-        @click="toRoot"
-        :aria-label="$t('sidebar.myFiles')"
-        :title="$t('sidebar.myFiles')"
-      >
-        <i class="material-icons">folder</i>
-        <span>{{ $t("sidebar.myFiles") }}</span>
-      </button>
+      <div class="sidebar__section">
+        <button
+          class="action"
+          :class="{ 'action--current': onFiles }"
+          :aria-current="onFiles ? 'page' : undefined"
+          @click="toRoot"
+          :aria-label="$t('sidebar.myFiles')"
+          :title="$t('sidebar.myFiles')"
+        >
+          <i class="material-icons">folder</i>
+          <span>{{ $t("sidebar.myFiles") }}</span>
+        </button>
 
-      <div v-if="user.perm.create">
+        <button
+          v-if="user.perm.admin"
+          class="action"
+          :class="{ 'action--current': onSettings }"
+          :aria-current="onSettings ? 'page' : undefined"
+          @click="toGlobalSettings"
+          :aria-label="$t('sidebar.settings')"
+          :title="$t('sidebar.settings')"
+        >
+          <i class="material-icons">settings</i>
+          <span>{{ $t("sidebar.settings") }}</span>
+        </button>
+      </div>
+
+      <div v-if="user.perm.create" class="sidebar__section">
         <button
           @click="showHover('newDir')"
           class="action"
@@ -37,31 +50,9 @@
           <span>{{ $t("sidebar.newFile") }}</span>
         </button>
       </div>
-
-      <div v-if="user.perm.admin">
-        <button
-          class="action"
-          @click="toGlobalSettings"
-          :aria-label="$t('sidebar.settings')"
-          :title="$t('sidebar.settings')"
-        >
-          <i class="material-icons">settings_applications</i>
-          <span>{{ $t("sidebar.settings") }}</span>
-        </button>
-      </div>
-      <button
-        v-if="canLogout"
-        @click="logout"
-        class="action"
-        id="logout"
-        :aria-label="$t('sidebar.logout')"
-        :title="$t('sidebar.logout')"
-      >
-        <i class="material-icons">exit_to_app</i>
-        <span>{{ $t("sidebar.logout") }}</span>
-      </button>
     </template>
-    <template v-else>
+
+    <div v-else class="sidebar__section">
       <router-link
         v-if="!hideLoginButton"
         class="action"
@@ -69,7 +60,7 @@
         :aria-label="$t('sidebar.login')"
         :title="$t('sidebar.login')"
       >
-        <i class="material-icons">exit_to_app</i>
+        <i class="material-icons">login</i>
         <span>{{ $t("sidebar.login") }}</span>
       </router-link>
 
@@ -83,20 +74,39 @@
         <i class="material-icons">person_add</i>
         <span>{{ $t("sidebar.signup") }}</span>
       </router-link>
-    </template>
-
-    <div
-      class="credits"
-      v-if="isFiles && !disableUsedPercentage"
-      style="margin: 1.5em 1.75em 2em"
-    >
-      <progress-bar :val="usage.usedPercentage" size="small"></progress-bar>
-      <br />
-      {{ $t("sidebar.diskUsed", { used: usage.used, total: usage.total }) }}
     </div>
 
-    <p class="credits">
-      <span>
+    <div class="sidebar__footer">
+      <div v-if="isFiles && !disableUsedPercentage" class="sidebar__usage">
+        <p class="sidebar__usage-text">
+          {{ $t("sidebar.diskUsed", { used: usage.used, total: usage.total }) }}
+        </p>
+        <progress-bar :val="usage.usedPercentage" size="small"></progress-bar>
+      </div>
+
+      <div v-if="isLoggedIn" class="sidebar__account">
+        <button
+          class="sidebar__profile"
+          :class="{ 'sidebar__profile--current': onProfile }"
+          @click="toAccountSettings"
+          :title="$t('settings.profileSettings')"
+        >
+          <span class="avatar" aria-hidden="true">{{ initial }}</span>
+          <span class="sidebar__username">{{ user.username }}</span>
+        </button>
+        <button
+          v-if="canLogout"
+          @click="logout"
+          class="action sidebar__logout"
+          id="logout"
+          :aria-label="$t('sidebar.logout')"
+          :title="$t('sidebar.logout')"
+        >
+          <i class="material-icons">logout</i>
+        </button>
+      </div>
+
+      <p class="sidebar__credits">
         <span v-if="disableExternal">File Browser</span>
         <a
           v-else
@@ -105,12 +115,11 @@
           href="https://github.com/filebrowser/filebrowser"
           >File Browser</a
         >
-        <span> {{ " " }} {{ version }}</span>
-      </span>
-      <span>
-        <a @click="help">{{ $t("sidebar.help") }}</a>
-      </span>
-    </p>
+        <span>{{ version }}</span>
+        <span aria-hidden="true">·</span>
+        <a href="#" @click.prevent="help">{{ $t("sidebar.help") }}</a>
+      </p>
+    </div>
   </nav>
 </template>
 
@@ -161,6 +170,21 @@ export default {
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && (loginPage || logoutPage !== "/login"),
+    onFiles() {
+      return this.$route.path.startsWith("/files");
+    },
+    onSettings() {
+      return (
+        this.$route.path.startsWith("/settings") &&
+        !this.$route.path.startsWith("/settings/profile")
+      );
+    },
+    onProfile() {
+      return this.$route.path.startsWith("/settings/profile");
+    },
+    initial() {
+      return (this.user?.username ?? "?").charAt(0).toUpperCase();
+    },
   },
   methods: {
     ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),

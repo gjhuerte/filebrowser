@@ -1,6 +1,9 @@
 <template>
   <header>
-    <img v-if="showLogo" :src="logoURL" alt="File Browser" />
+    <div v-if="showLogo" class="header__brand">
+      <img :src="logoURL" alt="" />
+      <span>{{ name }}</span>
+    </div>
     <Action
       v-if="showMenu"
       class="menu-button"
@@ -37,7 +40,7 @@
 <script setup lang="ts">
 import { useLayoutStore } from "@/stores/layout";
 
-import { logoURL } from "@/utils/constants";
+import { logoURL, name } from "@/utils/constants";
 
 import Action from "@/components/header/Action.vue";
 import { computed, useSlots } from "vue";

@@ -25,13 +25,13 @@
 } */
 
 .link,
-.card-content a:not(.button) {
+.card-content a:not(.button, .action, .cell-user) {
   color: var(--primary-text);
   font-weight: 500;
 }
 
 .link:hover,
-.card-content a:not(.button):hover {
+.card-content a:not(.button, .action, .cell-user):hover {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -382,31 +382,6 @@ html[dir="rtl"] .breadcrumbs .chevron {
 }
 
 /* * * * * * * * * * * * * * * *
- *            FOOTER           *
- * * * * * * * * * * * * * * * */
-
-.credits {
-  font-size: 0.75em;
-  margin: 2em 1.75em;
-  color: var(--textPrimary);
-}
-
-.credits > span {
-  display: block;
-  margin: 0.3em 0;
-}
-
-.credits a {
-  color: inherit;
-  cursor: pointer;
-  transition: color 0.2s ease-out;
-}
-
-.credits a:hover {
-  color: var(--primary-text);
-}
-
-/* * * * * * * * * * * * * * * *
  *          ANIMATIONS         *
  * * * * * * * * * * * * * * * */
 
@@ -438,39 +413,20 @@ html[dir="rtl"] .breadcrumbs .chevron {
 }
 
 /* * * * * * * * * * * * * * * *
- *         SETTINGS RULES      *
+ *            AVATAR           *
  * * * * * * * * * * * * * * * */
 
-.rules > div {
-  display: flex;
-  align-items: center;
-  margin: 0.5rem 0;
-}
-
-.rules input[type="checkbox"] {
-  margin-right: 0.2rem;
-}
-
-.rules input[type="text"] {
-  font: inherit;
-  color: var(--textSecondary);
-  background: var(--surfacePrimary);
-  border: 1px solid var(--borderPrimary);
-  border-radius: 6px;
-  padding: 0.3rem 0.5rem;
-}
-
-.rules label {
-  margin-right: 0.5rem;
-}
-
-.rules button {
-  margin-left: auto;
-}
-
-.rules button.delete {
-  padding: 0.2rem 0.5rem;
-  margin-left: 0.5rem;
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--gradient-primary);
+  border-radius: 50%;
 }
 
 /* * * * * * * * * * * * * * * *

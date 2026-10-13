@@ -8,26 +8,37 @@
         </div>
 
         <div class="card-content">
-          <p>
-            <input type="checkbox" v-model="settings.signup" />
-            {{ t("settings.allowSignup") }}
-          </p>
+          <div class="setting-list">
+            <label class="setting-toggle">
+              <span>{{ t("settings.allowSignup") }}</span>
+              <input type="checkbox" class="switch" v-model="settings.signup" />
+            </label>
+            <label class="setting-toggle">
+              <span>{{ t("settings.createUserDir") }}</span>
+              <input
+                type="checkbox"
+                class="switch"
+                v-model="settings.createUserDir"
+              />
+            </label>
+            <label class="setting-toggle">
+              <span>{{ t("settings.hideLoginButton") }}</span>
+              <input
+                type="checkbox"
+                class="switch"
+                v-model="settings.hideLoginButton"
+              />
+            </label>
+          </div>
 
           <p>
-            <input type="checkbox" v-model="settings.createUserDir" />
-            {{ t("settings.createUserDir") }}
-          </p>
-
-          <p>
-            <input type="checkbox" v-model="settings.hideLoginButton" />
-            {{ t("settings.hideLoginButton") }}
-          </p>
-
-          <p>
-            <label class="small">{{ t("settings.userHomeBasePath") }}</label>
+            <label for="userHomeBasePath">{{
+              t("settings.userHomeBasePath")
+            }}</label>
             <input
               class="input input--block"
               type="text"
+              id="userHomeBasePath"
               v-model="settings.userHomeBasePath"
             />
           </p>
@@ -75,23 +86,26 @@
             >
           </i18n-t>
 
-          <p>
-            <input
-              type="checkbox"
-              v-model="settings.branding.disableExternal"
-              id="branding-links"
-            />
-            {{ t("settings.disableExternalLinks") }}
-          </p>
-
-          <p>
-            <input
-              type="checkbox"
-              v-model="settings.branding.disableUsedPercentage"
-              id="branding-used-disk"
-            />
-            {{ t("settings.disableUsedDiskPercentage") }}
-          </p>
+          <div class="setting-list">
+            <label class="setting-toggle">
+              <span>{{ t("settings.disableExternalLinks") }}</span>
+              <input
+                type="checkbox"
+                class="switch"
+                v-model="settings.branding.disableExternal"
+                id="branding-links"
+              />
+            </label>
+            <label class="setting-toggle">
+              <span>{{ t("settings.disableUsedDiskPercentage") }}</span>
+              <input
+                type="checkbox"
+                class="switch"
+                v-model="settings.branding.disableUsedPercentage"
+                id="branding-used-disk"
+              />
+            </label>
+          </div>
 
           <p>
             <label for="theme">{{ t("settings.themes.title") }}</label>
@@ -156,11 +170,7 @@
         </div>
 
         <div class="card-action">
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="t('buttons.update')"
-          />
+          <input class="button" type="submit" :value="t('buttons.update')" />
         </div>
       </form>
     </div>
@@ -182,11 +192,7 @@
         </div>
 
         <div class="card-action">
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="t('buttons.update')"
-          />
+          <input class="button" type="submit" :value="t('buttons.update')" />
         </div>
       </form>
     </div>
@@ -234,11 +240,7 @@
         </div>
 
         <div class="card-action">
-          <input
-            class="button button--flat"
-            type="submit"
-            :value="t('buttons.update')"
-          />
+          <input class="button" type="submit" :value="t('buttons.update')" />
         </div>
       </form>
     </div>

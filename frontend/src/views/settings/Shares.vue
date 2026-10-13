@@ -24,10 +24,10 @@
                 <a :href="buildLink(link)" target="_blank">{{ link.path }}</a>
               </td>
               <td>
-                <template v-if="link.expire !== 0">{{
+                <span v-if="link.expire !== 0" class="badge badge--muted">{{
                   humanTime(link.expire)
-                }}</template>
-                <template v-else>{{ t("permanent") }}</template>
+                }}</span>
+                <span v-else class="badge">{{ t("permanent") }}</span>
               </td>
               <td v-if="authStore.user?.perm.admin">{{ link.username }}</td>
               <td class="small">

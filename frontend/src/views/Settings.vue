@@ -2,68 +2,71 @@
   <div class="dashboard">
     <header-bar showMenu showLogo />
 
-    <div id="nav">
-      <div class="wrapper">
-        <ul>
-          <router-link to="/settings/profile"
-            ><li :class="{ active: $route.path === '/settings/profile' }">
-              {{ t("settings.profileSettings") }}
-            </li></router-link
-          >
-          <router-link to="/settings/shares" v-if="user?.perm.share"
-            ><li :class="{ active: $route.path === '/settings/shares' }">
-              {{ t("settings.shareManagement") }}
-            </li></router-link
-          >
-          <router-link to="/settings/global" v-if="user?.perm.admin"
-            ><li :class="{ active: $route.path === '/settings/global' }">
-              {{ t("settings.globalSettings") }}
-            </li></router-link
-          >
-          <router-link to="/settings/users" v-if="user?.perm.admin"
-            ><li
-              :class="{
-                active:
-                  $route.path === '/settings/users' || $route.name === 'User',
-              }"
-            >
-              {{ t("settings.userManagement") }}
-            </li></router-link
-          >
-        </ul>
+    <div class="settings">
+      <h1 class="settings__title">{{ t("sidebar.settings") }}</h1>
+
+      <div class="tabs" role="navigation" :aria-label="t('sidebar.settings')">
+        <router-link
+          to="/settings/profile"
+          class="tabs__tab"
+          :aria-label="t('settings.profileSettings')"
+          :title="t('settings.profileSettings')"
+          :class="{ 'tabs__tab--active': $route.path === '/settings/profile' }"
+        >
+          <i class="material-icons" aria-hidden="true">person</i>
+          <span>{{ t("settings.profileSettings") }}</span>
+        </router-link>
+        <router-link
+          v-if="user?.perm.share"
+          to="/settings/shares"
+          class="tabs__tab"
+          :aria-label="t('settings.shareManagement')"
+          :title="t('settings.shareManagement')"
+          :class="{ 'tabs__tab--active': $route.path === '/settings/shares' }"
+        >
+          <i class="material-icons" aria-hidden="true">share</i>
+          <span>{{ t("settings.shareManagement") }}</span>
+        </router-link>
+        <router-link
+          v-if="user?.perm.admin"
+          to="/settings/global"
+          class="tabs__tab"
+          :aria-label="t('settings.globalSettings')"
+          :title="t('settings.globalSettings')"
+          :class="{ 'tabs__tab--active': $route.path === '/settings/global' }"
+        >
+          <i class="material-icons" aria-hidden="true">tune</i>
+          <span>{{ t("settings.globalSettings") }}</span>
+        </router-link>
+        <router-link
+          v-if="user?.perm.admin"
+          to="/settings/users"
+          class="tabs__tab"
+          :aria-label="t('settings.userManagement')"
+          :title="t('settings.userManagement')"
+          :class="{
+            'tabs__tab--active':
+              $route.path === '/settings/users' || $route.name === 'User',
+          }"
+        >
+          <i class="material-icons" aria-hidden="true">group</i>
+          <span>{{ t("settings.userManagement") }}</span>
+        </router-link>
       </div>
-    </div>
 
-    <div class="card" v-if="user?.perm.admin">
-      <div class="card-title">
-        <h2>{{ t("settings.sunsetTitle") }}</h2>
+      <div v-if="loading">
+        <h2 class="message delayed">
+          <div class="spinner">
+            <div class="bounce1"></div>
+            <div class="bounce2"></div>
+            <div class="bounce3"></div>
+          </div>
+          <span>{{ t("files.loading") }}</span>
+        </h2>
       </div>
 
-      <div class="card-content">
-        <p>{{ t("settings.sunsetBody") }}</p>
-        <p>
-          <a
-            href="https://github.com/filebrowser/filebrowser#security"
-            target="_blank"
-            rel="noopener noreferrer"
-            >{{ t("settings.sunsetLink") }}</a
-          >
-        </p>
-      </div>
+      <router-view></router-view>
     </div>
-
-    <div v-if="loading">
-      <h2 class="message delayed">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
-        <span>{{ t("files.loading") }}</span>
-      </h2>
-    </div>
-
-    <router-view></router-view>
   </div>
 </template>
 

@@ -1,11 +1,9 @@
 <template>
-  <form class="rules small">
-    <div v-for="(rule, index) in rules" :key="index">
-      <input type="checkbox" v-model="rule.regex" /><label>Regex</label>
-      <input type="checkbox" v-model="rule.allow" /><label>Allow</label>
-
+  <div class="rules">
+    <div v-for="(rule, index) in rules" :key="index" class="rules__row">
       <input
         @keypress.enter.prevent
+        class="input"
         type="text"
         v-if="rule.regex"
         v-model="rule.regexp.raw"
@@ -13,23 +11,42 @@
       />
       <input
         @keypress.enter.prevent
+        class="input"
         type="text"
         v-else
         v-model="rule.path"
         :placeholder="$t('settings.insertPath')"
       />
 
-      <button class="button button--red" @click="remove($event, index)">
-        -
+      <label class="rules__option">
+        <input type="checkbox" class="switch" v-model="rule.regex" />
+        Regex
+      </label>
+      <label class="rules__option">
+        <input type="checkbox" class="switch" v-model="rule.allow" />
+        Allow
+      </label>
+
+      <button
+        type="button"
+        class="action"
+        @click="remove($event, index)"
+        :aria-label="$t('buttons.delete')"
+        :title="$t('buttons.delete')"
+      >
+        <i class="material-icons">delete</i>
       </button>
     </div>
 
-    <div>
-      <button class="button" @click="create" default="false">
-        {{ $t("buttons.new") }}
-      </button>
-    </div>
-  </form>
+    <button
+      type="button"
+      class="button button--flat rules__add"
+      @click="create"
+    >
+      <i class="material-icons" aria-hidden="true">add</i>
+      {{ $t("buttons.new") }}
+    </button>
+  </div>
 </template>
 
 <script>

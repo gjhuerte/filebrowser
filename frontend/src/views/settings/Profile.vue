@@ -7,43 +7,67 @@
         </div>
 
         <div class="card-content">
-          <p>
-            <input type="checkbox" name="hideDotfiles" v-model="hideDotfiles" />
-            {{ t("settings.hideDotfiles") }}
-          </p>
-          <p>
-            <input type="checkbox" name="singleClick" v-model="singleClick" />
-            {{ t("settings.singleClick") }}
-          </p>
-          <p>
-            <input
-              type="checkbox"
-              name="redirectAfterCopyMove"
-              v-model="redirectAfterCopyMove"
-            />
-            {{ t("settings.redirectAfterCopyMove") }}
-          </p>
-          <p>
-            <input type="checkbox" name="dateFormat" v-model="dateFormat" />
-            {{ t("settings.setDateFormat") }}
-          </p>
-          <h3>{{ t("settings.language") }}</h3>
-          <languages
-            class="input input--block"
-            v-model:locale="locale"
-          ></languages>
+          <div class="setting-list">
+            <label class="setting-toggle">
+              <span>{{ t("settings.hideDotfiles") }}</span>
+              <input
+                type="checkbox"
+                class="switch"
+                name="hideDotfiles"
+                v-model="hideDotfiles"
+              />
+            </label>
+            <label class="setting-toggle">
+              <span>{{ t("settings.singleClick") }}</span>
+              <input
+                type="checkbox"
+                class="switch"
+                name="singleClick"
+                v-model="singleClick"
+              />
+            </label>
+            <label class="setting-toggle">
+              <span>{{ t("settings.redirectAfterCopyMove") }}</span>
+              <input
+                type="checkbox"
+                class="switch"
+                name="redirectAfterCopyMove"
+                v-model="redirectAfterCopyMove"
+              />
+            </label>
+            <label class="setting-toggle">
+              <span>{{ t("settings.setDateFormat") }}</span>
+              <input
+                type="checkbox"
+                class="switch"
+                name="dateFormat"
+                v-model="dateFormat"
+              />
+            </label>
+          </div>
 
-          <h3>{{ t("settings.aceEditorTheme") }}</h3>
-          <AceEditorTheme
-            class="input input--block"
-            v-model:aceEditorTheme="aceEditorTheme"
-            id="aceTheme"
-          ></AceEditorTheme>
+          <p>
+            <label for="locale">{{ t("settings.language") }}</label>
+            <languages
+              class="input input--block"
+              id="locale"
+              v-model:locale="locale"
+            ></languages>
+          </p>
+
+          <p>
+            <label for="aceTheme">{{ t("settings.aceEditorTheme") }}</label>
+            <AceEditorTheme
+              class="input input--block"
+              v-model:aceEditorTheme="aceEditorTheme"
+              id="aceTheme"
+            ></AceEditorTheme>
+          </p>
         </div>
 
         <div class="card-action">
           <input
-            class="button button--flat"
+            class="button"
             type="submit"
             name="submitProfile"
             :value="t('buttons.update')"
@@ -63,34 +87,48 @@
         </div>
 
         <div class="card-content">
-          <input
-            :class="passwordClass"
-            type="password"
-            :placeholder="t('settings.newPassword')"
-            v-model="password"
-            name="password"
-          />
-          <input
-            :class="passwordClass"
-            type="password"
-            :placeholder="t('settings.newPasswordConfirm')"
-            v-model="passwordConf"
-            name="passwordConf"
-          />
-          <input
-            v-if="isCurrentPasswordRequired"
-            :class="passwordClass"
-            type="password"
-            :placeholder="t('settings.currentPassword')"
-            v-model="currentPassword"
-            name="current_password"
-            autocomplete="current-password"
-          />
+          <p>
+            <label for="newPassword">{{ t("settings.newPassword") }}</label>
+            <input
+              :class="passwordClass"
+              type="password"
+              id="newPassword"
+              v-model="password"
+              name="password"
+              autocomplete="new-password"
+            />
+          </p>
+          <p>
+            <label for="newPasswordConf">{{
+              t("settings.newPasswordConfirm")
+            }}</label>
+            <input
+              :class="passwordClass"
+              type="password"
+              id="newPasswordConf"
+              v-model="passwordConf"
+              name="passwordConf"
+              autocomplete="new-password"
+            />
+          </p>
+          <p v-if="isCurrentPasswordRequired">
+            <label for="currentPassword">{{
+              t("settings.currentPassword")
+            }}</label>
+            <input
+              :class="passwordClass"
+              type="password"
+              id="currentPassword"
+              v-model="currentPassword"
+              name="current_password"
+              autocomplete="current-password"
+            />
+          </p>
         </div>
 
         <div class="card-action">
           <input
-            class="button button--flat"
+            class="button"
             type="submit"
             name="submitPassword"
             :value="t('buttons.update')"

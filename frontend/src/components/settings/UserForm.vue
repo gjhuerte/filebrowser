@@ -32,10 +32,12 @@
         id="scope"
       />
     </p>
-    <p class="small" v-if="displayHomeDirectoryCheckbox">
-      <input type="checkbox" v-model="createUserDirData" />
-      {{ t("settings.createUserHomeDirectory") }}
-    </p>
+    <div class="setting-list" v-if="displayHomeDirectoryCheckbox">
+      <label class="setting-toggle">
+        <span>{{ t("settings.createUserHomeDirectory") }}</span>
+        <input type="checkbox" class="switch" v-model="createUserDirData" />
+      </label>
+    </div>
 
     <p>
       <label for="locale">{{ t("settings.language") }}</label>
@@ -46,14 +48,17 @@
       ></languages>
     </p>
 
-    <p v-if="!isDefault && user.perm">
-      <input
-        type="checkbox"
-        :disabled="user.perm.admin"
-        v-model="user.lockPassword"
-      />
-      {{ t("settings.lockPassword") }}
-    </p>
+    <div class="setting-list" v-if="!isDefault && user.perm">
+      <label class="setting-toggle">
+        <span>{{ t("settings.lockPassword") }}</span>
+        <input
+          type="checkbox"
+          class="switch"
+          :disabled="user.perm.admin"
+          v-model="user.lockPassword"
+        />
+      </label>
+    </div>
 
     <permissions v-model:perm="user.perm" />
     <commands v-if="enableExec" v-model:commands="user.commands" />

@@ -85,23 +85,41 @@ nav {
   left: 0;
   height: calc(100vh - 4em);
   overflow-y: auto;
-  padding: 0.75em 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0.75em;
+  background: var(--surfacePrimary);
+  border-right: 1px solid var(--divider);
 }
 
 html[dir="rtl"] nav {
   left: initial;
   right: 0;
+  border-right: 0;
+  border-left: 1px solid var(--divider);
+}
+
+.sidebar__section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar__section + .sidebar__section {
+  margin-top: 0.75em;
+  padding-top: 0.75em;
+  border-top: 1px solid var(--divider);
 }
 
 nav .action {
   display: flex;
   align-items: center;
   gap: 0.75em;
-  width: calc(100% - 1.5em);
-  margin: 0.125em 0.75em;
-  padding: 0.6em 0.75em;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0 0.75em;
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--action);
   border-radius: var(--radius-control);
@@ -112,17 +130,29 @@ nav .action {
 
 nav .action i {
   padding: 0;
-  font-size: 1.35em;
+  font-size: 1.25rem;
   color: var(--textPrimary);
   transition: color 0.2s ease-out;
 }
 
 nav .action:hover {
-  color: var(--primary-text);
-  background: var(--primary-soft);
+  color: var(--textSecondary);
+  background: var(--surfaceSecondary);
 }
 
 nav .action:hover i {
+  color: var(--textSecondary);
+}
+
+nav .action--current,
+nav .action--current:hover {
+  color: var(--primary-text);
+  background: var(--primary-soft);
+  font-weight: 600;
+}
+
+nav .action--current i,
+nav .action--current:hover i {
   color: var(--primary-text);
 }
 
@@ -135,19 +165,93 @@ html[dir="rtl"] nav .action {
   text-align: right;
 }
 
-nav > div {
-  margin: 0.5em 0.75em;
-  padding-top: 0.5em;
+/* Pinned to the bottom: storage, account, credits */
+.sidebar__footer {
+  margin-top: auto;
+  padding-top: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+
+.sidebar__usage {
+  padding: 0.75em;
+  background: var(--background);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-control);
+}
+
+.sidebar__usage-text {
+  margin: 0 0 0.5em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--textPrimary);
+}
+
+.sidebar__account {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  padding-top: 0.75em;
   border-top: 1px solid var(--divider);
 }
 
-nav > div .action {
-  width: 100%;
-  margin: 0.125em 0;
+.sidebar__profile {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.625em;
+  padding: 0.375em;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--textSecondary);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s ease-out;
 }
 
-nav .action > * {
-  vertical-align: middle;
+.sidebar__profile:hover,
+.sidebar__profile--current {
+  background: var(--surfaceSecondary);
+}
+
+.sidebar__username {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+nav .sidebar__logout {
+  flex: none;
+  width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  justify-content: center;
+}
+
+.sidebar__credits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375em;
+  margin: 0;
+  padding: 0 0.375em;
+  font-size: 0.75rem;
+  color: var(--textPrimary);
+}
+
+.sidebar__credits a {
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.2s ease-out;
+}
+
+.sidebar__credits a:hover {
+  color: var(--primary-text);
 }
 
 /* * * * * * * * * * * * * * * *
@@ -156,7 +260,7 @@ nav .action > * {
 
 main {
   min-height: 1em;
-  margin: 0 1em 1em auto;
+  margin: 0 1.5em 1.5em auto;
   width: calc(100% - 19em);
 }
 

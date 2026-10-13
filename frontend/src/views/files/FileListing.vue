@@ -45,6 +45,11 @@
             :label="t('buttons.delete')"
             show="delete"
           />
+          <span
+            v-if="fileStore.selectedCount > 0"
+            class="header__divider"
+            aria-hidden="true"
+          ></span>
         </template>
 
         <action

@@ -3,43 +3,75 @@
     <h3>{{ $t("settings.permissions") }}</h3>
     <p class="small">{{ $t("settings.permissionsHelp") }}</p>
 
-    <p>
-      <input type="checkbox" v-model="admin" />
-      {{ $t("settings.administrator") }}
-    </p>
-
-    <p>
-      <input type="checkbox" :disabled="admin" v-model="perm.create" />
-      {{ $t("settings.perm.create") }}
-    </p>
-    <p>
-      <input type="checkbox" :disabled="admin" v-model="perm.delete" />
-      {{ $t("settings.perm.delete") }}
-    </p>
-    <p>
-      <input
-        type="checkbox"
-        :disabled="admin || perm.share"
-        v-model="perm.download"
-      />
-      {{ $t("settings.perm.download") }}
-    </p>
-    <p>
-      <input type="checkbox" :disabled="admin" v-model="perm.modify" />
-      {{ $t("settings.perm.modify") }}
-    </p>
-    <p v-if="isExecEnabled">
-      <input type="checkbox" :disabled="admin" v-model="perm.execute" />
-      {{ $t("settings.perm.execute") }}
-    </p>
-    <p>
-      <input type="checkbox" :disabled="admin" v-model="perm.rename" />
-      {{ $t("settings.perm.rename") }}
-    </p>
-    <p>
-      <input type="checkbox" :disabled="admin" v-model="perm.share" />
-      {{ $t("settings.perm.share") }}
-    </p>
+    <div class="setting-list">
+      <label class="setting-toggle">
+        <span>{{ $t("settings.administrator") }}</span>
+        <input type="checkbox" class="switch" v-model="admin" />
+      </label>
+      <label class="setting-toggle">
+        <span>{{ $t("settings.perm.create") }}</span>
+        <input
+          type="checkbox"
+          class="switch"
+          :disabled="admin"
+          v-model="perm.create"
+        />
+      </label>
+      <label class="setting-toggle">
+        <span>{{ $t("settings.perm.delete") }}</span>
+        <input
+          type="checkbox"
+          class="switch"
+          :disabled="admin"
+          v-model="perm.delete"
+        />
+      </label>
+      <label class="setting-toggle">
+        <span>{{ $t("settings.perm.download") }}</span>
+        <input
+          type="checkbox"
+          class="switch"
+          :disabled="admin || perm.share"
+          v-model="perm.download"
+        />
+      </label>
+      <label class="setting-toggle">
+        <span>{{ $t("settings.perm.modify") }}</span>
+        <input
+          type="checkbox"
+          class="switch"
+          :disabled="admin"
+          v-model="perm.modify"
+        />
+      </label>
+      <label class="setting-toggle" v-if="isExecEnabled">
+        <span>{{ $t("settings.perm.execute") }}</span>
+        <input
+          type="checkbox"
+          class="switch"
+          :disabled="admin"
+          v-model="perm.execute"
+        />
+      </label>
+      <label class="setting-toggle">
+        <span>{{ $t("settings.perm.rename") }}</span>
+        <input
+          type="checkbox"
+          class="switch"
+          :disabled="admin"
+          v-model="perm.rename"
+        />
+      </label>
+      <label class="setting-toggle">
+        <span>{{ $t("settings.perm.share") }}</span>
+        <input
+          type="checkbox"
+          class="switch"
+          :disabled="admin"
+          v-model="perm.share"
+        />
+      </label>
+    </div>
   </div>
 </template>
 
