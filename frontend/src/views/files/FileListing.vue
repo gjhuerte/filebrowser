@@ -53,6 +53,28 @@
         </template>
 
         <action
+          v-if="favoriteTarget"
+          :icon="isFavoriteTarget ? 'star' : 'star_border'"
+          :label="
+            isFavoriteTarget
+              ? t('sidebar.removeFavorite')
+              : t('sidebar.addFavorite')
+          "
+          @action="toggleFavorite"
+        />
+        <action
+          v-if="headerButtons.upload"
+          icon="create_new_folder"
+          :label="t('sidebar.newFolder')"
+          show="newDir"
+        />
+        <action
+          v-if="headerButtons.upload"
+          icon="note_add"
+          :label="t('sidebar.newFile')"
+          show="newFile"
+        />
+        <action
           v-if="headerButtons.shell"
           icon="code"
           :label="t('buttons.shell')"
@@ -307,6 +329,16 @@
             @action="download"
             :counter="fileStore.selectedCount"
           />
+          <action
+            v-if="favoriteTarget"
+            :icon="isFavoriteTarget ? 'star' : 'star_border'"
+            :label="
+              isFavoriteTarget
+                ? t('sidebar.removeFavorite')
+                : t('sidebar.addFavorite')
+            "
+            @action="toggleFavorite"
+          />
           <action icon="info" :label="t('buttons.info')" show="info" />
         </context-menu>
 
@@ -349,6 +381,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useClipboardStore } from "@/stores/clipboard";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
+import { useFavoritesStore } from "@/stores/favorites";
 
 import { users, files as api } from "@/api";
 import { enableExec } from "@/utils/constants";
@@ -494,6 +527,40 @@ const headerButtons = computed(() => {
     copy: fileStore.selectedCount > 0 && authStore.user?.perm.create,
   };
 });
+
+const favoritesStore = useFavoritesStore();
+favoritesStore.load();
+
+// What the star action pins: the single selected item, or the current
+// folder when nothing is selected (the root is already under Locations).
+const favoriteTarget = computed(() => {
+  const req = fileStore.req;
+  if (!req) return null;
+  if (fileStore.selectedCount === 1) {
+    const item = req.items.find((i) => i.index === fileStore.selected[0]);
+    if (!item) return null;
+    return {
+      path: item.path,
+      url: item.url,
+      name: item.name,
+      isDir: item.isDir,
+    };
+  }
+  if (fileStore.selectedCount === 0 && req.path !== "/") {
+    return { path: req.path, url: req.url, name: req.name, isDir: true };
+  }
+  return null;
+});
+
+const isFavoriteTarget = computed(() => {
+  return favoriteTarget.value
+    ? favoritesStore.has(favoriteTarget.value.path)
+    : false;
+});
+
+const toggleFavorite = () => {
+  if (favoriteTarget.value) favoritesStore.toggle(favoriteTarget.value);
+};
 
 const isMobile = computed(() => {
   return width.value <= 736;

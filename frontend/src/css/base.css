@@ -84,7 +84,7 @@ nav {
   top: 4em;
   left: 0;
   height: calc(100vh - 4em);
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: 0.75em;
@@ -165,13 +165,126 @@ html[dir="rtl"] nav .action {
   text-align: right;
 }
 
-/* Pinned to the bottom: storage, account, credits */
+/* Home, Favorites and Locations scroll; the footer stays pinned */
+.sidebar__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 -0.75em;
+  padding: 0 0.75em 0.5em;
+  overflow-y: auto;
+}
+
+.sidebar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 1.25em;
+}
+
+.sidebar__heading {
+  margin: 0 0 0.375em;
+  padding: 0 0.75em;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--textPrimary);
+}
+
+.sidebar__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+nav .sidebar__item .action {
+  flex: 1;
+  min-width: 0;
+  padding-inline-end: 2.25em;
+}
+
+.sidebar__remove {
+  position: absolute;
+  inset-inline-end: 0.25em;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  color: var(--textPrimary);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease-out,
+    background-color 0.15s ease-out;
+}
+
+.sidebar__remove i {
+  font-size: 1rem;
+}
+
+.sidebar__item:hover .sidebar__remove,
+.sidebar__remove:focus-visible {
+  opacity: 1;
+}
+
+.sidebar__remove:hover {
+  color: var(--textSecondary);
+  background: var(--surfaceSecondary);
+}
+
+@media (hover: none) {
+  .sidebar__remove {
+    opacity: 0.7;
+  }
+}
+
+.sidebar__empty {
+  margin: 0.125em 0.75em 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--textPrimary);
+}
+
+.sidebar__more {
+  padding: 0.375em 0.75em;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary-text);
+  border-radius: var(--radius-control);
+}
+
+.sidebar__more:hover {
+  background: var(--primary-soft);
+}
+
+/* Pinned to the bottom: admin, tools, storage, account, credits */
 .sidebar__footer {
-  margin-top: auto;
-  padding-top: 1em;
+  flex: none;
+  padding-top: 0.25em;
   display: flex;
   flex-direction: column;
   gap: 0.75em;
+  border-top: 1px solid var(--divider);
+}
+
+.sidebar__footer .sidebar__group {
+  margin-top: 0.5em;
+}
+
+/* Short screens: let the whole sidebar scroll instead */
+@media (max-height: 720px) {
+  nav {
+    overflow-y: auto;
+  }
+
+  .sidebar__main {
+    flex: none;
+    overflow: visible;
+  }
 }
 
 .sidebar__usage {
@@ -181,8 +294,23 @@ html[dir="rtl"] nav .action {
   border-radius: var(--radius-control);
 }
 
-.sidebar__usage-text {
+.sidebar__usage-title {
+  display: flex;
+  align-items: center;
+  gap: 0.375em;
   margin: 0 0 0.5em;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--textSecondary);
+}
+
+.sidebar__usage-title i {
+  font-size: 1rem;
+  color: var(--textPrimary);
+}
+
+.sidebar__usage-text {
+  margin: 0.5em 0 0;
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--textPrimary);

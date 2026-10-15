@@ -2,53 +2,189 @@
   <div v-show="active" @click="closeHovers" class="overlay"></div>
   <nav :class="{ active }" class="sidebar">
     <template v-if="isLoggedIn">
-      <div class="sidebar__section">
-        <button
-          class="action"
-          :class="{ 'action--current': onFiles }"
-          :aria-current="onFiles ? 'page' : undefined"
-          @click="toRoot"
-          :aria-label="$t('sidebar.myFiles')"
-          :title="$t('sidebar.myFiles')"
-        >
-          <i class="material-icons">folder</i>
-          <span>{{ $t("sidebar.myFiles") }}</span>
-        </button>
+      <div class="sidebar__main">
+        <div class="sidebar__section">
+          <router-link
+            to="/home"
+            class="action"
+            :class="{ 'action--current': onHome }"
+            :aria-current="onHome ? 'page' : undefined"
+            @click="closeHovers"
+          >
+            <i class="material-icons">space_dashboard</i>
+            <span>{{ $t("sidebar.home") }}</span>
+          </router-link>
+        </div>
 
-        <button
-          v-if="user.perm.admin"
-          class="action"
-          :class="{ 'action--current': onSettings }"
-          :aria-current="onSettings ? 'page' : undefined"
-          @click="toGlobalSettings"
-          :aria-label="$t('sidebar.settings')"
-          :title="$t('sidebar.settings')"
-        >
-          <i class="material-icons">settings</i>
-          <span>{{ $t("sidebar.settings") }}</span>
-        </button>
+        <!-- Favorites -->
+        <div class="sidebar__group">
+          <p class="sidebar__heading">{{ $t("sidebar.favorites") }}</p>
+          <div v-for="fav in favorites" :key="fav.path" class="sidebar__item">
+            <router-link
+              :to="fav.url"
+              class="action"
+              :class="{ 'action--current': isCurrent(fav.url, true) }"
+              :title="fav.path"
+              @click="closeHovers"
+            >
+              <i class="material-icons">{{
+                fav.isDir ? "folder" : "description"
+              }}</i>
+              <span>{{ fav.name }}</span>
+            </router-link>
+            <button
+              type="button"
+              class="sidebar__remove"
+              :aria-label="`${$t('sidebar.removeFavorite')}: ${fav.name}`"
+              :title="$t('sidebar.removeFavorite')"
+              @click="removeFavorite(fav.path)"
+            >
+              <i class="material-icons" aria-hidden="true">close</i>
+            </button>
+          </div>
+          <p v-if="favorites.length === 0" class="sidebar__empty">
+            {{ $t("sidebar.noFavorites") }}
+          </p>
+        </div>
+
+        <!-- Locations: the root and its top-level folders -->
+        <div class="sidebar__group">
+          <p class="sidebar__heading">{{ $t("sidebar.locations") }}</p>
+          <router-link
+            to="/files/"
+            class="action"
+            :class="{ 'action--current': currentLocation === '/files/' }"
+            @click="closeHovers"
+          >
+            <i class="material-icons">dns</i>
+            <span>{{ $t("sidebar.myFiles") }}</span>
+          </router-link>
+          <router-link
+            v-for="loc in visibleLocations"
+            :key="loc.url"
+            :to="loc.url"
+            class="action"
+            :class="{ 'action--current': currentLocation === loc.url }"
+            :title="loc.name"
+            @click="closeHovers"
+          >
+            <i class="material-icons">folder</i>
+            <span>{{ loc.name }}</span>
+          </router-link>
+          <router-link
+            v-if="locations.length > maxLocations"
+            to="/files/"
+            class="sidebar__more"
+            @click="closeHovers"
+          >
+            {{ $t("sidebar.moreLocations") }} ({{ locations.length }})
+          </router-link>
+        </div>
       </div>
 
-      <div v-if="user.perm.create" class="sidebar__section">
-        <button
-          @click="showHover('newDir')"
-          class="action"
-          :aria-label="$t('sidebar.newFolder')"
-          :title="$t('sidebar.newFolder')"
-        >
-          <i class="material-icons">create_new_folder</i>
-          <span>{{ $t("sidebar.newFolder") }}</span>
-        </button>
+      <div class="sidebar__footer">
+        <!-- Administration -->
+        <div v-if="user.perm.admin || canShare" class="sidebar__group">
+          <p v-if="user.perm.admin" class="sidebar__heading">
+            {{ $t("sidebar.administration") }}
+          </p>
+          <router-link
+            v-if="user.perm.admin"
+            to="/settings/global"
+            class="action"
+            :class="{ 'action--current': onRoute('/settings/global') }"
+            @click="closeHovers"
+          >
+            <i class="material-icons">tune</i>
+            <span>{{ $t("sidebar.systemSettings") }}</span>
+          </router-link>
+          <router-link
+            v-if="user.perm.admin"
+            to="/settings/users"
+            class="action"
+            :class="{ 'action--current': onRoute('/settings/users') }"
+            @click="closeHovers"
+          >
+            <i class="material-icons">group</i>
+            <span>{{ $t("sidebar.users") }}</span>
+          </router-link>
+          <router-link
+            v-if="canShare"
+            to="/settings/shares"
+            class="action"
+            :class="{ 'action--current': onRoute('/settings/shares') }"
+            @click="closeHovers"
+          >
+            <i class="material-icons">link</i>
+            <span>{{ $t("sidebar.sharedLinks") }}</span>
+          </router-link>
+        </div>
 
-        <button
-          @click="showHover('newFile')"
-          class="action"
-          :aria-label="$t('sidebar.newFile')"
-          :title="$t('sidebar.newFile')"
-        >
-          <i class="material-icons">note_add</i>
-          <span>{{ $t("sidebar.newFile") }}</span>
-        </button>
+        <!-- Tools -->
+        <div v-if="canUseShell" class="sidebar__group">
+          <p class="sidebar__heading">{{ $t("sidebar.tools") }}</p>
+          <button
+            type="button"
+            class="action"
+            :class="{ 'action--current': showShell }"
+            :aria-pressed="showShell"
+            @click="openShell"
+          >
+            <i class="material-icons">terminal</i>
+            <span>{{ $t("sidebar.terminal") }}</span>
+          </button>
+        </div>
+
+        <!-- Storage -->
+        <div v-if="!disableUsedPercentage" class="sidebar__usage">
+          <p class="sidebar__usage-title">
+            <i class="material-icons" aria-hidden="true">storage</i>
+            {{ $t("sidebar.storage") }}
+          </p>
+          <progress-bar :val="usage.usedPercentage" size="small"></progress-bar>
+          <p class="sidebar__usage-text">
+            {{
+              $t("sidebar.diskUsed", { used: usage.used, total: usage.total })
+            }}
+          </p>
+        </div>
+
+        <!-- Account -->
+        <div class="sidebar__account">
+          <button
+            class="sidebar__profile"
+            :class="{ 'sidebar__profile--current': onProfile }"
+            @click="toAccountSettings"
+            :title="$t('settings.profileSettings')"
+          >
+            <span class="avatar" aria-hidden="true">{{ initial }}</span>
+            <span class="sidebar__username">{{ user.username }}</span>
+          </button>
+          <button
+            v-if="canLogout"
+            @click="logout"
+            class="action sidebar__logout"
+            id="logout"
+            :aria-label="$t('sidebar.logout')"
+            :title="$t('sidebar.logout')"
+          >
+            <i class="material-icons">logout</i>
+          </button>
+        </div>
+
+        <p class="sidebar__credits">
+          <span v-if="disableExternal">File Browser</span>
+          <a
+            v-else
+            rel="noopener noreferrer"
+            target="_blank"
+            href="https://github.com/filebrowser/filebrowser"
+            >File Browser</a
+          >
+          <span>{{ version }}</span>
+          <span aria-hidden="true">·</span>
+          <a href="#" @click.prevent="help">{{ $t("sidebar.help") }}</a>
+        </p>
       </div>
     </template>
 
@@ -75,51 +211,6 @@
         <span>{{ $t("sidebar.signup") }}</span>
       </router-link>
     </div>
-
-    <div class="sidebar__footer">
-      <div v-if="isFiles && !disableUsedPercentage" class="sidebar__usage">
-        <p class="sidebar__usage-text">
-          {{ $t("sidebar.diskUsed", { used: usage.used, total: usage.total }) }}
-        </p>
-        <progress-bar :val="usage.usedPercentage" size="small"></progress-bar>
-      </div>
-
-      <div v-if="isLoggedIn" class="sidebar__account">
-        <button
-          class="sidebar__profile"
-          :class="{ 'sidebar__profile--current': onProfile }"
-          @click="toAccountSettings"
-          :title="$t('settings.profileSettings')"
-        >
-          <span class="avatar" aria-hidden="true">{{ initial }}</span>
-          <span class="sidebar__username">{{ user.username }}</span>
-        </button>
-        <button
-          v-if="canLogout"
-          @click="logout"
-          class="action sidebar__logout"
-          id="logout"
-          :aria-label="$t('sidebar.logout')"
-          :title="$t('sidebar.logout')"
-        >
-          <i class="material-icons">logout</i>
-        </button>
-      </div>
-
-      <p class="sidebar__credits">
-        <span v-if="disableExternal">File Browser</span>
-        <a
-          v-else
-          rel="noopener noreferrer"
-          target="_blank"
-          href="https://github.com/filebrowser/filebrowser"
-          >File Browser</a
-        >
-        <span>{{ version }}</span>
-        <span aria-hidden="true">·</span>
-        <a href="#" @click.prevent="help">{{ $t("sidebar.help") }}</a>
-      </p>
-    </div>
   </nav>
 </template>
 
@@ -129,6 +220,7 @@ import { mapActions, mapState } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
+import { useFavoritesStore } from "@/stores/favorites";
 
 import * as auth from "@/utils/auth";
 import {
@@ -140,6 +232,7 @@ import {
   noAuth,
   logoutPage,
   loginPage,
+  enableExec,
 } from "@/utils/constants";
 import { files as api } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
@@ -147,11 +240,29 @@ import prettyBytes from "pretty-bytes";
 
 const USAGE_DEFAULT = { used: "0 B", total: "0 B", usedPercentage: 0 };
 
+// Compare router paths regardless of encoding and trailing slash
+const normalizePath = (path) => {
+  let p = path;
+  try {
+    p = decodeURIComponent(path);
+  } catch {
+    // keep as-is if it isn't valid percent-encoding
+  }
+  return p.endsWith("/") ? p : p + "/";
+};
+
 export default {
   name: "sidebar",
   setup() {
-    const usage = reactive(USAGE_DEFAULT);
-    return { usage, usageAbortController: new AbortController() };
+    const usage = reactive({ ...USAGE_DEFAULT });
+    return {
+      usage,
+      usageAbortController: new AbortController(),
+      locationsAbortController: new AbortController(),
+    };
+  },
+  data() {
+    return { locations: [], maxLocations: 6, usageLoaded: false };
   },
   components: {
     ProgressBar,
@@ -159,8 +270,9 @@ export default {
   inject: ["$showError"],
   computed: {
     ...mapState(useAuthStore, ["user", "isLoggedIn"]),
-    ...mapState(useFileStore, ["isFiles", "reload"]),
-    ...mapState(useLayoutStore, ["currentPromptName"]),
+    ...mapState(useFileStore, ["isFiles", "reload", "req"]),
+    ...mapState(useLayoutStore, ["currentPromptName", "showShell"]),
+    ...mapState(useFavoritesStore, { favorites: "items" }),
     active() {
       return this.currentPromptName === "sidebar";
     },
@@ -170,31 +282,51 @@ export default {
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && (loginPage || logoutPage !== "/login"),
-    onFiles() {
-      return this.$route.path.startsWith("/files");
+    canShare() {
+      return !!(this.user?.perm.share && this.user?.perm.download);
     },
-    onSettings() {
-      return (
-        this.$route.path.startsWith("/settings") &&
-        !this.$route.path.startsWith("/settings/profile")
-      );
+    canUseShell() {
+      return enableExec && !!this.user?.perm.execute;
+    },
+    onHome() {
+      return this.$route.path === "/home";
     },
     onProfile() {
       return this.$route.path.startsWith("/settings/profile");
+    },
+    visibleLocations() {
+      return this.locations.slice(0, this.maxLocations);
+    },
+    // The location the current page lives in (longest matching prefix)
+    currentLocation() {
+      if (!this.$route.path.startsWith("/files")) return null;
+      const here = normalizePath(this.$route.path);
+      const match = this.visibleLocations.find((loc) =>
+        here.startsWith(normalizePath(loc.url))
+      );
+      return match ? match.url : "/files/";
     },
     initial() {
       return (this.user?.username ?? "?").charAt(0).toUpperCase();
     },
   },
   methods: {
-    ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
+    ...mapActions(useLayoutStore, ["closeHovers", "showHover", "toggleShell"]),
+    ...mapActions(useFavoritesStore, {
+      loadFavorites: "load",
+      removeFavorite: "remove",
+    }),
+    onRoute(prefix) {
+      return this.$route.path.startsWith(prefix);
+    },
+    isCurrent(url) {
+      return normalizePath(this.$route.path) === normalizePath(url);
+    },
     abortOngoingFetchUsage() {
       this.usageAbortController.abort();
     },
-    async fetchUsage() {
-      const path = this.$route.path.endsWith("/")
-        ? this.$route.path
-        : this.$route.path + "/";
+    async fetchUsage(routePath) {
+      const path = routePath.endsWith("/") ? routePath : routePath + "/";
       let usageStats = USAGE_DEFAULT;
       if (this.disableUsedPercentage) {
         return Object.assign(this.usage, usageStats);
@@ -208,20 +340,38 @@ export default {
           total: prettyBytes(usage.total, { binary: true }),
           usedPercentage: Math.round((usage.used / usage.total) * 100),
         };
+        this.usageLoaded = true;
       } finally {
         return Object.assign(this.usage, usageStats);
       }
     },
-    toRoot() {
-      this.$router.push({ path: "/files" });
+    setLocations(items) {
+      const hideDot = this.user?.hideDotfiles;
+      this.locations = (items || [])
+        .filter((i) => i.isDir && !(hideDot && i.name.startsWith(".")))
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((i) => ({ name: i.name, url: i.url }));
+    },
+    async fetchLocations() {
+      if (!this.isLoggedIn) return;
+      try {
+        this.locationsAbortController.abort();
+        this.locationsAbortController = new AbortController();
+        const root = await api.fetch(
+          "/files/",
+          this.locationsAbortController.signal
+        );
+        this.setLocations(root.items);
+      } catch {
+        // Locations are a convenience; the list simply stays as it was
+      }
+    },
+    openShell() {
+      this.toggleShell();
       this.closeHovers();
     },
     toAccountSettings() {
       this.$router.push({ path: "/settings/profile" });
-      this.closeHovers();
-    },
-    toGlobalSettings() {
-      this.$router.push({ path: "/settings/global" });
       this.closeHovers();
     },
     help() {
@@ -232,15 +382,31 @@ export default {
   watch: {
     $route: {
       handler(to) {
-        if (to.path.includes("/files")) {
-          this.fetchUsage();
+        // Usage reflects the disk of the folder you're in; elsewhere, the root
+        if (to.path.startsWith("/files")) {
+          this.fetchUsage(to.path);
+        } else if (!this.usageLoaded) {
+          this.fetchUsage("/files/");
         }
+      },
+      immediate: true,
+    },
+    // Keep locations fresh whenever the root folder is (re)loaded
+    req(value) {
+      if (value?.isDir && value.path === "/") this.setLocations(value.items);
+    },
+    user: {
+      handler(value) {
+        if (!value) return;
+        this.loadFavorites();
+        this.fetchLocations();
       },
       immediate: true,
     },
   },
   unmounted() {
     this.abortOngoingFetchUsage();
+    this.locationsAbortController.abort();
   },
 };
 </script>

@@ -8,10 +8,12 @@
 @import "./fonts.css";
 @import "./base.css";
 @import "./header.css";
+@import "./search.css";
 @import "./listing.css";
 @import "./listing-icons.css";
 @import "./upload-files.css";
 @import "./dashboard.css";
+@import "./home.css";
 @import "./login.css";
 @import "./mobile.css";
 @import "./epubReader.css";

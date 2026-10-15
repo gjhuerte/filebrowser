@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import Login from "@/views/Login.vue";
 import Layout from "@/views/Layout.vue";
 import Files from "@/views/Files.vue";
+import Home from "@/views/Home.vue";
 import Share from "@/views/Share.vue";
 import Users from "@/views/settings/Users.vue";
 import User from "@/views/settings/User.vue";
@@ -20,6 +21,7 @@ import { login, validateLogin } from "@/utils/auth";
 const titles = {
   Login: "sidebar.login",
   Share: "buttons.share",
+  Home: "sidebar.home",
   Files: "files.files",
   Settings: "sidebar.settings",
   ProfileSettings: "settings.profileSettings",
@@ -46,6 +48,20 @@ const routes = [
         path: ":path*",
         name: "Share",
         component: Share,
+      },
+    ],
+  },
+  {
+    path: "/home",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "Home",
+        component: Home,
       },
     ],
   },
@@ -147,7 +163,7 @@ const routes = [
     path: "/:catchAll(.*)*",
     redirect: (to: RouteLocation) => {
       const catchAll = to.params.catchAll;
-      if (!catchAll) return "/files/";
+      if (!catchAll) return "/home";
       return `/files/${Array.isArray(catchAll) ? catchAll.join("/") : catchAll}`;
     },
   },
@@ -196,7 +212,7 @@ router.beforeResolve(async (to, from) => {
   }
 
   if (to.path.endsWith("/login") && authStore.isLoggedIn) {
-    return { path: "/files/" };
+    return { path: "/home" };
   }
 
   if (to.matched.some((record) => record.meta.requiresAuth)) {

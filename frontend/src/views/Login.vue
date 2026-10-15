@@ -136,7 +136,7 @@ const submit = async (event: Event) => {
   event.preventDefault();
   event.stopPropagation();
 
-  const redirect = (route.query.redirect || "/files/") as string;
+  const redirect = (route.query.redirect || "/home") as string;
 
   let captcha = "";
   if (recaptcha) {
