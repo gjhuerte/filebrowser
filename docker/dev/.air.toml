@@ -3,7 +3,9 @@ root = "."
 tmp_dir = "/tmp/air"
 
 [build]
-  cmd = "go build -o /tmp/air/filebrowser ."
+  # -buildvcs=false: the repo is bind-mounted, and git inside the container
+  # can refuse it (different owner), which made every rebuild fail
+  cmd = "go build -buildvcs=false -o /tmp/air/filebrowser ."
   bin = "/tmp/air/filebrowser"
   args_bin = [
     "--address", "0.0.0.0",

@@ -14,6 +14,7 @@ COPY --from=go /usr/local/go /usr/local/go
 ENV GOPATH=/go \
     PATH=/go/bin:/usr/local/go/bin:$PATH \
     CGO_ENABLED=0 \
+    GOFLAGS=-buildvcs=false \
     COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 RUN apk add --no-cache git && \
