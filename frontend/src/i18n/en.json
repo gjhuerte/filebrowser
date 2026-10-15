@@ -96,7 +96,28 @@
       "semicolon": "Semicolon (;)",
       "both": "Both (,) and (;)"
     },
-    "fileEncoding": "File Encoding"
+    "fileEncoding": "File Encoding",
+    "emptyTitle": "This folder is empty",
+    "emptyText": "Drag files or folders anywhere on this page to upload them, or use the buttons below.",
+    "emptyTextReadOnly": "There's nothing in this folder yet.",
+    "dropToUpload": "Drop to upload here",
+    "uploadFiles": "Upload files",
+    "sharedEmptyTitle": "This shared folder is empty",
+    "sharedEmptyText": "Nothing has been added here yet. Check back later.",
+    "noEncodings": "No matching encodings",
+    "csvEmpty": "Nothing to show",
+    "csvEmptyText": "This CSV file doesn't have any rows yet.",
+    "location": "Current location",
+    "showPath": "Show earlier folders",
+    "folderActions": "Folder actions",
+    "moreActions": "More actions",
+    "selected": "{count} selected | {count} selected",
+    "clearSelection": "Clear selection",
+    "selectAll": "Select all",
+    "view": "View",
+    "viewList": "List",
+    "viewGrid": "Grid",
+    "viewGallery": "Gallery"
   },
   "help": {
     "click": "select file or directory",
@@ -319,7 +340,9 @@
     "userUpdated": "User updated!",
     "username": "Username",
     "users": "Users",
-    "currentPassword": "Your Current Password"
+    "currentPassword": "Your Current Password",
+    "noShares": "No shared links yet",
+    "noSharesText": "Share a file or folder from your files to get a link anyone can open. Your links will show up here."
   },
   "sidebar": {
     "diskUsed": "{used} of {total} used",

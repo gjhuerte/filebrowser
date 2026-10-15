@@ -36,10 +36,9 @@
               name="encoding"
             />
             <div class="encoding-list">
-              <div v-if="encodingList.length == 0" class="message">
-                <i class="material-icons">sentiment_dissatisfied</i>
-                <span>{{ $t("files.lonely") }}</span>
-              </div>
+              <p v-if="encodingList.length == 0" class="encoding-empty">
+                {{ $t("files.noEncodings") }}
+              </p>
               <button
                 v-for="encoding in encodingList"
                 :value="encoding"
@@ -58,10 +57,12 @@
       <i class="material-icons">error</i>
       <p>{{ displayError }}</p>
     </div>
-    <div v-else-if="parsed.headers.length === 0" class="csv-empty">
-      <i class="material-icons">description</i>
-      <p>{{ $t("files.lonely") }}</p>
-    </div>
+    <empty-state
+      v-else-if="parsed.headers.length === 0"
+      icon="table_chart"
+      :title="$t('files.csvEmpty')"
+      :description="$t('files.csvEmptyText')"
+    />
     <div v-else class="csv-table-container" @wheel.stop @touchmove.stop>
       <table class="csv-table">
         <thead>
@@ -97,6 +98,7 @@ import { parse } from "csv-parse/browser/esm";
 import { useI18n } from "vue-i18n";
 import { availableEncodings, decode } from "@/utils/encodings";
 import DropdownModal from "../DropdownModal.vue";
+import EmptyState from "../EmptyState.vue";
 
 const { t } = useI18n({});
 
@@ -182,24 +184,8 @@ watch(selectedEncoding, () => {
 }
 
 .csv-error,
-.csv-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 1rem;
-  color: var(--textPrimary);
-}
-
 .csv-error i,
-.csv-empty i {
-  font-size: 4rem;
-  opacity: 0.5;
-}
-
-.csv-error p,
-.csv-empty p {
+.csv-error p {
   font-size: 1.1rem;
   margin: 0;
 }
@@ -330,6 +316,14 @@ watch(selectedEncoding, () => {
 .csv-info i {
   font-size: 1.2rem;
   color: var(--blue);
+}
+
+.encoding-empty {
+  margin: 0;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--textPrimary);
 }
 
 .encoding-list {

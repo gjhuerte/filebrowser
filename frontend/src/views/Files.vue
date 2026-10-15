@@ -6,7 +6,8 @@
       showLogo
     />
 
-    <breadcrumbs base="/files" />
+    <!-- Folders draw their own breadcrumb bar, with folder actions -->
+    <breadcrumbs v-if="error || currentView !== FileListing" base="/files" />
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentView" :is="currentView"></component>
     <div v-else>

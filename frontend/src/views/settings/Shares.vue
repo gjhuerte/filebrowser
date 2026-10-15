@@ -53,10 +53,18 @@
             </tr>
           </table>
         </div>
-        <h2 class="message" v-else>
-          <i class="material-icons">sentiment_dissatisfied</i>
-          <span>{{ t("files.lonely") }}</span>
-        </h2>
+        <empty-state
+          v-else
+          compact
+          icon="link"
+          :title="t('settings.noShares')"
+          :description="t('settings.noSharesText')"
+        >
+          <router-link to="/files/" class="button button--secondary">
+            <i class="material-icons" aria-hidden="true">folder</i>
+            {{ t("sidebar.myFiles") }}
+          </router-link>
+        </empty-state>
       </div>
     </div>
   </div>
@@ -68,6 +76,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { share as api, users } from "@/api";
 import dayjs from "dayjs";
 import Errors from "@/views/Errors.vue";
+import EmptyState from "@/components/EmptyState.vue";
 import { inject, ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { StatusError } from "@/api/utils";

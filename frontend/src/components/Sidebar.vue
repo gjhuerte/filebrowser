@@ -43,7 +43,8 @@
             </button>
           </div>
           <p v-if="favorites.length === 0" class="sidebar__empty">
-            {{ $t("sidebar.noFavorites") }}
+            <i class="material-icons" aria-hidden="true">star_border</i>
+            <span>{{ $t("sidebar.noFavorites") }}</span>
           </p>
         </div>
 

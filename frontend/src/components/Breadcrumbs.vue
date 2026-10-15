@@ -1,20 +1,51 @@
 <template>
   <div class="breadcrumbs">
-    <component
-      :is="element"
-      :to="base || ''"
-      :aria-label="t('files.home')"
-      :title="t('files.home')"
+    <div
+      class="breadcrumbs__trail"
+      role="navigation"
+      :aria-label="t('files.location')"
     >
-      <i class="material-icons">home</i>
-    </component>
-
-    <span v-for="(link, index) in items" :key="index">
-      <span class="chevron"
-        ><i class="material-icons">keyboard_arrow_right</i></span
-      >
-      <component :is="element" :to="link.url">{{ link.name }}</component>
-    </span>
+      <ol>
+        <li>
+          <component
+            :is="element"
+            :to="base || ''"
+            class="breadcrumbs__home"
+            :class="{ 'breadcrumbs__home--current': items.length === 0 }"
+            :aria-label="t('files.home')"
+            :title="t('files.home')"
+            :aria-current="items.length === 0 ? 'page' : undefined"
+          >
+            <i class="material-icons" aria-hidden="true">home</i>
+          </component>
+        </li>
+        <li v-for="(link, index) in items" :key="link.url">
+          <i class="material-icons chevron" aria-hidden="true">chevron_right</i>
+          <span
+            v-if="index === items.length - 1"
+            class="breadcrumbs__current"
+            aria-current="page"
+            :title="link.name"
+            >{{ link.name }}</span
+          >
+          <component
+            v-else
+            :is="element"
+            :to="link.url"
+            class="breadcrumbs__link"
+            :title="link.collapsed ? t('files.showPath') : link.name"
+          >
+            <i v-if="link.collapsed" class="material-icons" aria-hidden="true"
+              >more_horiz</i
+            >
+            <template v-else>{{ link.name }}</template>
+          </component>
+        </li>
+      </ol>
+    </div>
+    <div v-if="$slots.default" class="breadcrumbs__actions">
+      <slot />
+    </div>
   </div>
 </template>
 
@@ -44,7 +75,7 @@ const items = computed(() => {
     parts.pop();
   }
 
-  const breadcrumbs: BreadCrumb[] = [];
+  const breadcrumbs: (BreadCrumb & { collapsed?: boolean })[] = [];
 
   for (let i = 0; i < parts.length; i++) {
     if (i === 0) {
@@ -65,7 +96,7 @@ const items = computed(() => {
       breadcrumbs.shift();
     }
 
-    breadcrumbs[0].name = "...";
+    breadcrumbs[0].collapsed = true;
   }
 
   return breadcrumbs;
@@ -79,5 +110,3 @@ const element = computed(() => {
   return "router-link";
 });
 </script>
-
-<style></style>

@@ -242,11 +242,31 @@ nav .sidebar__item .action {
   }
 }
 
+/* Favorites hint: a quiet dashed card until something is pinned */
 .sidebar__empty {
-  margin: 0.125em 0.75em 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625em;
+  margin: 0.25em 0.25em 0.125em;
+  padding: 0.75em 0.875em;
   font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--textPrimary);
+  background: var(--background);
+  border: 1px dashed var(--borderPrimary);
+  border-radius: var(--radius-control);
+}
+
+.sidebar__empty i {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 1.125rem;
+  color: var(--primary-text);
+  background: var(--primary-soft);
+  border-radius: 8px;
 }
 
 .sidebar__more {
@@ -392,41 +412,60 @@ main {
   width: calc(100% - 19em);
 }
 
-.breadcrumbs {
-  height: 3em;
-  background: var(--background);
-  border-bottom: 1px solid var(--divider);
-  position: sticky;
-  z-index: 1000;
-  top: 4em;
-  font-size: 0.9375rem;
-  font-weight: 500;
-}
+/* * * * * * * Breadcrumbs: path on the left, folder actions on the right * * * * * * */
 
-.breadcrumbs span,
 .breadcrumbs {
+  position: sticky;
+  top: 4em;
+  z-index: 1000;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  min-height: 3.75em;
+  padding: 0.5em 0;
+  background: var(--background);
+  font-size: 0.9375rem;
+  font-weight: 500;
   color: var(--textPrimary);
+}
+
+.breadcrumbs__trail {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.breadcrumbs__trail ol {
+  display: flex;
+  align-items: center;
+  gap: 0.125em;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.breadcrumbs__trail li {
+  display: flex;
+  align-items: center;
+  gap: 0.125em;
+  min-width: 0;
+}
+
+/* Keep the current folder visible; earlier steps shrink first */
+.breadcrumbs__trail li:last-child {
+  flex-shrink: 0;
+  max-width: 60%;
 }
 
 .breadcrumbs a {
   display: inline-flex;
   align-items: center;
   color: inherit;
+  border-radius: 8px;
   transition:
-    background-color 0.2s ease-out,
-    color 0.2s ease-out;
-  border-radius: 6px;
-}
-
-.breadcrumbs > span:last-child a {
-  color: var(--textSecondary);
-  font-weight: 600;
-}
-
-html[dir="rtl"] .breadcrumbs a {
-  transform: translateX(-16em);
+    background-color 0.15s ease-out,
+    color 0.15s ease-out;
 }
 
 .breadcrumbs a:hover {
@@ -434,17 +473,245 @@ html[dir="rtl"] .breadcrumbs a {
   background-color: var(--primary-soft);
 }
 
-.breadcrumbs > a {
-  padding: 0.25em;
+.breadcrumbs a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
 }
 
-.breadcrumbs span a {
-  padding: 0.25em 0.5em;
+html[dir="rtl"] .breadcrumbs a {
+  transform: translateX(-16em);
 }
 
-.breadcrumbs .chevron i {
+.breadcrumbs__home {
+  justify-content: center;
+  width: 2.25em;
+  height: 2.25em;
+  background: var(--surfacePrimary);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.breadcrumbs__home i {
   font-size: 1.25em;
+}
+
+.breadcrumbs__home--current {
+  color: var(--primary-text) !important;
+}
+
+.breadcrumbs__link,
+.breadcrumbs__current {
+  max-width: 16em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breadcrumbs__link {
+  padding: 0.3125em 0.625em;
+}
+
+.breadcrumbs__link i {
+  font-size: 1.25em;
+}
+
+.breadcrumbs__current {
+  max-width: 100%;
+  padding: 0.3125em 0.625em;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--textSecondary);
+}
+
+.breadcrumbs .chevron {
+  flex: none;
+  font-size: 1.125em;
   color: var(--borderSecondary);
+}
+
+.breadcrumbs__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5em;
+}
+
+/* * * * * * * Folder toolbar (right side of the breadcrumbs) * * * * * * */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+}
+
+.toolbar__btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.25em;
+  height: 2.25em;
+  padding: 0;
+  color: var(--textPrimary);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease-out,
+    color 0.15s ease-out;
+}
+
+.toolbar__btn i {
+  font-size: 1.25em;
+}
+
+.toolbar__btn:hover {
+  color: var(--textSecondary);
+  background: var(--surfaceSecondary);
+}
+
+.toolbar__btn.on {
+  color: var(--primary-text);
+  background: var(--primary-soft);
+}
+
+.toolbar__btn:focus-visible,
+.toolbar__clear:focus-visible,
+.segmented button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+.toolbar__divider {
+  width: 1px;
+  height: 1.5em;
+  margin: 0 0.375em;
+  background: var(--divider);
+}
+
+/* "3 selected  ×" */
+.toolbar__selection {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  height: 2.25em;
+  padding: 0 0.25em 0 0.75em;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--primary-text);
+  background: var(--primary-soft);
+  border-radius: 999px;
+}
+
+.toolbar__clear {
+  display: grid;
+  place-items: center;
+  width: 1.625em;
+  height: 1.625em;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.toolbar__clear:hover {
+  background: var(--primary-soft-strong);
+}
+
+.toolbar__clear i {
+  font-size: 1.125em;
+}
+
+/* List / grid / gallery switch */
+.segmented {
+  display: flex;
+  gap: 2px;
+  margin: 0 0.25em;
+  padding: 3px;
+  background: var(--surfaceSecondary);
+  border-radius: 10px;
+}
+
+.segmented button {
+  display: grid;
+  place-items: center;
+  width: 2em;
+  height: 1.875em;
+  padding: 0;
+  color: var(--textPrimary);
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease-out,
+    color 0.15s ease-out;
+}
+
+.segmented button i {
+  font-size: 1.125em;
+}
+
+.segmented button:hover {
+  color: var(--textSecondary);
+}
+
+.segmented button.on {
+  color: var(--primary-text);
+  background: var(--surfacePrimary);
+  box-shadow: var(--shadow-sm);
+}
+
+.toolbar__upload {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.375em;
+  height: 2.25rem;
+  margin-left: 0.25em;
+  padding: 0 0.875em 0 0.75em;
+  font-size: 0.875rem;
+}
+
+.toolbar__upload i {
+  font-size: 1.25em;
+}
+
+@media (max-width: 736px) {
+  .breadcrumbs {
+    flex-wrap: wrap;
+    gap: 0.25em;
+  }
+
+  .breadcrumbs__actions {
+    width: 100%;
+  }
+
+  /* Let the toolbar scroll sideways instead of wrapping */
+  .toolbar {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .toolbar__upload {
+    margin-left: auto;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 450px) {
+  .toolbar__upload span {
+    display: none;
+  }
+
+  .toolbar__upload {
+    padding: 0 0.5em;
+  }
 }
 
 .files {

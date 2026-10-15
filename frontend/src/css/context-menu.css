@@ -2,7 +2,7 @@
   position: absolute;
   background: var(--surfacePrimary);
   min-width: 200px;
-  max-width: 240px;
+  max-width: 270px;
   padding: 0.375em;
   border: 1px solid var(--border-card);
   border-radius: var(--radius-card);
@@ -45,4 +45,24 @@
 
 .context-menu .action .counter {
   left: 1.75em;
+}
+
+.context-menu__divider {
+  height: 1px;
+  margin: 0.25em 0.375em;
+  background: var(--divider);
+  border: 0;
+}
+
+.context-menu .action--danger,
+.context-menu .action--danger i {
+  color: var(--danger-text);
+}
+
+.context-menu .action--danger:hover {
+  background: var(--danger-soft);
+}
+
+.context-menu .action--danger:hover i {
+  color: var(--danger-text);
 }

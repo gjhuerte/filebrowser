@@ -290,10 +290,12 @@
           v-else-if="req.isDir && req.items.length === 0"
           class="share__box share__box__items"
         >
-          <h2 class="message">
-            <i class="material-icons">sentiment_dissatisfied</i>
-            <span>{{ t("files.lonely") }}</span>
-          </h2>
+          <empty-state
+            compact
+            icon="folder_open"
+            :title="t('files.sharedEmptyTitle')"
+            :description="t('files.sharedEmptyText')"
+          />
         </div>
       </div>
     </div>
@@ -308,6 +310,7 @@ import { Base64 } from "js-base64";
 import { createURL } from "@/api/utils";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
+import EmptyState from "@/components/EmptyState.vue";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
 import QrcodeVue from "qrcode.vue";

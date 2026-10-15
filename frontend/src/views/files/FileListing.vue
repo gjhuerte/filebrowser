@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="file-listing" @contextmenu="onContextMenu">
     <header-bar showMenu showLogo>
       <search />
       <title />
@@ -9,107 +9,149 @@
         :label="t('buttons.search')"
         @action="openSearch()"
       />
+    </header-bar>
 
-      <template #actions>
-        <template v-if="!isMobile">
-          <action
-            v-if="headerButtons.share"
-            icon="share"
-            :label="t('buttons.share')"
-            show="share"
-          />
-          <action
-            v-if="headerButtons.rename"
-            icon="mode_edit"
-            :label="t('buttons.rename')"
-            show="rename"
-          />
-          <action
-            v-if="headerButtons.copy"
-            id="copy-button"
-            icon="content_copy"
-            :label="t('buttons.copyFile')"
-            show="copy"
-          />
-          <action
-            v-if="headerButtons.move"
-            id="move-button"
-            icon="forward"
-            :label="t('buttons.moveFile')"
-            show="move"
-          />
-          <action
-            v-if="headerButtons.delete"
-            id="delete-button"
-            icon="delete"
-            :label="t('buttons.delete')"
-            show="delete"
-          />
-          <span
-            v-if="fileStore.selectedCount > 0"
-            class="header__divider"
-            aria-hidden="true"
-          ></span>
+    <breadcrumbs base="/files">
+      <div
+        class="toolbar"
+        role="toolbar"
+        :aria-label="t('files.folderActions')"
+      >
+        <template v-if="fileStore.selectedCount > 0">
+          <span class="toolbar__selection">
+            {{
+              t(
+                "files.selected",
+                { count: fileStore.selectedCount },
+                fileStore.selectedCount
+              )
+            }}
+            <button
+              type="button"
+              class="toolbar__clear"
+              :aria-label="t('files.clearSelection')"
+              :title="t('files.clearSelection')"
+              @click="fileStore.selected = []"
+            >
+              <i class="material-icons" aria-hidden="true">close</i>
+            </button>
+          </span>
+          <button
+            type="button"
+            class="toolbar__btn"
+            :aria-label="t('files.moreActions')"
+            :title="t('files.moreActions')"
+            @click.stop="openMoreMenu"
+          >
+            <i class="material-icons" aria-hidden="true">more_horiz</i>
+          </button>
+          <span class="toolbar__divider" aria-hidden="true"></span>
         </template>
 
-        <action
-          v-if="favoriteTarget"
-          :icon="isFavoriteTarget ? 'star' : 'star_border'"
-          :label="
-            isFavoriteTarget
+        <button
+          v-if="folderFavorite"
+          type="button"
+          class="toolbar__btn"
+          :class="{ on: isFolderFavorite }"
+          :aria-pressed="isFolderFavorite"
+          :aria-label="
+            isFolderFavorite
               ? t('sidebar.removeFavorite')
               : t('sidebar.addFavorite')
           "
-          @action="toggleFavorite"
-        />
-        <action
+          :title="
+            isFolderFavorite
+              ? t('sidebar.removeFavorite')
+              : t('sidebar.addFavorite')
+          "
+          @click="toggleFolderFavorite"
+        >
+          <i class="material-icons" aria-hidden="true">{{
+            isFolderFavorite ? "star" : "star_border"
+          }}</i>
+        </button>
+        <button
           v-if="headerButtons.upload"
-          icon="create_new_folder"
-          :label="t('sidebar.newFolder')"
-          show="newDir"
-        />
-        <action
+          type="button"
+          class="toolbar__btn"
+          :aria-label="t('sidebar.newFolder')"
+          :title="t('sidebar.newFolder')"
+          @click="layoutStore.showHover('newDir')"
+        >
+          <i class="material-icons" aria-hidden="true">create_new_folder</i>
+        </button>
+        <button
           v-if="headerButtons.upload"
-          icon="note_add"
-          :label="t('sidebar.newFile')"
-          show="newFile"
-        />
-        <action
+          type="button"
+          class="toolbar__btn"
+          :aria-label="t('sidebar.newFile')"
+          :title="t('sidebar.newFile')"
+          @click="layoutStore.showHover('newFile')"
+        >
+          <i class="material-icons" aria-hidden="true">note_add</i>
+        </button>
+        <button
           v-if="headerButtons.shell"
-          icon="code"
-          :label="t('buttons.shell')"
-          @action="layoutStore.toggleShell"
-        />
-        <action
-          :icon="viewIcon"
-          :label="t('buttons.switchView')"
-          @action="switchView"
-        />
-        <action
-          v-if="headerButtons.download"
-          icon="file_download"
-          :label="t('buttons.download')"
-          @action="download"
-          :counter="fileStore.selectedCount"
-        />
-        <action
+          type="button"
+          class="toolbar__btn"
+          :class="{ on: layoutStore.showShell }"
+          :aria-pressed="layoutStore.showShell"
+          :aria-label="t('sidebar.terminal')"
+          :title="t('sidebar.terminal')"
+          @click="layoutStore.toggleShell"
+        >
+          <i class="material-icons" aria-hidden="true">terminal</i>
+        </button>
+        <button
+          type="button"
+          class="toolbar__btn"
+          :class="{ on: fileStore.multiple }"
+          :aria-pressed="fileStore.multiple"
+          :aria-label="t('buttons.selectMultiple')"
+          :title="t('buttons.selectMultiple')"
+          @click="toggleMultipleSelection"
+        >
+          <i class="material-icons" aria-hidden="true">checklist</i>
+        </button>
+        <button
+          type="button"
+          class="toolbar__btn"
+          :aria-label="t('buttons.info')"
+          :title="t('buttons.info')"
+          @click="layoutStore.showHover('info')"
+        >
+          <i class="material-icons" aria-hidden="true">info</i>
+        </button>
+
+        <div class="segmented" role="group" :aria-label="t('files.view')">
+          <button
+            v-for="v in viewModes"
+            :key="v.mode"
+            type="button"
+            :class="{ on: currentViewMode === v.mode }"
+            :aria-pressed="currentViewMode === v.mode"
+            :aria-label="t(v.label)"
+            :title="t(v.label)"
+            @click="setView(v.mode)"
+          >
+            <i class="material-icons" aria-hidden="true">{{ v.icon }}</i>
+          </button>
+        </div>
+
+        <button
           v-if="headerButtons.upload"
-          icon="file_upload"
-          id="upload-button"
-          :label="t('buttons.upload')"
-          @action="uploadFunc"
-        />
-        <action icon="info" :label="t('buttons.info')" show="info" />
-        <action
-          icon="check_circle"
-          :label="t('buttons.selectMultiple')"
-          @action="toggleMultipleSelection"
-        />
-      </template>
-    </header-bar>
+          type="button"
+          class="button toolbar__upload"
+          @click="uploadFunc"
+        >
+          <i class="material-icons" aria-hidden="true">file_upload</i>
+          <span>{{ t("buttons.upload") }}</span>
+        </button>
+      </div>
+    </breadcrumbs>
 
     <div
-      v-if="isMobile"
+      v-if="isMobile && fileStore.selectedCount > 0"
       id="file-selection"
       :class="{
         'file-selection-margin-bottom': fileStore.multiple,
@@ -166,10 +208,35 @@
           (fileStore.req?.numDirs ?? 0) + (fileStore.req?.numFiles ?? 0) == 0
         "
       >
-        <h2 class="message">
-          <i class="material-icons">sentiment_dissatisfied</i>
-          <span>{{ t("files.lonely") }}</span>
-        </h2>
+        <empty-state
+          v-if="headerButtons.upload"
+          icon="create_new_folder"
+          :title="
+            dragCounter > 0 ? t('files.dropToUpload') : t('files.emptyTitle')
+          "
+          :description="t('files.emptyText')"
+          dropzone
+          :active="dragCounter > 0"
+        >
+          <button type="button" class="button" @click="uploadFunc">
+            <i class="material-icons" aria-hidden="true">file_upload</i>
+            {{ t("files.uploadFiles") }}
+          </button>
+          <button
+            type="button"
+            class="button button--secondary"
+            @click="layoutStore.showHover('newDir')"
+          >
+            <i class="material-icons" aria-hidden="true">create_new_folder</i>
+            {{ t("sidebar.newFolder") }}
+          </button>
+        </empty-state>
+        <empty-state
+          v-else
+          icon="folder_open"
+          :title="t('files.emptyTitle')"
+          :description="t('files.emptyTextReadOnly')"
+        />
         <input
           style="display: none"
           type="file"
@@ -242,11 +309,7 @@
         <h2 data-clear-on-click="true" v-if="fileStore.req?.numDirs ?? false">
           {{ t("files.folders") }}
         </h2>
-        <div
-          v-if="fileStore.req?.numDirs ?? false"
-          data-clear-on-click="true"
-          @contextmenu="showContextMenu"
-        >
+        <div v-if="fileStore.req?.numDirs ?? false" data-clear-on-click="true">
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -265,11 +328,7 @@
         <h2 data-clear-on-click="true" v-if="fileStore.req?.numFiles ?? false">
           {{ t("files.files") }}
         </h2>
-        <div
-          v-if="fileStore.req?.numFiles ?? false"
-          data-clear-on-click="true"
-          @contextmenu="showContextMenu"
-        >
+        <div v-if="fileStore.req?.numFiles ?? false" data-clear-on-click="true">
           <item
             v-for="item in files"
             :key="base64(item.name)"
@@ -284,63 +343,6 @@
           >
           </item>
         </div>
-        <context-menu
-          :show="isContextMenuVisible"
-          :pos="contextMenuPos"
-          @hide="hideContextMenu"
-        >
-          <action
-            v-if="headerButtons.share"
-            icon="share"
-            :label="t('buttons.share')"
-            show="share"
-          />
-          <action
-            v-if="headerButtons.rename"
-            icon="mode_edit"
-            :label="t('buttons.rename')"
-            show="rename"
-          />
-          <action
-            v-if="headerButtons.copy"
-            id="copy-button"
-            icon="content_copy"
-            :label="t('buttons.copyFile')"
-            show="copy"
-          />
-          <action
-            v-if="headerButtons.move"
-            id="move-button"
-            icon="forward"
-            :label="t('buttons.moveFile')"
-            show="move"
-          />
-          <action
-            v-if="headerButtons.delete"
-            id="delete-button"
-            icon="delete"
-            :label="t('buttons.delete')"
-            show="delete"
-          />
-          <action
-            v-if="headerButtons.download"
-            icon="file_download"
-            :label="t('buttons.download')"
-            @action="download"
-            :counter="fileStore.selectedCount"
-          />
-          <action
-            v-if="favoriteTarget"
-            :icon="isFavoriteTarget ? 'star' : 'star_border'"
-            :label="
-              isFavoriteTarget
-                ? t('sidebar.removeFavorite')
-                : t('sidebar.addFavorite')
-            "
-            @action="toggleFavorite"
-          />
-          <action icon="info" :label="t('buttons.info')" show="info" />
-        </context-menu>
 
         <input
           style="display: none"
@@ -373,6 +375,104 @@
         </div>
       </div>
     </template>
+
+    <context-menu
+      :show="isContextMenuVisible"
+      :pos="contextMenuPos"
+      @hide="hideContextMenu"
+    >
+      <template v-if="contextMenuMode === 'item'">
+        <action
+          v-if="headerButtons.share"
+          icon="share"
+          :label="t('buttons.share')"
+          show="share"
+        />
+        <action
+          v-if="headerButtons.rename"
+          icon="mode_edit"
+          :label="t('buttons.rename')"
+          show="rename"
+        />
+        <action
+          v-if="headerButtons.copy"
+          icon="content_copy"
+          :label="t('buttons.copyFile')"
+          show="copy"
+        />
+        <action
+          v-if="headerButtons.move"
+          icon="drive_file_move"
+          :label="t('buttons.moveFile')"
+          show="move"
+        />
+        <action
+          v-if="headerButtons.download"
+          icon="file_download"
+          :label="t('buttons.download')"
+          @action="download"
+          :counter="fileStore.selectedCount"
+        />
+        <action
+          v-if="favoriteTarget"
+          :icon="isFavoriteTarget ? 'star' : 'star_border'"
+          :label="
+            isFavoriteTarget
+              ? t('sidebar.removeFavorite')
+              : t('sidebar.addFavorite')
+          "
+          @action="toggleFavorite"
+        />
+        <action icon="info" :label="t('buttons.info')" show="info" />
+        <template v-if="headerButtons.delete">
+          <hr class="context-menu__divider" />
+          <action
+            class="action--danger"
+            icon="delete"
+            :label="t('buttons.delete')"
+            show="delete"
+          />
+        </template>
+      </template>
+
+      <template v-else>
+        <template v-if="headerButtons.upload">
+          <action
+            icon="create_new_folder"
+            :label="t('sidebar.newFolder')"
+            show="newDir"
+          />
+          <action
+            icon="note_add"
+            :label="t('sidebar.newFile')"
+            show="newFile"
+          />
+          <action
+            icon="file_upload"
+            :label="t('buttons.upload')"
+            @action="uploadFunc"
+          />
+          <hr class="context-menu__divider" />
+        </template>
+        <action
+          v-if="(fileStore.req?.items.length ?? 0) > 0"
+          icon="select_all"
+          :label="t('files.selectAll')"
+          @action="selectAll"
+        />
+        <action
+          v-if="folderFavorite"
+          :icon="isFolderFavorite ? 'star' : 'star_border'"
+          :label="
+            isFolderFavorite
+              ? t('sidebar.removeFavorite')
+              : t('sidebar.addFavorite')
+          "
+          @action="toggleFolderFavorite"
+        />
+        <action icon="info" :label="t('buttons.info')" show="info" />
+      </template>
+    </context-menu>
   </div>
 </template>
 
@@ -396,6 +496,8 @@ import Action from "@/components/header/Action.vue";
 import Search from "@/components/Search.vue";
 import Item from "@/components/files/ListingItem.vue";
 import ContextMenu from "@/components/ContextMenu.vue";
+import EmptyState from "@/components/EmptyState.vue";
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import {
   computed,
   inject,
@@ -416,6 +518,8 @@ const dragCounter = ref<number>(0);
 const width = ref<number>(window.innerWidth);
 const itemWeight = ref<number>(0);
 const isContextMenuVisible = ref<boolean>(false);
+// "item": actions for the selection; "folder": actions for this folder
+const contextMenuMode = ref<"item" | "folder">("item");
 const contextMenuPos = ref<{ x: number; y: number }>({ x: 0, y: 0 });
 
 const $showError = inject<IToastError>("$showError")!;
@@ -501,17 +605,6 @@ const modifiedIcon = computed(() => {
   return "arrow_upward";
 });
 
-const viewIcon = computed(() => {
-  const icons = {
-    list: "view_module",
-    mosaic: "grid_view",
-    "mosaic gallery": "view_list",
-  };
-  return authStore.user === null
-    ? icons["list"]
-    : icons[authStore.user.viewMode];
-});
-
 const headerButtons = computed(() => {
   return {
     upload: authStore.user?.perm.create,
@@ -561,6 +654,29 @@ const isFavoriteTarget = computed(() => {
 const toggleFavorite = () => {
   if (favoriteTarget.value) favoritesStore.toggle(favoriteTarget.value);
 };
+
+// The folder being viewed (the root can't be pinned: it's "My files")
+const folderFavorite = computed(() => {
+  const req = fileStore.req;
+  if (!req || req.path === "/") return null;
+  return { path: req.path, url: req.url, name: req.name, isDir: true };
+});
+
+const isFolderFavorite = computed(() =>
+  folderFavorite.value ? favoritesStore.has(folderFavorite.value.path) : false
+);
+
+const toggleFolderFavorite = () => {
+  if (folderFavorite.value) favoritesStore.toggle(folderFavorite.value);
+};
+
+const viewModes: { mode: ViewModeType; icon: string; label: string }[] = [
+  { mode: "list", icon: "view_list", label: "files.viewList" },
+  { mode: "mosaic", icon: "grid_view", label: "files.viewGrid" },
+  { mode: "mosaic gallery", icon: "photo_library", label: "files.viewGallery" },
+];
+
+const currentViewMode = computed(() => authStore.user?.viewMode ?? "list");
 
 const isMobile = computed(() => {
   return width.value <= 736;
@@ -670,20 +786,11 @@ const keyEvent = (event: KeyboardEvent) => {
       break;
     case "a":
       event.preventDefault();
-      for (const file of items.value.files) {
-        if (fileStore.selected.indexOf(file.index) === -1) {
-          fileStore.selected.push(file.index);
-        }
-      }
-      for (const dir of items.value.dirs) {
-        if (fileStore.selected.indexOf(dir.index) === -1) {
-          fileStore.selected.push(dir.index);
-        }
-      }
+      selectAll();
       break;
     case "s":
       event.preventDefault();
-      document.getElementById("download-button")?.click();
+      if (headerButtons.value.download) download();
       break;
   }
 };
@@ -1087,20 +1194,19 @@ const download = () => {
   });
 };
 
-const switchView = async () => {
+const selectAll = () => {
+  for (const item of [...items.value.dirs, ...items.value.files]) {
+    if (fileStore.selected.indexOf(item.index) === -1) {
+      fileStore.selected.push(item.index);
+    }
+  }
+};
+
+const setView = (mode: ViewModeType) => {
   layoutStore.closeHovers();
+  if (authStore.user?.viewMode === mode) return;
 
-  const modes = {
-    list: "mosaic",
-    mosaic: "mosaic gallery",
-    "mosaic gallery": "list",
-  };
-
-  const data = {
-    id: authStore.user?.id,
-    viewMode: (modes[authStore.user?.viewMode ?? "list"] ||
-      "list") as ViewModeType,
-  };
+  const data = { id: authStore.user?.id, viewMode: mode };
 
   users.update(data, ["viewMode"]).catch($showError);
 
@@ -1171,6 +1277,31 @@ const revealPreviousItem = () => {
   return true;
 };
 
+// Right click: on an item, act on the selection; elsewhere, on the folder
+const onContextMenu = (event: MouseEvent) => {
+  const target = event.target as HTMLElement | null;
+  // Keep the browser's own menu for the top bar, path and text fields
+  if (target?.closest("header, .breadcrumbs, input, textarea, .shell")) {
+    return;
+  }
+  const onItem = !!target?.closest(".item:not(.header)");
+  if (!onItem) fileStore.selected = [];
+  contextMenuMode.value =
+    onItem && fileStore.selectedCount > 0 ? "item" : "folder";
+  showContextMenu(event);
+};
+
+// "More" button in the toolbar: the selection menu, under the button
+const openMoreMenu = (event: MouseEvent) => {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  contextMenuMode.value = "item";
+  isContextMenuVisible.value = true;
+  contextMenuPos.value = {
+    x: rect.left,
+    y: rect.bottom + 6 + Math.floor(window.scrollY),
+  };
+};
+
 const showContextMenu = (event: MouseEvent) => {
   event.preventDefault();
   isContextMenuVisible.value = true;
@@ -1194,8 +1325,9 @@ const handleEmptyAreaClick = (e: MouseEvent) => {
 };
 </script>
 <style scoped>
-#listing {
-  min-height: calc(100vh - 8rem);
+/* The whole page area below the toolbar takes right clicks and drops */
+.file-listing {
+  min-height: calc(100vh - 5.5em);
 }
 
 .file-selection-margin-bottom {
