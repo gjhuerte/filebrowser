@@ -458,7 +458,9 @@ main {
   max-width: 60%;
 }
 
-.breadcrumbs a {
+.breadcrumbs a,
+.breadcrumbs__home,
+.breadcrumbs__link {
   display: inline-flex;
   align-items: center;
   color: inherit;
@@ -483,6 +485,7 @@ html[dir="rtl"] .breadcrumbs a {
 }
 
 .breadcrumbs__home {
+  flex: none;
   justify-content: center;
   width: 2.25em;
   height: 2.25em;
