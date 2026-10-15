@@ -414,5 +414,21 @@
       "archives": "Archives",
       "other": "Other"
     }
+  },
+  "shell": {
+    "clear": "Clear output",
+    "closeTab": "Close terminal {n}",
+    "hide": "Hide terminal (Esc)",
+    "inputLabel": "Command",
+    "intro": "Commands run in the folder you're viewing. Only commands your administrator allows will work. Use ↑ and ↓ for history, “clear” to clear, and Esc to hide.",
+    "newTab": "New tab",
+    "placeholder": "Type a command and press Enter",
+    "resize": "Drag to resize",
+    "running": "Running…",
+    "runsIn": "Commands run in {path}",
+    "tabName": "Terminal {n}",
+    "tabs": "Terminal tabs",
+    "title": "Terminal",
+    "waiting": "Waiting for the command to finish…"
   }
 }

@@ -9,7 +9,7 @@ export default function command(
   command: string,
   onmessage: WebSocket["onmessage"],
   onclose: WebSocket["onclose"]
-) {
+): WebSocket {
   url = removePrefix(url);
   url = `${protocol}//${window.location.host}${baseURL}/api/command${url}`;
 
@@ -17,4 +17,5 @@ export default function command(
   conn.onopen = () => conn.send(command);
   conn.onmessage = onmessage;
   conn.onclose = onclose;
+  return conn;
 }
