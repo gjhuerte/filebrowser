@@ -207,7 +207,11 @@
     "skip": "Skip",
     "forbiddenError": "Forbidden Error",
     "currentPassword": "Your password",
-    "currentPasswordMessage": "Enter your password to validate this action."
+    "currentPasswordMessage": "Enter your password to validate this action.",
+    "logoutTitle": "Log out?",
+    "logoutMessage": "You're signed in as {name}. You'll need to sign in again to get back to your files.",
+    "logoutUploading": "An upload is still in progress. Logging out now will stop it.",
+    "logoutConfirm": "Log out"
   },
   "search": {
     "escHint": "Press {key} to close",

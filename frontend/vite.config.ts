@@ -24,6 +24,19 @@ const resolve = {
   },
 };
 
+// Extra domains allowed to open the dev server, e.g. when it sits behind a
+// reverse proxy. Comma-separated; "*" allows any domain.
+// Set VITE_ALLOWED_HOSTS in docker/dev/.env.
+const allowedHosts = (() => {
+  const raw = (process.env.VITE_ALLOWED_HOSTS ?? "").trim();
+  if (raw === "*") return true;
+  const hosts = raw
+    .split(",")
+    .map((h) => h.trim())
+    .filter(Boolean);
+  return hosts.length > 0 ? hosts : undefined;
+})();
+
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
   if (command === "serve") {
@@ -31,6 +44,7 @@ export default defineConfig(({ command }) => {
       plugins,
       resolve,
       server: {
+        allowedHosts,
         proxy: {
           "/api/command": {
             target: "ws://127.0.0.1:8080",

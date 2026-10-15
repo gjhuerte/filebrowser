@@ -39,6 +39,9 @@ services:
     <<: *app
     working_dir: /app/frontend
     command: sh -c "pnpm install --frozen-lockfile && pnpm dev --host 0.0.0.0 --port 5173"
+    environment:
+      # Domains allowed to open the dev server through a reverse proxy
+      VITE_ALLOWED_HOSTS: ${VITE_ALLOWED_HOSTS:-}
     # Share the backend's network so Vite's proxy to 127.0.0.1:8080 just works
     network_mode: service:backend
     depends_on:

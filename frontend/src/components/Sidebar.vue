@@ -163,7 +163,7 @@
           </button>
           <button
             v-if="canLogout"
-            @click="logout"
+            @click="confirmLogout"
             class="action sidebar__logout"
             id="logout"
             :aria-label="$t('sidebar.logout')"
@@ -223,7 +223,6 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { useFavoritesStore } from "@/stores/favorites";
 
-import * as auth from "@/utils/auth";
 import {
   version,
   signup,
@@ -378,7 +377,10 @@ export default {
     help() {
       this.showHover("help");
     },
-    logout: auth.logout,
+    // Ask first; the dialog does the actual logout
+    confirmLogout() {
+      this.showHover("logout");
+    },
   },
   watch: {
     $route: {

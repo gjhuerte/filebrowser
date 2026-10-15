@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
 const emit = defineEmits(["closed"]);
 
@@ -29,12 +29,17 @@ const backgroundClick = (event: Event) => {
   }
 };
 
-window.addEventListener("keydown", (event) => {
+// Esc closes this dialog. The listener lives only while the dialog is open;
+// a leftover one from an earlier dialog would swallow Esc for later ones.
+const onKeydown = (event: KeyboardEvent) => {
   if (event.key === "Escape") {
     event.stopImmediatePropagation();
     emit("closed");
   }
-});
+};
+
+onMounted(() => window.addEventListener("keydown", onKeydown));
+onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 </script>
 
 <style scoped>
