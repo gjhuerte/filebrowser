@@ -524,6 +524,18 @@
     "mute": "Mute",
     "unmute": "Unmute",
     "volume": "Volume",
-    "audioHint": "Space to play or pause · ← → for the previous or next file"
+    "audioHint": "Space to play or pause · ← → for the previous or next file",
+    "modified": "Modified {time}"
+  },
+  "editor": {
+    "tools": "Editor tools",
+    "mode": "Edit or preview",
+    "edit": "Edit",
+    "cut": "Cut",
+    "paste": "Paste",
+    "fontSize": "Font size",
+    "commands": "All commands",
+    "unsaved": "Unsaved changes",
+    "readOnly": "Read-only"
   }
 }

@@ -25,19 +25,6 @@
   z-index: 30;
 }
 
-.previewer__count {
-  flex: none;
-  margin-right: 0.5em;
-  padding: 0.25em 0.625em;
-  border-radius: var(--radius-pill);
-  background: var(--surfaceSecondary);
-  color: var(--textPrimary);
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
 /* Content area below the top bar. PDF, EPUB and CSV viewers handle the
    bar themselves, so they start at the very top. */
 .previewer__stage {
@@ -1048,10 +1035,6 @@
 }
 
 @media (max-width: 450px) {
-  .previewer__count {
-    display: none;
-  }
-
   .previewer__info {
     display: none;
   }

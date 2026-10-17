@@ -1,0 +1,268 @@
+/* * * * * * * * * * * * * * * * * * * * * * *
+ *  FILE HEADER — top bar for previews and   *
+ *  the text editor, plus the editor toolbar *
+ * * * * * * * * * * * * * * * * * * * * * * */
+
+header.file-header {
+  gap: 0.25em;
+  padding: 0.5em 0.75em 0.5em 0.5em;
+}
+
+.file-header__back {
+  margin-right: 0.25em;
+}
+
+/* Type icon + name + meta line */
+.file-header__id {
+  display: flex;
+  flex: 1 1 auto !important;
+  align-items: center;
+  gap: 0.75em;
+  min-width: 0;
+  padding-right: 0.75em;
+}
+
+.file-header__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  background: var(--primary-soft);
+  color: var(--primary-text);
+}
+
+.file-header__icon .material-icons {
+  font-size: 1.375rem;
+}
+
+.file-header__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.file-header__name {
+  margin: 0;
+  overflow: hidden;
+  color: var(--textSecondary);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-header__meta {
+  margin: 0;
+  overflow: hidden;
+  color: var(--textPrimary);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-header__meta > span:not(:first-child):not(.file-header__badge)::before {
+  content: "·";
+  margin: 0 0.4em;
+  opacity: 0.7;
+}
+
+.file-header__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  height: 1.25rem;
+  margin-left: 0.5em;
+  padding: 0 0.5em;
+  border-radius: var(--radius-pill);
+  background: var(--surfaceSecondary);
+  color: var(--textPrimary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.file-header__badge:first-child {
+  margin-left: 0;
+}
+
+.file-header__badge .material-icons {
+  font-size: 0.875rem;
+}
+
+.file-header__badge--warn {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--warning-text);
+}
+
+.file-header__primary {
+  margin-left: 0.5em;
+}
+
+.file-header__primary:disabled {
+  opacity: 0.6;
+}
+
+/* Secondary actions look like the file list toolbar on wide screens;
+   on phones they fold into the ⋮ menu (see mobile.css). */
+@media (min-width: 737px) {
+  .file-header #dropdown {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .file-header #dropdown .action {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 8px;
+    color: var(--textPrimary);
+    transition:
+      background-color 0.15s ease-out,
+      color 0.15s ease-out;
+  }
+
+  .file-header #dropdown .action i {
+    padding: 0;
+    font-size: 1.25rem;
+  }
+
+  .file-header #dropdown .action:hover {
+    color: var(--textSecondary);
+    background: var(--surfaceSecondary);
+  }
+
+  .file-header .header__divider {
+    width: 1px;
+    height: 1.5em;
+    margin: 0 0.375em;
+    background: var(--divider);
+  }
+
+  .file-header #dropdown .action--danger:hover {
+    color: var(--danger-text);
+    background: var(--danger-soft);
+  }
+}
+
+.file-header #dropdown .action:focus-visible,
+.file-header #more:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+@media (max-width: 736px) {
+  header.file-header {
+    padding: 0.5em;
+  }
+
+  .file-header__id {
+    gap: 0.625em;
+    padding-right: 0.25em;
+  }
+
+  .file-header__icon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .file-header__icon .material-icons {
+    font-size: 1.25rem;
+  }
+
+  .file-header #more {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-left: 0.25em;
+    border-radius: 8px;
+    color: var(--textPrimary);
+  }
+
+  .file-header #more i {
+    padding: 0;
+    font-size: 1.25rem;
+  }
+
+  .file-header .header__divider {
+    display: block;
+    height: 1px;
+    margin: 0.25em 0;
+    background: var(--divider);
+  }
+
+  .file-header #dropdown .action--danger,
+  .file-header #dropdown .action--danger i {
+    color: var(--danger-text);
+  }
+
+  .file-header__primary {
+    margin-left: 0.25em;
+  }
+}
+
+@media (max-width: 450px) {
+  .file-header__icon {
+    display: none;
+  }
+}
+
+/* * * * Text editor toolbar (below the header) * * * */
+
+.editor-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 3.25em;
+  padding: 0 0.75em 0 0;
+  background: var(--background);
+  border-bottom: 1px solid var(--divider);
+}
+
+.editor-bar__tools {
+  flex: none;
+  gap: 2px;
+}
+
+.editor-bar .toolbar__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  background: transparent;
+  color: var(--textPrimary);
+}
+
+.editor-bar .segmented {
+  align-items: center;
+}
+
+.editor-bar__size {
+  min-width: 2.75em;
+  color: var(--textSecondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+@media (max-width: 736px) {
+  /* The header already says which folder you're in */
+  .editor-bar .breadcrumbs {
+    display: none;
+  }
+
+  .editor-bar {
+    padding: 0 0.5em;
+  }
+
+  .editor-bar__tools {
+    flex: 1 1 auto;
+  }
+}

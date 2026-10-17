@@ -165,6 +165,7 @@
           <div class="help-list">
             <p>Click on any text file to open it in the <strong>built-in editor</strong>.</p>
             <p>The editor supports <strong>syntax highlighting</strong> for many programming languages.</p>
+            <p>The top bar shows an <strong>Unsaved changes</strong> badge until you save. Markdown files have an <strong>Edit / Preview</strong> switch in the toolbar.</p>
             <p>Press <strong>Ctrl + S</strong> to save your changes.</p>
           </div>
         </div>
@@ -178,6 +179,7 @@
             <p><strong>Images</strong> — Zoom, rotate, and switch to original quality from the toolbar at the bottom. Size and dimensions are shown there too.</p>
             <p><strong>Video</strong> — Built-in player with speed control, subtitles, and picture-in-picture. <strong>FLV</strong> files play too (not on iPhone).</p>
             <p><strong>Audio</strong> — Music player with album art (a <code>cover.jpg</code> or <code>folder.jpg</code> in the same folder), repeat, speed, and it moves on to the next track automatically.</p>
+            <p>The top bar shows the folder, size, position in the folder and when the file was modified. <strong>Download</strong> is on the right; rename, open raw, info and delete sit beside it (in the ⋮ menu on phones).</p>
             <p>While a file downloads you'll see <strong>how much has loaded</strong> — a percentage and size where the server reports it.</p>
             <p><strong>PDF</strong> — In-browser PDF viewer.</p>
             <p><strong>Markdown</strong> — Rendered markdown preview.</p>

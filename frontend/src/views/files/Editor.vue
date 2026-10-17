@@ -1,36 +1,39 @@
 <template>
   <div id="editor-container">
-    <header-bar>
-      <action icon="close" :label="t('buttons.close')" @action="close()" />
-      <title>{{ fileStore.req?.name ?? "" }}</title>
-
-      <action
-        icon="add"
-        @action="increaseFontSize"
-        :label="t('buttons.increaseFontSize')"
-      />
-      <span class="editor-font-size">{{ fontSize }}px</span>
-      <action
-        icon="remove"
-        @action="decreaseFontSize"
-        :label="t('buttons.decreaseFontSize')"
-      />
-
-      <action
-        v-if="authStore.user?.perm.modify"
-        id="save-button"
-        icon="save"
-        :label="t('buttons.save')"
-        @action="save()"
-      />
-
-      <action
-        icon="preview"
-        :label="t('buttons.preview')"
-        @action="preview()"
-        v-show="isMarkdownFile"
-      />
-    </header-bar>
+    <file-header
+      :name="fileStore.req?.name ?? ''"
+      :icon="isMarkdownFile ? 'article' : 'description'"
+      :meta="headerMeta"
+      :close-label="t('buttons.close')"
+      @close="close()"
+    >
+      <template #status>
+        <span v-if="readOnly" class="file-header__badge">
+          <i class="material-icons" aria-hidden="true">lock</i>
+          {{ t("editor.readOnly") }}
+        </span>
+        <span
+          v-else-if="isDirty"
+          class="file-header__badge file-header__badge--warn"
+        >
+          {{ t("editor.unsaved") }}
+        </span>
+      </template>
+      <template v-if="authStore.user?.perm.modify && !readOnly" #primary>
+        <button
+          type="button"
+          id="save-button"
+          class="button toolbar__upload file-header__primary"
+          :disabled="layoutStore.loading"
+          :aria-label="t('buttons.save')"
+          :title="t('buttons.save') + ' (Ctrl+S)'"
+          @click="save()"
+        >
+          <i class="material-icons" aria-hidden="true">save</i>
+          <span>{{ t("buttons.save") }}</span>
+        </button>
+      </template>
+    </file-header>
 
     <!-- preview container -->
     <div class="loading delayed" v-if="layoutStore.loading">
@@ -41,27 +44,113 @@
       </div>
     </div>
     <template v-else>
-      <div class="editor-header">
+      <div class="editor-bar">
         <Breadcrumbs base="/files" noLink />
 
-        <div>
+        <div
+          class="toolbar editor-bar__tools"
+          role="toolbar"
+          :aria-label="t('editor.tools')"
+        >
+          <div
+            v-if="isMarkdownFile"
+            class="segmented"
+            role="group"
+            :aria-label="t('editor.mode')"
+          >
+            <button
+              type="button"
+              :class="{ on: !isPreview }"
+              :aria-pressed="!isPreview"
+              :aria-label="t('editor.edit')"
+              :title="t('editor.edit')"
+              @click="isPreview = false"
+            >
+              <i class="material-icons" aria-hidden="true">edit</i>
+            </button>
+            <button
+              type="button"
+              :class="{ on: isPreview }"
+              :aria-pressed="isPreview"
+              :aria-label="t('buttons.preview')"
+              :title="t('buttons.preview')"
+              @click="isPreview = true"
+            >
+              <i class="material-icons" aria-hidden="true">visibility</i>
+            </button>
+          </div>
+          <span
+            v-if="isMarkdownFile"
+            class="toolbar__divider"
+            aria-hidden="true"
+          ></span>
+
           <button
+            type="button"
+            class="toolbar__btn"
             :disabled="isSelectionEmpty"
+            :aria-label="t('buttons.copy')"
+            :title="t('buttons.copy')"
             @click="executeEditorCommand('copy')"
           >
-            <span><i class="material-icons">content_copy</i></span>
+            <i class="material-icons" aria-hidden="true">content_copy</i>
           </button>
           <button
-            :disabled="isSelectionEmpty"
+            type="button"
+            class="toolbar__btn"
+            :disabled="isSelectionEmpty || readOnly"
+            :aria-label="t('editor.cut')"
+            :title="t('editor.cut')"
             @click="executeEditorCommand('cut')"
           >
-            <span><i class="material-icons">content_cut</i></span>
+            <i class="material-icons" aria-hidden="true">content_cut</i>
           </button>
-          <button @click="executeEditorCommand('paste')">
-            <span><i class="material-icons">content_paste</i></span>
+          <button
+            type="button"
+            class="toolbar__btn"
+            :disabled="readOnly"
+            :aria-label="t('editor.paste')"
+            :title="t('editor.paste')"
+            @click="executeEditorCommand('paste')"
+          >
+            <i class="material-icons" aria-hidden="true">content_paste</i>
           </button>
-          <button @click="executeEditorCommand('openCommandPalette')">
-            <span><i class="material-icons">more_vert</i></span>
+          <span class="toolbar__divider" aria-hidden="true"></span>
+
+          <div
+            class="segmented"
+            role="group"
+            :aria-label="t('editor.fontSize')"
+          >
+            <button
+              type="button"
+              :aria-label="t('buttons.decreaseFontSize')"
+              :title="t('buttons.decreaseFontSize')"
+              @click="decreaseFontSize"
+            >
+              <i class="material-icons" aria-hidden="true">text_decrease</i>
+            </button>
+            <span class="editor-bar__size" aria-live="polite"
+              >{{ fontSize }}px</span
+            >
+            <button
+              type="button"
+              :aria-label="t('buttons.increaseFontSize')"
+              :title="t('buttons.increaseFontSize')"
+              @click="increaseFontSize"
+            >
+              <i class="material-icons" aria-hidden="true">text_increase</i>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            class="toolbar__btn"
+            :aria-label="t('editor.commands')"
+            :title="t('editor.commands') + ' (F1)'"
+            @click="executeEditorCommand('openCommandPalette')"
+          >
+            <i class="material-icons" aria-hidden="true">more_horiz</i>
           </button>
         </div>
       </div>
@@ -87,15 +176,22 @@ import modelist from "ace-builds/src-noconflict/ext-modelist";
 import DOMPurify from "dompurify";
 
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import Action from "@/components/header/Action.vue";
-import HeaderBar from "@/components/header/HeaderBar.vue";
+import FileHeader from "@/components/files/FileHeader.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { getEditorTheme } from "@/utils/theme";
 import { marked } from "marked";
 import markedKatex from "marked-katex-extension";
-import { inject, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watchEffect,
+} from "vue";
+import prettyBytes from "pretty-bytes";
 import { useI18n } from "vue-i18n";
 import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import { read, copy } from "@/utils/clipboard";
@@ -126,6 +222,20 @@ const katexOptions = {
 marked.use(markedKatex(katexOptions));
 
 const isSelectionEmpty = ref(true);
+const isDirty = ref(false);
+const readOnly = computed(() => fileStore.req?.type === "textImmutable");
+
+// "Folder · 4 KiB" under the file name
+const headerMeta = computed(() => {
+  const req = fileStore.req;
+  if (!req) return [];
+  const dirs = route.path.replace(/\/+$/, "").split("/");
+  const folder = decodeURIComponent(dirs[dirs.length - 2] ?? "");
+  return [
+    folder && folder !== "files" ? folder : t("sidebar.myFiles"),
+    prettyBytes(req.size, { binary: true }),
+  ];
+});
 
 const executeEditorCommand = (name: string) => {
   if (name == "paste") {
@@ -222,7 +332,7 @@ const initEditor = (fileContent: string) => {
   editor.value = ace.edit("editor", {
     value: fileContent,
     showPrintMargin: false,
-    readOnly: fileStore.req?.type === "textImmutable",
+    readOnly: readOnly.value,
     theme: getEditorTheme(authStore.user?.aceEditorTheme ?? ""),
     mode: modelist.getModeForPath(fileStore.req!.name).mode,
     wrap: true,
@@ -233,6 +343,13 @@ const initEditor = (fileContent: string) => {
 
   editor.value.setFontSize(fontSize.value);
   editor.value.focus();
+
+  // The undo manager updates just after "change", so check on the next tick
+  editor.value.on("change", () => {
+    setTimeout(() => {
+      isDirty.value = !editor.value?.session.getUndoManager().isClean();
+    });
+  });
 
   const selection = editor.value?.getSelection();
   selection.on("changeSelection", function () {
@@ -273,6 +390,7 @@ const save = async (throwError?: boolean) => {
   try {
     await api.put(route.path, editor.value?.getValue());
     editor.value?.session.getUndoManager().markClean();
+    isDirty.value = false;
     buttons.success(button);
   } catch (e: any) {
     buttons.done(button);
@@ -302,6 +420,7 @@ const close = () => {
       confirm: (event: Event) => {
         event.preventDefault();
         editor.value?.session.getUndoManager().reset();
+        isDirty.value = false;
         finishClose();
       },
       saveAction: async () => {
@@ -320,43 +439,4 @@ const finishClose = () => {
   const uri = url.removeLastDir(route.path) + "/";
   router.push({ path: uri });
 };
-
-const preview = () => {
-  isPreview.value = !isPreview.value;
-};
 </script>
-
-<style scoped>
-.editor-font-size {
-  margin: 0 0.5em;
-  color: var(--fg);
-}
-
-.editor-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.editor-header > div > button {
-  background: transparent;
-  color: var(--action);
-  border: none;
-  outline: none;
-  opacity: 0.8;
-  cursor: pointer;
-}
-
-.editor-header > div > button:hover:not(:disabled) {
-  opacity: 1;
-}
-
-.editor-header > div > button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.editor-header > div > button > span > i {
-  font-size: 1.2rem;
-}
-</style>

@@ -18,6 +18,7 @@ File Browser provides a file managing interface within a specified directory and
 
 ## Recent Updates
 
+- **Preview & Editor Top Bar** — Back button, file type icon, folder/size/position details, and a primary Download or Save button
 - **Media Viewer** — Redesigned image, video, and audio previews that follow the light/dark theme
 - **FLV Playback** — Flash video files play in the browser (remuxed on the fly; not supported on iPhone)
 - **Download Progress** — Loading and buffering indicators with percentage and size

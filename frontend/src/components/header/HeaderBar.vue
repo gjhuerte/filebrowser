@@ -21,6 +21,8 @@
       <slot name="actions" />
     </div>
 
+    <slot name="primary" />
+
     <Action
       v-if="ifActionsSlot"
       id="more"

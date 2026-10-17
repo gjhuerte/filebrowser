@@ -7,21 +7,14 @@
     @mousemove="toggleNavigation"
     @touchstart="toggleNavigation"
   >
-    <header-bar>
-      <action icon="close" :label="$t('buttons.close')" @action="close()" />
-      <title>{{ name }}</title>
-      <span v-if="position" class="previewer__count" aria-hidden="true">{{
-        t("preview.position", position)
-      }}</span>
-
+    <file-header
+      :name="name"
+      :icon="headerIcon"
+      :meta="headerMeta"
+      :close-label="$t('buttons.close')"
+      @close="close()"
+    >
       <template #actions>
-        <action
-          :disabled="layoutStore.loading"
-          v-if="authStore.user?.perm.rename"
-          icon="mode_edit"
-          :label="$t('buttons.rename')"
-          show="rename"
-        />
         <action
           :disabled="layoutStore.loading"
           v-if="isCsv && authStore.user?.perm.modify"
@@ -31,18 +24,10 @@
         />
         <action
           :disabled="layoutStore.loading"
-          v-if="authStore.user?.perm.delete"
-          icon="delete"
-          :label="$t('buttons.delete')"
-          @action="deleteFile"
-          id="delete-button"
-        />
-        <action
-          :disabled="layoutStore.loading"
-          v-if="authStore.user?.perm.download"
-          icon="file_download"
-          :label="$t('buttons.download')"
-          @action="download"
+          v-if="authStore.user?.perm.rename"
+          icon="drive_file_rename_outline"
+          :label="$t('buttons.rename')"
+          show="rename"
         />
         <action
           :disabled="layoutStore.loading"
@@ -60,8 +45,31 @@
           :label="$t('buttons.info')"
           show="info"
         />
+        <template v-if="authStore.user?.perm.delete">
+          <span class="header__divider" aria-hidden="true"></span>
+          <action
+            :disabled="layoutStore.loading"
+            icon="delete"
+            :label="$t('buttons.delete')"
+            @action="deleteFile"
+            id="delete-button"
+            class="action--danger"
+          />
+        </template>
       </template>
-    </header-bar>
+      <template v-if="authStore.user?.perm.download" #primary>
+        <button
+          type="button"
+          class="button toolbar__upload file-header__primary"
+          :disabled="layoutStore.loading"
+          :aria-label="$t('buttons.download')"
+          @click="download"
+        >
+          <i class="material-icons" aria-hidden="true">file_download</i>
+          <span>{{ $t("buttons.download") }}</span>
+        </button>
+      </template>
+    </file-header>
 
     <div class="previewer__stage">
       <MediaLoader v-if="layoutStore.loading" :label="t('files.loading')" />
@@ -287,7 +295,7 @@ import { createURL } from "@/api/utils";
 import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url";
 import { throttle } from "lodash-es";
-import HeaderBar from "@/components/header/HeaderBar.vue";
+import FileHeader from "@/components/files/FileHeader.vue";
 import Action from "@/components/header/Action.vue";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import VideoPlayer from "@/components/files/VideoPlayer.vue";
@@ -296,6 +304,7 @@ import AudioPlayer from "@/components/files/AudioPlayer.vue";
 import MediaLoader from "@/components/files/MediaLoader.vue";
 import { downloadWithProgress } from "@/utils/download";
 import prettyBytes from "pretty-bytes";
+import dayjs from "dayjs";
 import { VueReader } from "vue-reader";
 import {
   computed,
@@ -457,6 +466,30 @@ const folderName = computed(() => {
   const dirs = route.path.replace(/\/+$/, "").split("/");
   const folder = decodeURIComponent(dirs[dirs.length - 2] ?? "");
   return folder === "files" ? "" : folder;
+});
+
+// Top bar: type icon and "Folder · 2.1 MiB · 4 of 12 · Modified 2 days ago"
+const HEADER_ICONS: Record<string, string> = {
+  image: "image",
+  video: "movie",
+  audio: "audiotrack",
+  pdf: "picture_as_pdf",
+  epub: "menu_book",
+  csv: "table_chart",
+};
+const headerIcon = computed(
+  () => HEADER_ICONS[kind.value] ?? "insert_drive_file"
+);
+const headerMeta = computed(() => {
+  const req = fileStore.req;
+  if (!req || layoutStore.loading) return [];
+  const parts = [folderName.value || t("sidebar.myFiles")];
+  if (!req.isDir) parts.push(prettyBytes(req.size, { binary: true }));
+  // The count comes before the date so it survives truncation on phones
+  if (position.value) parts.push(t("preview.position", position.value));
+  if (req.modified)
+    parts.push(t("preview.modified", { time: dayjs(req.modified).fromNow() }));
+  return parts;
 });
 
 const imageMeta = computed(() => {
