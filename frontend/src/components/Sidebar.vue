@@ -144,14 +144,14 @@
               </button>
             </div>
           </div>
-          <router-link
+          <button
             v-if="locations.length > maxLocations"
-            to="/files/"
+            type="button"
             class="sidebar__more"
-            @click="closeHovers"
+            @click="showAllLocations"
           >
-            {{ $t("sidebar.moreLocations") }} ({{ locations.length }})
-          </router-link>
+            {{ $t("sidebar.moreLocations") }} ({{ locations.length - maxLocations }} more)
+          </button>
         </div>
       </div>
 
@@ -449,6 +449,9 @@ export default {
       } catch {
         // Locations are a convenience; the list simply stays as it was
       }
+    },
+    showAllLocations() {
+      this.maxLocations = this.locations.length;
     },
     openShell() {
       this.toggleShell();

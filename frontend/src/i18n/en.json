@@ -213,7 +213,18 @@
     "logoutTitle": "Log out?",
     "logoutMessage": "You're signed in as {name}. You'll need to sign in again to get back to your files.",
     "logoutUploading": "An upload is still in progress. Logging out now will stop it.",
-    "logoutConfirm": "Log out"
+    "logoutConfirm": "Log out",
+    "path": "Path",
+    "type": "Type",
+    "extension": "Extension",
+    "symlink": "Symlink",
+    "permissions": "Permissions",
+    "checksums": "Checksums",
+    "basicInfo": "Basic",
+    "technicalInfo": "Technical",
+    "items": "Items",
+    "created": "Created",
+    "totalSize": "Total size"
   },
   "search": {
     "escHint": "Press {key} to close",
