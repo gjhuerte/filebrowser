@@ -8,13 +8,14 @@ export async function get(id: number) {
   return fetchJSON<IUser>(`/api/users/${id}`, {});
 }
 
-export async function create(user: IUser, currentPassword: string) {
+export async function create(user: IUser, currentPassword: string, forcePassword: boolean = false) {
   const res = await fetchURL(`/api/users`, {
     method: "POST",
     body: JSON.stringify({
       what: "user",
       which: [],
       current_password: currentPassword,
+      force_password: forcePassword,
       data: user,
     }),
   });
@@ -29,7 +30,8 @@ export async function create(user: IUser, currentPassword: string) {
 export async function update(
   user: Partial<IUser>,
   which = ["all"],
-  currentPassword: string | null = null
+  currentPassword: string | null = null,
+  forcePassword: boolean = false
 ) {
   await fetchURL(`/api/users/${user.id}`, {
     method: "PUT",
@@ -37,6 +39,7 @@ export async function update(
       what: "user",
       which: which,
       ...(currentPassword != null ? { current_password: currentPassword } : {}),
+      force_password: forcePassword,
       data: user,
     }),
   });

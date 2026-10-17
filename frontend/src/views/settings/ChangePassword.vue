@@ -36,7 +36,7 @@
             }}</i>
           </button>
         </div>
-        <PasswordStrength :password="password" />
+        <PasswordStrength :password="password" @strength="onStrength" />
       </div>
       <div>
         <label for="newPasswordConf">{{
@@ -66,6 +66,14 @@
           </button>
         </div>
       </div>
+
+      <div v-if="isWeak && password" class="weak-confirm">
+        <label class="setting-toggle">
+          <input type="checkbox" class="switch" v-model="confirmWeak" />
+          <span>{{ t("settings.confirmWeakPassword") }}</span>
+        </label>
+      </div>
+
       <div v-if="isCurrentPasswordRequired">
         <label for="currentPassword">{{ t("settings.currentPassword") }}</label>
         <div class="password-wrap">
@@ -119,7 +127,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { users as api } from "@/api";
 import PasswordStrength from "@/components/PasswordStrength.vue";
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { authMethod, noAuth } from "@/utils/constants";
 
@@ -137,6 +145,21 @@ const isCurrentPasswordRequired = ref<boolean>(false);
 const showNewPwd = ref<boolean>(false);
 const showNewPwdConf = ref<boolean>(false);
 const showCurrentPwd = ref<boolean>(false);
+const strengthLevel = ref<string>("weak");
+const confirmWeak = ref<boolean>(false);
+
+const isWeak = computed(() => {
+  return strengthLevel.value === "weak" || strengthLevel.value === "fair";
+});
+
+const onStrength = (level: string) => {
+  strengthLevel.value = level;
+};
+
+// Reset confirmation when password changes
+watch(password, () => {
+  confirmWeak.value = false;
+});
 
 const passwordClass = computed(() => {
   const baseClass = "input input--block";
@@ -169,6 +192,10 @@ const updatePassword = async (event: Event) => {
     return;
   }
 
+  if (isWeak.value && !confirmWeak.value) {
+    return;
+  }
+
   if (isCurrentPasswordRequired.value && currentPassword.value === "") {
     return;
   }
@@ -179,7 +206,7 @@ const updatePassword = async (event: Event) => {
       id: authStore.user.id,
       password: password.value,
     };
-    await api.update(data, ["password"], currentPassword.value);
+    await api.update(data, ["password"], currentPassword.value, isWeak.value && confirmWeak.value);
     authStore.updateUser(data);
     $showSuccess(t("settings.passwordUpdated"));
   } catch (e: any) {
@@ -189,3 +216,9 @@ const updatePassword = async (event: Event) => {
   }
 };
 </script>
+
+<style scoped>
+.weak-confirm {
+  margin-top: 0.5em;
+}
+</style>

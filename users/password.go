@@ -22,6 +22,14 @@ func ValidateAndHashPwd(password string, minimumLength uint) (string, error) {
 	return HashPwd(password)
 }
 
+// ValidateMinLengthAndHashPwd validates minimum length only (no common-password check) and hashes.
+func ValidateMinLengthAndHashPwd(password string, minimumLength uint) (string, error) {
+	if uint(len(password)) < minimumLength {
+		return "", fberrors.ErrShortPassword{MinimumLength: minimumLength}
+	}
+	return HashPwd(password)
+}
+
 // HashPwd hashes a password.
 func HashPwd(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

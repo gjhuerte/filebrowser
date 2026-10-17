@@ -391,7 +391,8 @@
     "users": "Users",
     "currentPassword": "Your Current Password",
     "noShares": "No shared links yet",
-    "noSharesText": "Share a file or folder from your files to get a link anyone can open. Your links will show up here."
+    "noSharesText": "Share a file or folder from your files to get a link anyone can open. Your links will show up here.",
+    "confirmWeakPassword": "I understand this password is weak and want to use it anyway"
   },
   "sidebar": {
     "diskUsed": "{used} of {total} used",

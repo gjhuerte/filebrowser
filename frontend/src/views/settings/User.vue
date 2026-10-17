@@ -10,6 +10,7 @@
 
         <div class="card-content" v-if="user">
           <user-form
+            ref="userFormRef"
             v-model:user="user"
             v-model:createUserDir="createUserDir"
             :isDefault="false"
@@ -54,6 +55,7 @@ import { StatusError } from "@/api/utils";
 import { authMethod } from "@/utils/constants";
 import { logout } from "@/utils/auth";
 
+const userFormRef = ref<InstanceType<typeof UserForm> | null>(null);
 const error = ref<StatusError>();
 const originalUser = ref<IUser>();
 const user = ref<IUser>();
@@ -185,13 +187,15 @@ const send = async (currentPassword: string) => {
         ...user.value,
       };
 
-      const loc = await api.create(newUser, currentPassword);
+      const forcePassword = userFormRef.value?.isWeak && userFormRef.value?.confirmWeak;
+      const loc = await api.create(newUser, currentPassword, !!forcePassword);
       router.push({
         path: loc?.replace("/settings/users", "/admin/users") || "/admin/users",
       });
       $showSuccess(t("settings.userCreated"));
     } else {
-      await api.update(user.value, ["all"], currentPassword);
+      const forcePassword = userFormRef.value?.isWeak && userFormRef.value?.confirmWeak;
+      await api.update(user.value, ["all"], currentPassword, !!forcePassword);
 
       if (user.value.id === authStore.user?.id) {
         authStore.updateUser(user.value);

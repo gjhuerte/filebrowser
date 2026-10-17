@@ -144,14 +144,7 @@
               </button>
             </div>
           </div>
-          <button
-            v-if="locations.length > maxLocations"
-            type="button"
-            class="sidebar__more"
-            @click="showAllLocations"
-          >
-            {{ $t("sidebar.moreLocations") }} ({{ locations.length - maxLocations }} more)
-          </button>
+
         </div>
       </div>
 
@@ -336,7 +329,7 @@ export default {
   data() {
     return {
       locations: [],
-      maxLocations: 6,
+
       usageLoaded: false,
       renamingPath: null,
       renameValue: "",
@@ -377,7 +370,7 @@ export default {
       return this.$route.path.startsWith("/settings/profile");
     },
     visibleLocations() {
-      return this.locations.slice(0, this.maxLocations);
+      return this.locations;
     },
     // The location the current page lives in (longest matching prefix)
     currentLocation() {
@@ -449,9 +442,6 @@ export default {
       } catch {
         // Locations are a convenience; the list simply stays as it was
       }
-    },
-    showAllLocations() {
-      this.maxLocations = this.locations.length;
     },
     openShell() {
       this.toggleShell();

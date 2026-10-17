@@ -17,11 +17,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 const props = defineProps<{ password: string }>();
+const emit = defineEmits<{ (e: "strength", level: string): void }>();
 
 const level = computed(() => {
   const p = props.password;
@@ -55,4 +56,6 @@ const percent = computed(() => {
       return 0;
   }
 });
+
+watch(level, (val) => emit("strength", val), { immediate: true });
 </script>

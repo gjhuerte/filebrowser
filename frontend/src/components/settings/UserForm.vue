@@ -39,7 +39,13 @@
           }}</i>
         </button>
       </div>
-      <PasswordStrength v-if="user.password" :password="user.password" />
+      <PasswordStrength v-if="user.password" :password="user.password" @strength="onStrength" />
+      <div v-if="isWeak && user.password" class="weak-confirm">
+        <label class="setting-toggle">
+          <input type="checkbox" class="switch" v-model="confirmWeak" />
+          <span>{{ t("settings.confirmWeakPassword") }}</span>
+        </label>
+      </div>
     </div>
 
     <div>
@@ -132,6 +138,16 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 
 const showPassword = ref<boolean>(false);
+const strengthLevel = ref<string>("weak");
+const confirmWeak = ref<boolean>(false);
+
+const isWeak = computed(() => {
+  return strengthLevel.value === "weak" || strengthLevel.value === "fair";
+});
+
+const onStrength = (level: string) => {
+  strengthLevel.value = level;
+};
 const createUserDirData = ref<boolean | null>(null);
 const originalUserScope = ref<string | null>(null);
 
@@ -149,6 +165,8 @@ onMounted(() => {
   }
 });
 
+defineExpose({ confirmWeak, isWeak });
+
 const passwordPlaceholder = computed(() =>
   props.isNew ? "" : t("settings.avoidChanges")
 );
@@ -158,6 +176,10 @@ const scopePlaceholder = computed(() =>
 const displayHomeDirectoryCheckbox = computed(
   () => props.isNew && createUserDirData.value
 );
+
+watch(() => props.user?.password, () => {
+  confirmWeak.value = false;
+});
 
 watch(
   () => props.user,
