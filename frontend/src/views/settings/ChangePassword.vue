@@ -11,41 +11,87 @@
     <div class="card-content">
       <p class="small">{{ t("settings.changePasswordDescription") }}</p>
 
-      <p>
+      <div>
         <label for="newPassword">{{ t("settings.newPassword") }}</label>
-        <input
-          :class="passwordClass"
-          type="password"
-          id="newPassword"
-          v-model="password"
-          name="password"
-          autocomplete="new-password"
-        />
-      </p>
-      <p>
+        <div class="password-wrap">
+          <input
+            :class="passwordClass"
+            :type="showNewPwd ? 'text' : 'password'"
+            id="newPassword"
+            v-model="password"
+            name="password"
+            autocomplete="new-password"
+          />
+          <button
+            class="password-toggle"
+            type="button"
+            @click="showNewPwd = !showNewPwd"
+            :aria-label="
+              showNewPwd ? t('login.hidePassword') : t('login.showPassword')
+            "
+            tabindex="-1"
+          >
+            <i class="material-icons" aria-hidden="true">{{
+              showNewPwd ? "visibility_off" : "visibility"
+            }}</i>
+          </button>
+        </div>
+        <PasswordStrength :password="password" />
+      </div>
+      <div>
         <label for="newPasswordConf">{{
           t("settings.newPasswordConfirm")
         }}</label>
-        <input
-          :class="passwordClass"
-          type="password"
-          id="newPasswordConf"
-          v-model="passwordConf"
-          name="passwordConf"
-          autocomplete="new-password"
-        />
-      </p>
-      <p v-if="isCurrentPasswordRequired">
+        <div class="password-wrap">
+          <input
+            :class="passwordClass"
+            :type="showNewPwdConf ? 'text' : 'password'"
+            id="newPasswordConf"
+            v-model="passwordConf"
+            name="passwordConf"
+            autocomplete="new-password"
+          />
+          <button
+            class="password-toggle"
+            type="button"
+            @click="showNewPwdConf = !showNewPwdConf"
+            :aria-label="
+              showNewPwdConf ? t('login.hidePassword') : t('login.showPassword')
+            "
+            tabindex="-1"
+          >
+            <i class="material-icons" aria-hidden="true">{{
+              showNewPwdConf ? "visibility_off" : "visibility"
+            }}</i>
+          </button>
+        </div>
+      </div>
+      <div v-if="isCurrentPasswordRequired">
         <label for="currentPassword">{{ t("settings.currentPassword") }}</label>
-        <input
-          :class="passwordClass"
-          type="password"
-          id="currentPassword"
-          v-model="currentPassword"
-          name="current_password"
-          autocomplete="current-password"
-        />
-      </p>
+        <div class="password-wrap">
+          <input
+            :class="passwordClass"
+            :type="showCurrentPwd ? 'text' : 'password'"
+            id="currentPassword"
+            v-model="currentPassword"
+            name="current_password"
+            autocomplete="current-password"
+          />
+          <button
+            class="password-toggle"
+            type="button"
+            @click="showCurrentPwd = !showCurrentPwd"
+            :aria-label="
+              showCurrentPwd ? t('login.hidePassword') : t('login.showPassword')
+            "
+            tabindex="-1"
+          >
+            <i class="material-icons" aria-hidden="true">{{
+              showCurrentPwd ? "visibility_off" : "visibility"
+            }}</i>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="card-action">
@@ -72,6 +118,7 @@
 import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { users as api } from "@/api";
+import PasswordStrength from "@/components/PasswordStrength.vue";
 import { computed, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { authMethod, noAuth } from "@/utils/constants";
@@ -87,6 +134,9 @@ const password = ref<string>("");
 const passwordConf = ref<string>("");
 const currentPassword = ref<string>("");
 const isCurrentPasswordRequired = ref<boolean>(false);
+const showNewPwd = ref<boolean>(false);
+const showNewPwdConf = ref<boolean>(false);
+const showCurrentPwd = ref<boolean>(false);
 
 const passwordClass = computed(() => {
   const baseClass = "input input--block";

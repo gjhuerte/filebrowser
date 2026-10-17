@@ -15,16 +15,32 @@
       />
     </p>
 
-    <p v-if="!isDefault">
+    <div v-if="!isDefault">
       <label for="password">{{ t("settings.password") }}</label>
-      <input
-        class="input input--block"
-        type="password"
-        :placeholder="passwordPlaceholder"
-        v-model="user.password"
-        id="password"
-      />
-    </p>
+      <div class="password-wrap">
+        <input
+          class="input input--block"
+          :type="showPassword ? 'text' : 'password'"
+          :placeholder="passwordPlaceholder"
+          v-model="user.password"
+          id="password"
+        />
+        <button
+          class="password-toggle"
+          type="button"
+          @click="showPassword = !showPassword"
+          :aria-label="
+            showPassword ? t('login.hidePassword') : t('login.showPassword')
+          "
+          tabindex="-1"
+        >
+          <i class="material-icons" aria-hidden="true">{{
+            showPassword ? "visibility_off" : "visibility"
+          }}</i>
+        </button>
+      </div>
+      <PasswordStrength v-if="user.password" :password="user.password" />
+    </div>
 
     <div>
       <label for="scope">{{ t("settings.scope") }}</label>
@@ -108,12 +124,14 @@ import Languages from "./Languages.vue";
 import Rules from "./Rules.vue";
 import Permissions from "./Permissions.vue";
 import Commands from "./Commands.vue";
+import PasswordStrength from "@/components/PasswordStrength.vue";
 import { enableExec } from "@/utils/constants";
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
+const showPassword = ref<boolean>(false);
 const createUserDirData = ref<boolean | null>(null);
 const originalUserScope = ref<string | null>(null);
 

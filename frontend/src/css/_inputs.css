@@ -52,6 +52,105 @@
   background: var(--input-green) !important;
 }
 
+/* Password visibility toggle */
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap > .input,
+.password-wrap > .login__input {
+  padding-inline-end: 2.75em;
+}
+
+.password-toggle {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 2.75em;
+  padding: 0;
+  color: var(--textPrimary);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  transition: color 0.15s ease-out;
+}
+
+.password-toggle:hover {
+  color: var(--textSecondary);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.password-toggle i {
+  font-size: 1.125rem;
+}
+
+/* Password strength meter */
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 0.625em;
+  margin-top: -0.375em;
+  margin-bottom: 0.75em;
+}
+
+.password-strength__bar {
+  flex: 1;
+  height: 4px;
+  background: var(--surfaceSecondary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.password-strength__fill {
+  height: 100%;
+  border-radius: 2px;
+  transition:
+    width 0.3s ease-out,
+    background-color 0.3s ease-out;
+}
+
+.password-strength__fill--weak {
+  background: var(--danger);
+}
+.password-strength__fill--fair {
+  background: #f59e0b;
+}
+.password-strength__fill--good {
+  background: var(--primary);
+}
+.password-strength__fill--strong {
+  background: var(--success);
+}
+
+.password-strength__label {
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.password-strength__label--weak {
+  color: var(--danger);
+}
+.password-strength__label--fair {
+  color: #f59e0b;
+}
+.password-strength__label--good {
+  color: var(--primary-text);
+}
+.password-strength__label--strong {
+  color: var(--success);
+}
+
 input[type="checkbox"],
 input[type="radio"],
 progress {

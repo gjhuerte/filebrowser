@@ -42,31 +42,64 @@
 
         <label class="login__field">
           <span class="login__label">{{ t("login.password") }}</span>
-          <input
-            class="login__input"
-            type="password"
-            :autocomplete="createMode ? 'new-password' : 'current-password'"
-            :placeholder="t('login.passwordPlaceholder')"
-            v-model="password"
-            @keydown="checkCapsLock"
-            @keyup="checkCapsLock"
-            @blur="capsLock = false"
-          />
+          <div class="password-wrap">
+            <input
+              class="login__input"
+              :type="showPassword ? 'text' : 'password'"
+              :autocomplete="createMode ? 'new-password' : 'current-password'"
+              :placeholder="t('login.passwordPlaceholder')"
+              v-model="password"
+              @keydown="checkCapsLock"
+              @keyup="checkCapsLock"
+              @blur="capsLock = false"
+            />
+            <button
+              class="password-toggle"
+              type="button"
+              @click="showPassword = !showPassword"
+              :aria-label="
+                showPassword ? t('login.hidePassword') : t('login.showPassword')
+              "
+              tabindex="-1"
+            >
+              <i class="material-icons" aria-hidden="true">{{
+                showPassword ? "visibility_off" : "visibility"
+              }}</i>
+            </button>
+          </div>
           <span v-if="capsLock" class="login__hint" role="status">
             <i class="material-icons" aria-hidden="true">keyboard_capslock</i>
             {{ t("login.capsLock") }}
           </span>
+          <PasswordStrength v-if="createMode" :password="password" />
         </label>
 
         <label v-if="createMode" class="login__field">
           <span class="login__label">{{ t("login.passwordConfirm") }}</span>
-          <input
-            class="login__input"
-            type="password"
-            autocomplete="new-password"
-            :placeholder="t('login.passwordConfirmPlaceholder')"
-            v-model="passwordConfirm"
-          />
+          <div class="password-wrap">
+            <input
+              class="login__input"
+              :type="showPasswordConfirm ? 'text' : 'password'"
+              autocomplete="new-password"
+              :placeholder="t('login.passwordConfirmPlaceholder')"
+              v-model="passwordConfirm"
+            />
+            <button
+              class="password-toggle"
+              type="button"
+              @click="showPasswordConfirm = !showPasswordConfirm"
+              :aria-label="
+                showPasswordConfirm
+                  ? t('login.hidePassword')
+                  : t('login.showPassword')
+              "
+              tabindex="-1"
+            >
+              <i class="material-icons" aria-hidden="true">{{
+                showPasswordConfirm ? "visibility_off" : "visibility"
+              }}</i>
+            </button>
+          </div>
         </label>
 
         <div v-if="recaptcha" id="recaptcha"></div>
@@ -98,6 +131,7 @@
 <script setup lang="ts">
 import { StatusError } from "@/api/utils";
 import * as auth from "@/utils/auth";
+import PasswordStrength from "@/components/PasswordStrength.vue";
 import ThemeSwitcher from "@/components/ThemeSwitcher.vue";
 import {
   name,
@@ -123,6 +157,8 @@ const { t } = useI18n({});
 // Define functions
 const toggleMode = () => (createMode.value = !createMode.value);
 
+const showPassword = ref<boolean>(false);
+const showPasswordConfirm = ref<boolean>(false);
 const capsLock = ref<boolean>(false);
 const checkCapsLock = (event: KeyboardEvent) => {
   capsLock.value = event.getModifierState?.("CapsLock") ?? false;

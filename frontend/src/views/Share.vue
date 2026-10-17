@@ -49,14 +49,31 @@
           </div>
 
           <div class="card-content">
-            <input
-              v-focus
-              class="input input--block"
-              type="password"
-              :placeholder="t('login.password')"
-              v-model="password"
-              @keyup.enter="fetchData"
-            />
+            <div class="password-wrap">
+              <input
+                v-focus
+                class="input input--block"
+                :type="showSharePwd ? 'text' : 'password'"
+                :placeholder="t('login.password')"
+                v-model="password"
+                @keyup.enter="fetchData"
+              />
+              <button
+                class="password-toggle"
+                type="button"
+                @click="showSharePwd = !showSharePwd"
+                :aria-label="
+                  showSharePwd
+                    ? t('login.hidePassword')
+                    : t('login.showPassword')
+                "
+                tabindex="-1"
+              >
+                <i class="material-icons" aria-hidden="true">{{
+                  showSharePwd ? "visibility_off" : "visibility"
+                }}</i>
+              </button>
+            </div>
           </div>
           <div class="card-action">
             <button
@@ -326,6 +343,7 @@ import { copy } from "@/utils/clipboard";
 const error = ref<StatusError | null>(null);
 const showLimit = ref<number>(100);
 const password = ref<string>("");
+const showSharePwd = ref<boolean>(false);
 const attemptedPasswordLogin = ref<boolean>(false);
 const hash = ref<string>("");
 const token = ref<string>("");

@@ -108,12 +108,27 @@
           </select>
         </div>
         <p>{{ $t("prompts.optionalPassword") }}</p>
-        <input
-          class="input input--block"
-          type="password"
-          v-model.trim="password"
-          tabindex="3"
-        />
+        <div class="password-wrap">
+          <input
+            class="input input--block"
+            :type="showSharePwd ? 'text' : 'password'"
+            v-model.trim="password"
+            tabindex="3"
+          />
+          <button
+            class="password-toggle"
+            type="button"
+            @click="showSharePwd = !showSharePwd"
+            :aria-label="
+              showSharePwd ? $t('login.hidePassword') : $t('login.showPassword')
+            "
+            tabindex="-1"
+          >
+            <i class="material-icons" aria-hidden="true">{{
+              showSharePwd ? "visibility_off" : "visibility"
+            }}</i>
+          </button>
+        </div>
       </div>
 
       <div class="card-action">
@@ -158,6 +173,7 @@ export default {
       links: [],
       clip: null,
       password: "",
+      showSharePwd: false,
       listing: true,
     };
   },

@@ -8,13 +8,28 @@
       <p>
         {{ $t("prompts.currentPasswordMessage") }}
       </p>
-      <input
-        id="focus-prompt"
-        class="input input--block"
-        type="password"
-        @keyup.enter="submit"
-        v-model="password"
-      />
+      <div class="password-wrap">
+        <input
+          id="focus-prompt"
+          class="input input--block"
+          :type="showPwd ? 'text' : 'password'"
+          @keyup.enter="submit"
+          v-model="password"
+        />
+        <button
+          class="password-toggle"
+          type="button"
+          @click="showPwd = !showPwd"
+          :aria-label="
+            showPwd ? $t('login.hidePassword') : $t('login.showPassword')
+          "
+          tabindex="-1"
+        >
+          <i class="material-icons" aria-hidden="true">{{
+            showPwd ? "visibility_off" : "visibility"
+          }}</i>
+        </button>
+      </div>
     </div>
 
     <div class="card-action">
@@ -47,6 +62,7 @@ const layoutStore = useLayoutStore();
 const { currentPrompt } = layoutStore;
 
 const password = ref("");
+const showPwd = ref(false);
 
 const submit = (event: Event) => {
   currentPrompt?.confirm(event, password.value);

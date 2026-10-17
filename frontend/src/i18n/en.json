@@ -154,7 +154,9 @@
     "passwordPlaceholder": "Enter your password",
     "passwordConfirmPlaceholder": "Re-enter your password",
     "capsLock": "Caps Lock is on",
-    "forgotPassword": "Forgot your password? Contact your administrator."
+    "forgotPassword": "Forgot your password? Contact your administrator.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "permanent": "Permanent",
   "prompts": {
@@ -318,6 +320,12 @@
     "newUser": "New User",
     "password": "Password",
     "passwordLockedDescription": "Your administrator has locked your password. Contact them if you need to change it.",
+    "passwordStrength": {
+      "weak": "Weak",
+      "fair": "Fair",
+      "good": "Good",
+      "strong": "Strong"
+    },
     "passwordUpdated": "Password updated!",
     "path": "Path",
     "perm": {
