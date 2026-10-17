@@ -116,7 +116,7 @@ These rules ensure documentation stays in sync with code changes. Follow them wh
 
 ```
 ├── .claude/CLAUDE.md          # This file — AI development rules
-├── LICENSE                     # Non-Commercial Personal Use License
+├── LICENSE                     # Apache License 2.0 (ORIGINAL — do not alter)
 ├── README.md                   # Project overview and features
 ├── SECURITY.md                 # Security policy
 ├── CONTRIBUTING.md             # Build instructions
