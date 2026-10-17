@@ -105,7 +105,7 @@ html[dir="rtl"] nav {
   gap: 2px;
 }
 
-.sidebar__section + .sidebar__section {
+.sidebar__section+.sidebar__section {
   margin-top: 0.75em;
   padding-top: 0.75em;
   border-top: 1px solid var(--divider);
@@ -156,7 +156,7 @@ nav .action--current:hover i {
   color: var(--primary-text);
 }
 
-nav .action > span {
+nav .action>span {
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -456,7 +456,7 @@ main {
 .breadcrumbs {
   position: sticky;
   top: 4em;
-  z-index: 1000;
+  z-index: 900;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -784,7 +784,7 @@ html[dir="rtl"] .breadcrumbs a {
   word-break: break-all;
 }
 
-.vue-number-input > input {
+.vue-number-input>input {
   background: var(--surfacePrimary) !important;
   border-color: var(--borderPrimary) !important;
   color: var(--textSecondary) !important;
@@ -792,7 +792,7 @@ html[dir="rtl"] .breadcrumbs a {
   font-family: inherit !important;
 }
 
-.vue-number-input--small > input {
+.vue-number-input--small>input {
   height: 1rem !important;
   font-size: 1rem !important;
 }
@@ -816,7 +816,7 @@ html[dir="rtl"] .breadcrumbs a {
   background: var(--textPrimary) !important;
 }
 
-body > div[style*="z-index: 9990"] {
+body>div[style*="z-index: 9990"] {
   z-index: 10000 !important;
 }
 
