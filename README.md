@@ -24,6 +24,8 @@ File Browser provides a clean, intuitive web interface for managing files on you
 ### File Management
 - **Upload & Download** — Drag-and-drop file uploads, single and bulk downloads
 - **File Preview** — Built-in preview for images, videos, audio, PDFs, and text files
+- **Media Viewer** — Image toolbar (zoom, rotate, original quality), themed video player with FLV support, and a music player with album art, repeat, speed, and auto-advance
+- **Download Progress** — Images, video, and audio show how much has loaded (percentage and size) while they download or buffer
 - **File Editing** — Edit text files and code directly in the browser with syntax highlighting
 - **Bulk Operations** — Select multiple files for move, copy, delete, or download as zip
 - **Search** — Full-text search across your file system
@@ -46,6 +48,7 @@ File Browser provides a clean, intuitive web interface for managing files on you
 - **User Management** — Create, edit, and delete users from the admin panel
 - **Default Settings** — Configure default permissions, scope, and locale for new users
 - **Storage Overview** — Monitor disk usage at a glance from the sidebar
+- **Home Dashboard Auto-Refresh** — Rescan file statistics in the background every 5–60 minutes
 - **Authentication Providers** — Support for proxy-based authentication, JSON auth, and more
 
 ### Deployment

@@ -1,30 +1,69 @@
 <template>
-  <video ref="videoPlayer" class="video-max video-js" controls preload="auto">
-    <source />
-    <track
-      kind="subtitles"
-      v-for="(sub, index) in subtitles"
-      :key="index"
-      :src="sub"
-      :label="subLabel(sub)"
-      :default="index === 0"
+  <div
+    class="video-frame"
+    :class="{ 'video-frame--ready': phase !== 'loading' }"
+  >
+    <video ref="videoPlayer" class="video-max video-js" controls preload="auto">
+      <source />
+      <track
+        kind="subtitles"
+        v-for="(sub, index) in subtitles"
+        :key="index"
+        :src="sub"
+        :label="subLabel(sub)"
+        :default="index === 0"
+      />
+      <p class="vjs-no-js">
+        {{ t("preview.cantPlayVideo") }}
+        <a :href="source">{{ t("buttons.download") }}</a>
+      </p>
+    </video>
+
+    <MediaLoader
+      v-if="phase === 'loading'"
+      class="video-frame__loader"
+      :label="t('preview.loadingVideo')"
+      :loaded="loadedBytes"
+      :total="size"
+      :progress="bufferedPct || null"
     />
-    <p class="vjs-no-js">
-      Sorry, your browser doesn't support embedded videos, but don't worry, you
-      can <a :href="source">download it</a>
-      and watch it with your favorite video player!
-    </p>
-  </video>
+    <MediaLoader
+      v-else-if="phase === 'buffering'"
+      class="video-frame__chip"
+      variant="chip"
+      :label="t('preview.buffering')"
+      :progress="bufferedPct || null"
+    />
+
+    <div v-if="phase === 'error'" class="media-error" role="alert">
+      <i class="material-icons" aria-hidden="true">videocam_off</i>
+      <p class="media-error__title">{{ t("preview.cantPlayVideo") }}</p>
+      <p class="media-error__text">{{ errorText }}</p>
+      <button
+        v-if="canDownload"
+        type="button"
+        class="media-error__button"
+        @click="emit('download')"
+      >
+        <i class="material-icons" aria-hidden="true">file_download</i>
+        {{ t("buttons.download") }}
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { computed, ref, onBeforeUnmount, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
 import videojs from "video.js";
 import type Player from "video.js/dist/types/player";
 import "videojs-mobile-ui";
 import "videojs-hotkeys";
 import "video.js/dist/video-js.min.css";
 import "videojs-mobile-ui/dist/videojs-mobile-ui.css";
+import MediaLoader from "@/components/files/MediaLoader.vue";
+import { bufferedFraction } from "@/utils/download";
+import { FLV_TYPE, registerFlvSupport } from "@/utils/flv";
 
 const videoPlayer = ref<HTMLElement | null>(null);
 const player = ref<Player | null>(null);
@@ -34,20 +73,43 @@ const props = withDefaults(
     source: string;
     subtitles?: string[];
     options?: any;
+    /** File size in bytes, used to show how much has loaded. */
+    size?: number;
+    canDownload?: boolean;
   }>(),
   {
     options: {},
+    size: 0,
+    canDownload: false,
   }
 );
+const emit = defineEmits<{ download: [] }>();
+const { t } = useI18n();
 
 const source = ref(props.source);
 const sourceType = ref("");
 
+/* Loading / buffering state shown on top of the player */
+type Phase = "loading" | "ready" | "buffering" | "error";
+const phase = ref<Phase>("loading");
+const buffered = ref<number | null>(null);
+const errorCode = ref(0);
+
+const bufferedPct = computed(() =>
+  buffered.value === null ? null : buffered.value * 100
+);
+const loadedBytes = computed(() =>
+  buffered.value === null ? 0 : Math.round(buffered.value * props.size)
+);
+const errorText = computed(() =>
+  errorCode.value === 2
+    ? t("preview.networkError")
+    : t("preview.unsupportedVideo")
+);
+
 nextTick(() => {
   initVideoPlayer();
 });
-
-onMounted(() => {});
 
 onBeforeUnmount(() => {
   if (player.value) {
@@ -58,31 +120,31 @@ onBeforeUnmount(() => {
 
 const initVideoPlayer = async () => {
   try {
+    registerFlvSupport(t("preview.unsupportedVideo"));
+
     const lang = document.documentElement.lang;
     const languagePack = await (
       languageImports[lang] || languageImports.en
     )?.();
     const code = languageImports[lang] ? lang : "en";
     videojs.addLanguage(code, languagePack.default);
-    sourceType.value = "";
-
-    //
     sourceType.value = getSourceType(source.value);
 
     const srcOpt = { sources: { src: props.source, type: sourceType.value } };
     //Supporting localized language display.
     const langOpt = { language: code };
     // support for playback at different speeds.
-    const playbackRatesOpt = { playbackRates: [0.5, 1, 1.5, 2, 2.5, 3] };
+    const playbackRatesOpt = { playbackRates: [0.5, 1, 1.25, 1.5, 2, 3] };
     const options = getOptions(
       props.options,
       langOpt,
       srcOpt,
       playbackRatesOpt
     );
-    player.value = videojs(videoPlayer.value!, options, () => {});
+    const p = videojs(videoPlayer.value!, options, () => {});
+    player.value = p;
+    watchState(p);
 
-    // TODO: need to test on mobile
     // @ts-expect-error no ts definition for mobileUi
     player.value!.mobileUi();
   } catch (error) {
@@ -90,12 +152,35 @@ const initVideoPlayer = async () => {
   }
 };
 
+const watchState = (p: Player) => {
+  const updateBuffered = () => {
+    const el = p.el()?.querySelector("video");
+    if (el) buffered.value = bufferedFraction(el);
+  };
+  p.on("loadstart", () => {
+    if (phase.value !== "error") phase.value = "loading";
+  });
+  p.on(["progress", "durationchange", "timeupdate"], updateBuffered);
+  p.on(["canplay", "playing", "seeked"], () => {
+    if (phase.value !== "error") phase.value = "ready";
+    updateBuffered();
+  });
+  // Paused videos don't buffer forever, so a paused 'waiting' isn't shown
+  p.on("waiting", () => {
+    if (phase.value === "ready" && !p.paused()) phase.value = "buffering";
+  });
+  p.on("error", () => {
+    errorCode.value = p.error()?.code ?? 0;
+    phase.value = "error";
+  });
+};
+
 const getOptions = (...srcOpt: any[]) => {
   const options = {
     controlBar: {
       skipButtons: {
-        forward: 5,
-        backward: 5,
+        forward: 10,
+        backward: 10,
       },
     },
     html5: {
@@ -113,13 +198,18 @@ const getOptions = (...srcOpt: any[]) => {
   return videojs.obj.merge(options, ...srcOpt);
 };
 
-//  Attempting to fix the issue of being unable to play .MKV format video files
 const getSourceType = (source: string) => {
-  const fileExtension = source ? source.split("?")[0].split(".").pop() : "";
-  if (fileExtension?.toLowerCase() === "mkv") {
-    return "video/mp4";
+  const ext = (source ? source.split("?")[0].split(".").pop() : "") ?? "";
+  switch (ext.toLowerCase()) {
+    // Most MKV files hold H.264/AAC which browsers decode fine as MP4
+    case "mkv":
+      return "video/mp4";
+    // Flash video is remuxed in the browser (see utils/flv.ts)
+    case "flv":
+      return FLV_TYPE;
+    default:
+      return "";
   }
-  return "";
 };
 
 const subLabel = (subUrl: string) => {
@@ -178,9 +268,3 @@ const languageImports: LanguageImports = {
   "zh-tw": () => import("video.js/dist/lang/zh-TW.json"),
 };
 </script>
-<style scoped>
-.video-max {
-  width: 100%;
-  height: 100%;
-}
-</style>

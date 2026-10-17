@@ -1,20 +1,18 @@
 <template>
   <div
     id="previewer"
-    @touchmove.prevent.stop
+    :class="`previewer--${kind}`"
+    @touchmove="blockTouchScroll"
     @wheel.prevent.stop
     @mousemove="toggleNavigation"
     @touchstart="toggleNavigation"
   >
-    <header-bar v-if="isPdf || isEpub || isCsv || showNav">
+    <header-bar>
       <action icon="close" :label="$t('buttons.close')" @action="close()" />
       <title>{{ name }}</title>
-      <action
-        :disabled="layoutStore.loading"
-        v-if="isResizeEnabled && fileStore.req?.type === 'image'"
-        :icon="fullSize ? 'photo_size_select_large' : 'hd'"
-        @action="toggleSize"
-      />
+      <span v-if="position" class="previewer__count" aria-hidden="true">{{
+        t("preview.position", position)
+      }}</span>
 
       <template #actions>
         <action
@@ -65,15 +63,9 @@
       </template>
     </header-bar>
 
-    <div class="loading delayed" v-if="layoutStore.loading">
-      <div class="spinner">
-        <div class="bounce1"></div>
-        <div class="bounce2"></div>
-        <div class="bounce3"></div>
-      </div>
-    </div>
-    <template v-else>
-      <div class="preview">
+    <div class="previewer__stage">
+      <MediaLoader v-if="layoutStore.loading" :label="t('files.loading')" />
+      <div v-else class="preview">
         <div v-if="isEpub" class="epub-reader">
           <vue-reader
             :location="location"
@@ -104,56 +96,161 @@
           </div>
         </div>
         <CsvViewer v-else-if="isCsv" :content="csvContent" :error="csvError" />
-        <ExtendedImage
-          v-else-if="fileStore.req?.type == 'image'"
+
+        <template v-else-if="kind === 'image'">
+          <ExtendedImage
+            v-if="image.src"
+            ref="imageRef"
+            :src="image.src"
+            :alt="name"
+            @zoom="(s: number) => (image.zoom = s)"
+            @ready="onImageReady"
+          />
+          <MediaLoader
+            v-if="image.state === 'loading'"
+            :label="t('preview.loadingImage')"
+            :loaded="image.loaded"
+            :total="image.total"
+          />
+          <div v-else-if="image.state === 'error'" class="media-error">
+            <i class="material-icons" aria-hidden="true">broken_image</i>
+            <p class="media-error__title">{{ t("preview.imageFailed") }}</p>
+            <p class="media-error__text">{{ t("preview.imageFailedText") }}</p>
+            <button
+              type="button"
+              class="media-error__button"
+              @click="loadImage"
+            >
+              <i class="material-icons" aria-hidden="true">refresh</i>
+              {{ t("home.retry") }}
+            </button>
+          </div>
+        </template>
+
+        <AudioPlayer
+          v-else-if="kind === 'audio'"
+          :key="previewUrl"
           :src="previewUrl"
-        />
-        <audio
-          v-else-if="fileStore.req?.type == 'audio'"
-          ref="player"
-          :src="previewUrl"
-          controls
+          :name="name"
+          :size="fileStore.req?.size"
+          :folder="folderName"
+          :cover="coverUrl"
           :autoplay="autoPlay"
+          :has-previous="hasPrevious"
+          :has-next="hasNext"
+          :can-download="!!authStore.user?.perm.download"
+          @previous="prev"
+          @next="next"
           @play="autoPlay = true"
-        ></audio>
-        <VideoPlayer
-          v-else-if="fileStore.req?.type == 'video'"
-          ref="player"
-          :source="previewUrl"
-          :subtitles="subtitles"
-          :options="videoOptions"
-        >
-        </VideoPlayer>
+          @pause="autoPlay = false"
+          @download="download"
+          ref="audioRef"
+        />
+        <div v-else-if="kind === 'video'" class="previewer__video">
+          <VideoPlayer
+            :key="previewUrl"
+            :source="previewUrl"
+            :subtitles="subtitles"
+            :options="videoOptions"
+            :size="fileStore.req?.size"
+            :can-download="!!authStore.user?.perm.download"
+            @download="download"
+          />
+        </div>
         <object v-else-if="isPdf" class="pdf" :data="previewUrl"></object>
         <div v-else-if="fileStore.req?.type == 'blob'" class="info">
-          <div class="title">
-            <i class="material-icons">feedback</i>
-            {{ $t("files.noPreview") }}
-          </div>
-          <div>
-            <a target="_blank" :href="downloadUrl" class="button button--flat">
-              <div>
-                <i class="material-icons">file_download</i
-                >{{ $t("buttons.download") }}
-              </div>
+          <span class="info__icon" aria-hidden="true">
+            <i class="material-icons">description</i>
+          </span>
+          <p class="info__title">{{ $t("files.noPreview") }}</p>
+          <p class="info__text">{{ t("preview.noPreviewHint") }}</p>
+          <div class="info__actions">
+            <a
+              v-if="authStore.user?.perm.download"
+              target="_blank"
+              :href="downloadUrl"
+              class="button button--flat"
+            >
+              <i class="material-icons" aria-hidden="true">file_download</i
+              >{{ $t("buttons.download") }}
             </a>
             <a
               target="_blank"
               :href="previewUrl"
-              class="button button--flat"
+              class="button button--flat button--grey"
               v-if="!fileStore.req?.isDir"
             >
-              <div>
-                <i class="material-icons">open_in_new</i
-                >{{ $t("buttons.openFile") }}
-              </div>
+              <i class="material-icons" aria-hidden="true">open_in_new</i
+              >{{ $t("buttons.openFile") }}
             </a>
           </div>
         </div>
       </div>
-    </template>
+    </div>
+
+    <!-- Image toolbar -->
+    <div
+      v-if="kind === 'image' && image.state === 'ready' && !layoutStore.loading"
+      class="previewer__dock"
+      :class="{ 'is-hidden': !showNav }"
+      role="toolbar"
+      :aria-label="t('preview.imageTools')"
+      @mouseover="hoverNav = true"
+      @mouseleave="hoverNav = false"
+    >
+      <button
+        type="button"
+        :aria-label="t('preview.zoomOut')"
+        :title="t('preview.zoomOut') + ' (−)'"
+        @click="imageRef?.zoomOut()"
+      >
+        <i class="material-icons" aria-hidden="true">remove</i>
+      </button>
+      <button
+        type="button"
+        class="previewer__zoom"
+        :aria-label="t('preview.resetZoom')"
+        :title="t('preview.resetZoom') + ' (0)'"
+        @click="imageRef?.reset()"
+      >
+        {{ Math.round(image.zoom * 100) }}%
+      </button>
+      <button
+        type="button"
+        :aria-label="t('preview.zoomIn')"
+        :title="t('preview.zoomIn') + ' (+)'"
+        @click="imageRef?.zoomIn()"
+      >
+        <i class="material-icons" aria-hidden="true">add</i>
+      </button>
+      <span class="previewer__divider" aria-hidden="true"></span>
+      <button
+        type="button"
+        :aria-label="t('preview.rotate')"
+        :title="t('preview.rotate') + ' (R)'"
+        @click="imageRef?.rotate()"
+      >
+        <i class="material-icons" aria-hidden="true">rotate_right</i>
+      </button>
+      <button
+        v-if="isResizeEnabled"
+        type="button"
+        :class="{ 'is-active': fullSize }"
+        :aria-pressed="fullSize"
+        :aria-label="t('preview.original')"
+        :title="t('preview.original')"
+        @click="toggleSize"
+      >
+        <i class="material-icons" aria-hidden="true">hd</i>
+      </button>
+      <span v-if="imageMeta" class="previewer__info">
+        <span class="previewer__divider" aria-hidden="true"></span>
+        <span class="previewer__meta">{{ imageMeta }}</span>
+      </span>
+    </div>
 
     <button
+      class="previewer__nav previewer__nav--prev"
       @click="prev"
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
@@ -161,9 +258,10 @@
       :aria-label="$t('buttons.previous')"
       :title="$t('buttons.previous')"
     >
-      <i class="material-icons">chevron_left</i>
+      <i class="material-icons" aria-hidden="true">chevron_left</i>
     </button>
     <button
+      class="previewer__nav previewer__nav--next"
       @click="next"
       @mouseover="hoverNav = true"
       @mouseleave="hoverNav = false"
@@ -171,7 +269,7 @@
       :aria-label="$t('buttons.next')"
       :title="$t('buttons.next')"
     >
-      <i class="material-icons">chevron_right</i>
+      <i class="material-icons" aria-hidden="true">chevron_right</i>
     </button>
     <link rel="prefetch" :href="previousRaw" />
     <link rel="prefetch" :href="nextRaw" />
@@ -194,8 +292,20 @@ import Action from "@/components/header/Action.vue";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import VideoPlayer from "@/components/files/VideoPlayer.vue";
 import CsvViewer from "@/components/files/CsvViewer.vue";
+import AudioPlayer from "@/components/files/AudioPlayer.vue";
+import MediaLoader from "@/components/files/MediaLoader.vue";
+import { downloadWithProgress } from "@/utils/download";
+import prettyBytes from "pretty-bytes";
 import { VueReader } from "vue-reader";
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { Rendition } from "epubjs";
 import { getTheme } from "@/utils/theme";
@@ -265,7 +375,22 @@ const nextRaw = ref<string>("");
 const csvContent = ref<ArrayBuffer | string>("");
 const csvError = ref<string>("");
 
-const player = ref<HTMLVideoElement | HTMLAudioElement | null>(null);
+const position = ref<{ n: number; total: number } | null>(null);
+const coverUrl = ref<string | null>(null);
+const imageRef = ref<InstanceType<typeof ExtendedImage> | null>(null);
+const audioRef = ref<InstanceType<typeof AudioPlayer> | null>(null);
+
+/* Images are downloaded with progress, then shown from a blob URL */
+const image = reactive({
+  state: "idle" as "idle" | "loading" | "ready" | "error",
+  src: "",
+  loaded: 0,
+  total: 0,
+  zoom: 1,
+  width: 0,
+  height: 0,
+});
+let imageAbort: AbortController | null = null;
 
 const $showError = inject<IToastError>("$showError")!;
 
@@ -318,6 +443,31 @@ const isCsv = computed(
 
 const isResizeEnabled = computed(() => resizePreview);
 
+// What kind of viewer to show; drives layout classes too
+const kind = computed(() => {
+  if (isEpub.value) return "epub";
+  if (isCsv.value) return "csv";
+  if (isPdf.value) return "pdf";
+  const type = fileStore.req?.type;
+  if (type === "image" || type === "audio" || type === "video") return type;
+  return "other";
+});
+
+const folderName = computed(() => {
+  const dirs = route.path.replace(/\/+$/, "").split("/");
+  const folder = decodeURIComponent(dirs[dirs.length - 2] ?? "");
+  return folder === "files" ? "" : folder;
+});
+
+const imageMeta = computed(() => {
+  const parts: string[] = [];
+  if (image.width && image.height)
+    parts.push(`${image.width} × ${image.height}`);
+  if (fileStore.req?.size)
+    parts.push(prettyBytes(fileStore.req.size, { binary: true }));
+  return parts.join(" · ");
+});
+
 const subtitles = computed(() => {
   if (fileStore.req?.subtitles) {
     return api.getSubtitlesURL(fileStore.req);
@@ -341,7 +491,63 @@ onMounted(async () => {
   updatePreview();
 });
 
-onBeforeUnmount(() => window.removeEventListener("keydown", key));
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", key);
+  imageAbort?.abort();
+  if (image.src) URL.revokeObjectURL(image.src);
+});
+
+const loadImage = async () => {
+  imageAbort?.abort();
+  imageAbort = null;
+  if (kind.value !== "image" || layoutStore.loading || !fileStore.req) {
+    return;
+  }
+  const controller = new AbortController();
+  imageAbort = controller;
+  Object.assign(image, { state: "loading", loaded: 0, total: 0, zoom: 1 });
+
+  try {
+    const blobUrl = await downloadWithProgress(previewUrl.value, {
+      signal: controller.signal,
+      // Thumbnails don't always report a size; originals match the file
+      fallbackTotal: fullSize.value ? fileStore.req.size : 0,
+      onProgress: (p) => {
+        image.loaded = p.loaded;
+        image.total = p.total;
+      },
+    });
+    if (controller.signal.aborted) {
+      URL.revokeObjectURL(blobUrl);
+      return;
+    }
+    const old = image.src;
+    image.src = blobUrl;
+    image.state = "ready";
+    if (old) URL.revokeObjectURL(old);
+  } catch {
+    if (!controller.signal.aborted) image.state = "error";
+  }
+};
+
+const onImageReady = (size: { width: number; height: number }) => {
+  image.width = size.width;
+  image.height = size.height;
+};
+
+watch(
+  () => [kind.value === "image" ? previewUrl.value : "", layoutStore.loading],
+  () => loadImage(),
+  { immediate: true }
+);
+
+// Stop touch scrolling of the page, but leave sliders draggable
+const blockTouchScroll = (event: TouchEvent) => {
+  event.stopPropagation();
+  const target = event.target as HTMLElement | null;
+  if (target?.closest('input[type="range"]')) return;
+  event.preventDefault();
+};
 
 // Specify methods
 const deleteFile = () => {
@@ -386,6 +592,36 @@ const key = (event: KeyboardEvent) => {
   // When previewing a video, let arrow keys fall through to video.js for
   // seeking instead of switching to the prev/next file. Enter still advances.
   const isVideo = fileStore.req?.type === "video";
+  const target = event.target as HTMLElement | null;
+  const onControl = !!target?.closest("button, input, select, textarea, a");
+
+  // Image tools: + − 0 R
+  if (kind.value === "image" && image.state === "ready" && !onControl) {
+    const actions: Record<string, (() => void) | undefined> = {
+      "+": imageRef.value?.zoomIn,
+      "=": imageRef.value?.zoomIn,
+      "-": imageRef.value?.zoomOut,
+      "0": imageRef.value?.reset,
+      r: imageRef.value?.rotate,
+      R: imageRef.value?.rotate,
+    };
+    const action = actions[event.key];
+    if (action && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+      action();
+      return;
+    }
+  }
+
+  // Audio: Space / K play or pause
+  if (kind.value === "audio" && !onControl) {
+    if (event.key === " " || event.key === "k") {
+      event.preventDefault();
+      audioRef.value?.toggle();
+      return;
+    }
+  }
+
   if (event.which === 13) {
     // enter
     if (hasNext.value) next();
@@ -403,10 +639,6 @@ const key = (event: KeyboardEvent) => {
   }
 };
 const updatePreview = async () => {
-  if (player.value && player.value.paused && !player.value.ended) {
-    autoPlay.value = false;
-  }
-
   const dirs = route.fullPath.split("/");
   name.value = decodeURIComponent(dirs[dirs.length - 1]);
 
@@ -438,7 +670,20 @@ const updatePreview = async () => {
 
   previousLink.value = "";
   nextLink.value = "";
+  position.value = null;
+  coverUrl.value = null;
   if (listing.value) {
+    const media = listing.value.filter((item) =>
+      mediaTypes.includes(item.type)
+    );
+    const index = media.findIndex((item) => item.name === name.value);
+    if (index !== -1 && media.length > 1) {
+      position.value = { n: index + 1, total: media.length };
+    }
+    if (fileStore.req?.type === "audio") {
+      coverUrl.value = findCover(listing.value, name.value);
+    }
+
     for (let i = 0; i < listing.value.length; i++) {
       if (listing.value[i].name !== name.value) {
         continue;
@@ -462,6 +707,20 @@ const updatePreview = async () => {
       return;
     }
   }
+};
+
+// Album art: "cover.jpg", "folder.png", … or an image named like the track
+const COVER_NAMES =
+  /^(cover|folder|front|album|albumart|artwork)\.(jpe?g|png|webp)$/i;
+const findCover = (items: ResourceItem[], track: string) => {
+  const base = track.replace(/\.[^/.]+$/, "").toLowerCase();
+  const match =
+    items.find(
+      (i) =>
+        i.type === "image" &&
+        i.name.replace(/\.[^/.]+$/, "").toLowerCase() === base
+    ) ?? items.find((i) => i.type === "image" && COVER_NAMES.test(i.name));
+  return match ? api.getPreviewURL(match, "thumb") : null;
 };
 
 const prefetchUrl = (item: ResourceItem) => {

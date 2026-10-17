@@ -33,6 +33,7 @@
     "marked": "^18.0.0",
     "marked-katex-extension": "^5.1.6",
     "material-icons": "^1.13.14",
+    "mpegts.js": "1.8.0",
     "normalize.css": "^8.0.1",
     "pinia": "^3.0.4",
     "pretty-bytes": "^7.1.0",

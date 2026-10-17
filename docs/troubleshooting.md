@@ -80,3 +80,21 @@ If you see permission errors when accessing or uploading files:
   ```
 
 See [deployment.md](deployment.md) for full reverse proxy configuration examples.
+
+## Video or Audio Won't Play
+
+**Symptom:** The preview shows "This video can't be played here" (or the audio version).
+
+**Fix:** The browser can't decode that format. Use the **Download** button and open the file in a player like VLC. Common cases:
+
+- **MKV** files play only when they contain H.264/AAC (most do); other codecs need a download.
+- **FLV** files are converted in the browser on the fly. This needs Media Source Extensions, which iPhone Safari doesn't have — download them there instead.
+- **AVI, WMV** and other older formats aren't supported by browsers at all.
+
+> **Note:** If the message says the download was interrupted, check your connection or reverse proxy timeouts (see [Reverse Proxy](#reverse-proxy)).
+
+## Home Statistics Look Out of Date
+
+**Symptom:** Home shows old file counts or sizes.
+
+**Fix:** Click the refresh button next to the auto-refresh menu on Home, or pick an interval (every 5–60 minutes) so File Browser rescans in the background while it's open. Scans pause while the browser tab is hidden. On very large drives, prefer a longer interval — each scan walks the whole tree.

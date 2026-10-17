@@ -20,6 +20,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 interface IProps {
   src: string;
+  alt?: string;
   moveDisabledTime?: number;
   classList?: any[];
   zoomStep?: number;
@@ -30,6 +31,14 @@ const props = withDefaults(defineProps<IProps>(), {
   classList: () => [],
   zoomStep: () => 0.25,
 });
+
+const emit = defineEmits<{
+  zoom: [scale: number];
+  ready: [size: { width: number; height: number }];
+}>();
+
+// Quarter turns, applied on top of the zoom
+const rotation = ref<number>(0);
 
 const scale = ref<number>(1);
 const lastX = ref<number | null>(null);
@@ -57,9 +66,7 @@ const container = ref<HTMLDivElement | null>(null);
 onMounted(() => {
   if (!decodeUTIF() && imgex.value !== null) {
     imgex.value.src = props.src;
-    imgex.value.alt = decodeURIComponent(
-      props.src.split("/").pop() || "preview"
-    );
+    imgex.value.alt = props.alt || "preview";
   }
 
   props.classList.forEach((className) =>
@@ -91,12 +98,11 @@ watch(
   () => {
     if (!decodeUTIF() && imgex.value !== null) {
       imgex.value.src = props.src;
-      imgex.value.alt = decodeURIComponent(
-        props.src.split("/").pop() || "preview"
-      );
+      imgex.value.alt = props.alt || "preview";
     }
 
     scale.value = 1;
+    rotation.value = 0;
     setZoom();
     setCenter();
   }
@@ -149,6 +155,11 @@ const onLoad = () => {
 
   // Full size plus additional zoom
   maxScale.value = fullScale + 4;
+
+  emit("ready", {
+    width: imgex.value.naturalWidth,
+    height: imgex.value.naturalHeight,
+  });
 };
 
 const onMouseUp = () => {
@@ -303,8 +314,43 @@ const setZoom = () => {
   scale.value = scale.value < minScale.value ? minScale.value : scale.value;
   scale.value = scale.value > maxScale.value ? maxScale.value : scale.value;
   if (imgex.value !== null)
-    imgex.value.style.transform = `scale(${scale.value})`;
+    imgex.value.style.transform = `scale(${scale.value * fitScale()}) rotate(${rotation.value * 90}deg)`;
+  emit("zoom", scale.value);
 };
+
+// A sideways image must shrink so it still fits the screen
+const fitScale = () => {
+  if (rotation.value % 2 === 0 || !imgex.value || !container.value) return 1;
+  const w = imgex.value.offsetWidth;
+  const h = imgex.value.offsetHeight;
+  if (!w || !h) return 1;
+  return Math.min(
+    1,
+    container.value.clientWidth / h,
+    container.value.clientHeight / w
+  );
+};
+
+/* Used by the preview toolbar */
+const zoomIn = () => {
+  scale.value += props.zoomStep * 2;
+  setZoom();
+};
+const zoomOut = () => {
+  scale.value -= props.zoomStep * 2;
+  setZoom();
+};
+const reset = () => {
+  scale.value = 1;
+  setCenter();
+  setZoom();
+};
+const rotate = () => {
+  rotation.value = (rotation.value + 1) % 4;
+  setZoom();
+};
+
+defineExpose({ zoomIn, zoomOut, reset, rotate });
 const pxStringToNumber = (style: string) => {
   return +style.replace("px", "");
 };

@@ -31,7 +31,8 @@ import Prompts from "@/components/prompts/Prompts.vue";
 import Shell from "@/components/Shell.vue";
 import UploadFiles from "@/components/prompts/UploadFiles.vue";
 import { enableExec } from "@/utils/constants";
-import { computed, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, watch } from "vue";
+import { useHomeStore } from "@/stores/home";
 import { useRoute } from "vue-router";
 
 const layoutStore = useLayoutStore();
@@ -39,6 +40,11 @@ const authStore = useAuthStore();
 const fileStore = useFileStore();
 const uploadStore = useUploadStore();
 const route = useRoute();
+const homeStore = useHomeStore();
+
+// Home statistics can refresh on a timer while the app is open
+onMounted(() => homeStore.startAutoRefresh());
+onBeforeUnmount(() => homeStore.stopAutoRefresh());
 
 const sentPercent = computed(() =>
   ((uploadStore.sentBytes / uploadStore.totalBytes) * 100).toFixed(2)

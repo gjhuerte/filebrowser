@@ -10,12 +10,45 @@
           </h1>
           <p class="home__subtitle">{{ t("home.subtitle") }}</p>
         </div>
-        <p class="home__status" aria-live="polite">
-          <template v-if="refreshing">
-            <span class="home__pulse" aria-hidden="true"></span>
-            {{ t("home.updating") }}
-          </template>
-        </p>
+        <div class="home__sync">
+          <p class="home__status" aria-live="polite">
+            <template v-if="refreshing">
+              <span class="home__pulse" aria-hidden="true"></span>
+              {{ t("home.updating") }}
+            </template>
+            <template v-else-if="updatedLabel">
+              {{ updatedLabel
+              }}<span v-if="nextLabel" class="home__next">
+                · {{ nextLabel }}</span
+              >
+            </template>
+          </p>
+          <div class="home__controls">
+            <label class="home__interval">
+              <i class="material-icons" aria-hidden="true">schedule</i>
+              <select
+                v-model="intervalModel"
+                :title="t('home.autoRefreshHint')"
+                :aria-label="t('home.autoRefresh')"
+              >
+                <option v-for="m in REFRESH_CHOICES" :key="m" :value="m">
+                  {{ intervalLabel(m) }}
+                </option>
+              </select>
+            </label>
+            <button
+              type="button"
+              class="home__refresh"
+              :class="{ 'home__refresh--spinning': refreshing }"
+              :disabled="refreshing"
+              :aria-label="t('home.refreshNow')"
+              :title="t('home.refreshNow')"
+              @click="load"
+            >
+              <i class="material-icons" aria-hidden="true">refresh</i>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Headline numbers -->
@@ -235,141 +268,61 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, onMounted } from "vue";
+import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import dayjs from "dayjs";
 import prettyBytes from "pretty-bytes";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import SectionState from "@/components/home/SectionState.vue";
 import { useAuthStore } from "@/stores/auth";
-import { useHomeStore } from "@/stores/home";
-import { files as filesApi } from "@/api";
-import { fetchJSON, fetchURL, StatusError } from "@/api/utils";
+import { REFRESH_CHOICES, useHomeStore } from "@/stores/home";
 import { encodePath } from "@/utils/url";
-import {
-  TYPE_ICONS,
-  fileType,
-  summarize,
-  type ScanSummary,
-} from "@/utils/fileStats";
-
-type Status = "loading" | "ready" | "error";
-interface Section<T> {
-  status: Status;
-  data: T | null;
-}
-interface Usage {
-  used: number;
-  total: number;
-}
+import { TYPE_ICONS, fileType } from "@/utils/fileStats";
 
 const { t, locale } = useI18n();
 const authStore = useAuthStore();
 const homeStore = useHomeStore();
+const { usage, scan, shares, users, refreshing } = storeToRefs(homeStore);
 
 const isAdmin = computed(() => authStore.user?.perm.admin ?? false);
 const canShare = computed(
   () => !!(authStore.user?.perm.share && authStore.user?.perm.download)
 );
 
-const usage = reactive<Section<Usage>>({ status: "loading", data: null });
-const scan = reactive<Section<ScanSummary>>({ status: "loading", data: null });
-const shares = reactive<Section<number>>({ status: "loading", data: null });
-const users = reactive<Section<number>>({ status: "loading", data: null });
-const refreshing = ref(false);
-
-let controller: AbortController | null = null;
-
-async function run<T>(
-  section: Section<T>,
-  loader: (signal: AbortSignal) => Promise<T>,
-  signal: AbortSignal,
-  store: (value: T) => void
-) {
-  if (section.data === null) section.status = "loading";
-  try {
-    const value = await loader(signal);
-    if (signal.aborted) return;
-    section.data = value;
-    section.status = "ready";
-    store(value);
-  } catch (e) {
-    if (signal.aborted || (e instanceof StatusError && e.is_canceled)) return;
-    // Keep showing stale data if we have it; otherwise show the error state
-    if (section.data === null) section.status = "error";
-  }
-}
-
-function load() {
-  controller?.abort();
-  controller = new AbortController();
-  const { signal } = controller;
-  const c = homeStore.cacheFor(authStore.user?.username ?? "");
-  refreshing.value = true;
-
-  // Every section loads independently and in parallel; leaving the page
-  // aborts them, which also stops the server-side directory walk.
-  const jobs: Promise<void>[] = [
-    run(
-      usage,
-      (s) => filesApi.usage("/files/", s) as Promise<Usage>,
-      signal,
-      (v) => (c.usage = v)
-    ),
-    run(
-      scan,
-      async (s) => {
-        const res = await fetchURL("/api/resources/recursive/", { signal: s });
-        return summarize(await res.json());
-      },
-      signal,
-      (v) => (c.scan = v)
-    ),
-  ];
-  if (canShare.value) {
-    jobs.push(
-      run(
-        shares,
-        async (s) =>
-          (await fetchJSON<unknown[]>("/api/shares", { signal: s })).length,
-        signal,
-        (v) => (c.shares = v)
-      )
-    );
-  }
-  if (isAdmin.value) {
-    jobs.push(
-      run(
-        users,
-        async (s) =>
-          (await fetchJSON<unknown[]>("/api/users", { signal: s })).length,
-        signal,
-        (v) => (c.users = v)
-      )
-    );
-  }
-
-  Promise.allSettled(jobs).then(() => {
-    if (!signal.aborted) refreshing.value = false;
-  });
-}
+const load = () => homeStore.refresh();
 
 onMounted(() => {
   // Show the previous result instantly, then refresh in the background
-  const cache = homeStore.cache;
-  if (cache && cache.owner === (authStore.user?.username ?? "")) {
-    if (cache.usage)
-      Object.assign(usage, { status: "ready", data: cache.usage });
-    if (cache.scan) Object.assign(scan, { status: "ready", data: cache.scan });
-    if (cache.shares !== null)
-      Object.assign(shares, { status: "ready", data: cache.shares });
-    if (cache.users !== null)
-      Object.assign(users, { status: "ready", data: cache.users });
-  }
-  load();
+  homeStore.ensureOwner(authStore.user?.username ?? "");
+  if (!homeStore.refreshing) load();
 });
 
-onBeforeUnmount(() => controller?.abort());
+/* Auto-refresh */
+const intervalModel = computed({
+  get: () => homeStore.interval,
+  set: (v: number) => homeStore.setInterval(Number(v)),
+});
+const intervalLabel = (m: number) =>
+  m === 0
+    ? t("home.autoRefreshOff")
+    : m >= 60
+      ? t("home.everyHours", { n: m / 60 }, m / 60)
+      : t("home.everyMinutes", { n: m });
+const updatedLabel = computed(() => {
+  if (!homeStore.lastUpdated) return "";
+  // Read `now` so the label re-renders on every scheduler tick
+  const diff = homeStore.now - homeStore.lastUpdated;
+  return diff < 60_000
+    ? t("home.updatedJustNow")
+    : t("home.updatedAgo", { time: dayjs(homeStore.lastUpdated).fromNow() });
+});
+const nextLabel = computed(() => {
+  const at = homeStore.nextRefreshAt;
+  if (!at) return "";
+  const mins = Math.max(1, Math.ceil((at - homeStore.now) / 60_000));
+  return t("home.nextScan", { n: mins });
+});
 
 /* Formatting */
 const bytes = (n: number) => prettyBytes(n, { binary: true });
@@ -386,7 +339,7 @@ const folderOf = (path: string) => {
 const fileLink = (path: string) => "/files" + encodePath(path);
 
 const usedPercent = computed(() => {
-  const u = usage.data;
+  const u = usage.value.data;
   return u && u.total > 0 ? Math.round((u.used / u.total) * 100) : 0;
 });
 const meterLevel = computed(() =>
@@ -398,13 +351,13 @@ const meterLevel = computed(() =>
 );
 
 const share = (n: number) => {
-  const total = scan.data?.bytes ?? 0;
+  const total = scan.value.data?.bytes ?? 0;
   if (!total) return "0%";
   const pct = (n / total) * 100;
   return pct > 0 && pct < 1 ? "<1%" : `${Math.round(pct)}%`;
 };
 const barWidth = (n: number) => {
-  const total = scan.data?.bytes ?? 0;
+  const total = scan.value.data?.bytes ?? 0;
   if (!total) return "0%";
   return `${Math.max((n / total) * 100, n > 0 ? 1 : 0)}%`;
 };

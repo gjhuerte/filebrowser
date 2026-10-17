@@ -116,6 +116,22 @@
 
         <div class="help-section">
           <h3 class="help-heading">
+            <i class="material-icons">visibility</i>
+            Previewing Files
+          </h3>
+          <table class="help-table">
+            <tr><td class="key-cell"><kbd>← / →</kbd></td><td>Previous / next file (seeks in videos)</td></tr>
+            <tr><td class="key-cell"><kbd>Enter</kbd></td><td>Next file</td></tr>
+            <tr><td class="key-cell"><kbd>+ / −</kbd></td><td>Zoom an image in or out</td></tr>
+            <tr><td class="key-cell"><kbd>0</kbd></td><td>Fit the image to the screen</td></tr>
+            <tr><td class="key-cell"><kbd>R</kbd></td><td>Rotate the image</td></tr>
+            <tr><td class="key-cell"><kbd>Space</kbd></td><td>Play or pause audio and video</td></tr>
+            <tr><td class="key-cell"><kbd>Esc</kbd></td><td>Close the preview</td></tr>
+          </table>
+        </div>
+
+        <div class="help-section">
+          <h3 class="help-heading">
             <i class="material-icons">edit</i>
             Editor
           </h3>
@@ -159,10 +175,24 @@
             File Preview
           </h3>
           <div class="help-list">
-            <p><strong>Images</strong> — Preview with zoom and navigation between images.</p>
-            <p><strong>Video & Audio</strong> — Built-in media player for common formats.</p>
+            <p><strong>Images</strong> — Zoom, rotate, and switch to original quality from the toolbar at the bottom. Size and dimensions are shown there too.</p>
+            <p><strong>Video</strong> — Built-in player with speed control, subtitles, and picture-in-picture. <strong>FLV</strong> files play too (not on iPhone).</p>
+            <p><strong>Audio</strong> — Music player with album art (a <code>cover.jpg</code> or <code>folder.jpg</code> in the same folder), repeat, speed, and it moves on to the next track automatically.</p>
+            <p>While a file downloads you'll see <strong>how much has loaded</strong> — a percentage and size where the server reports it.</p>
             <p><strong>PDF</strong> — In-browser PDF viewer.</p>
             <p><strong>Markdown</strong> — Rendered markdown preview.</p>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h3 class="help-heading">
+            <i class="material-icons">dashboard</i>
+            Home Dashboard
+          </h3>
+          <div class="help-list">
+            <p>Home shows your storage, file counts, and the largest and most recent files.</p>
+            <p>Use the <strong>auto-refresh</strong> menu (top right of Home) to rescan your files every 5, 15, 30, or 60 minutes. Scans run in the background while File Browser is open and pause when the tab is hidden.</p>
+            <p>The refresh button rescans right away.</p>
           </div>
         </div>
 

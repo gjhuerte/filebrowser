@@ -18,6 +18,10 @@ File Browser provides a file managing interface within a specified directory and
 
 ## Recent Updates
 
+- **Media Viewer** — Redesigned image, video, and audio previews that follow the light/dark theme
+- **FLV Playback** — Flash video files play in the browser (remuxed on the fly; not supported on iPhone)
+- **Download Progress** — Loading and buffering indicators with percentage and size
+- **Home Auto-Refresh** — Background rescans of the Home statistics on a chosen interval
 - **File Info Modal** — Redesigned with basic info and collapsible technical details (permissions, checksums)
 - **Favorites** — Star files and folders for quick sidebar access
 - **Flexible Passwords** — Allow simpler passwords with explicit confirmation
