@@ -1,5 +1,10 @@
 <template>
   <div>
+    <h3 v-if="!isDefault">{{ t("settings.basicInfo") }}</h3>
+    <p v-if="!isDefault" class="small">
+      {{ t("settings.basicInfoDescription") }}
+    </p>
+
     <p v-if="!isDefault && props.user !== null">
       <label for="username">{{ t("settings.username") }}</label>
       <input
@@ -21,8 +26,9 @@
       />
     </p>
 
-    <p>
+    <div>
       <label for="scope">{{ t("settings.scope") }}</label>
+      <span class="small">{{ t("settings.scopeDescription") }}</span>
       <input
         :disabled="createUserDirData ?? false"
         :placeholder="scopePlaceholder"
@@ -31,7 +37,7 @@
         v-model="user.scope"
         id="scope"
       />
-    </p>
+    </div>
     <div class="setting-list" v-if="displayHomeDirectoryCheckbox">
       <label class="setting-toggle">
         <span>{{ t("settings.createUserHomeDirectory") }}</span>
@@ -48,25 +54,51 @@
       ></languages>
     </p>
 
-    <div class="setting-list" v-if="!isDefault && user.perm">
-      <label class="setting-toggle">
-        <span>{{ t("settings.lockPassword") }}</span>
-        <input
-          type="checkbox"
-          class="switch"
-          :disabled="user.perm.admin"
-          v-model="user.lockPassword"
-        />
+    <div v-if="!isDefault" class="collapsible user-form__advanced">
+      <input id="advanced-toggle" type="checkbox" />
+      <label for="advanced-toggle">
+        <p>{{ t("settings.advanced") }}</p>
+        <i class="material-icons">arrow_drop_down</i>
       </label>
+      <div class="collapse">
+        <p class="small">{{ t("settings.advancedDescription") }}</p>
+
+        <div class="setting-list" v-if="user.perm">
+          <label class="setting-toggle">
+            <span>{{ t("settings.lockPassword") }}</span>
+            <input
+              type="checkbox"
+              class="switch"
+              :disabled="user.perm.admin"
+              v-model="user.lockPassword"
+            />
+          </label>
+        </div>
+
+        <permissions v-model:perm="user.perm" />
+        <commands v-if="enableExec" v-model:commands="user.commands" />
+
+        <h3>{{ t("settings.rules") }}</h3>
+        <p class="small">{{ t("settings.rulesHelp") }}</p>
+        <rules v-model:rules="user.rules" />
+      </div>
     </div>
 
-    <permissions v-model:perm="user.perm" />
-    <commands v-if="enableExec" v-model:commands="user.commands" />
+    <div v-if="isDefault">
+      <div class="setting-list" v-if="user.perm">
+        <label class="setting-toggle">
+          <span>{{ t("settings.lockPassword") }}</span>
+          <input
+            type="checkbox"
+            class="switch"
+            :disabled="user.perm.admin"
+            v-model="user.lockPassword"
+          />
+        </label>
+      </div>
 
-    <div v-if="!isDefault">
-      <h3>{{ t("settings.rules") }}</h3>
-      <p class="small">{{ t("settings.rulesHelp") }}</p>
-      <rules v-model:rules="user.rules" />
+      <permissions v-model:perm="user.perm" />
+      <commands v-if="enableExec" v-model:commands="user.commands" />
     </div>
   </div>
 </template>

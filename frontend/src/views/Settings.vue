@@ -9,12 +9,32 @@
         <router-link
           to="/settings/profile"
           class="tabs__tab"
-          :aria-label="t('settings.profileSettings')"
-          :title="t('settings.profileSettings')"
+          :aria-label="t('settings.profileInfo')"
+          :title="t('settings.profileInfo')"
           :class="{ 'tabs__tab--active': $route.path === '/settings/profile' }"
         >
           <i class="material-icons" aria-hidden="true">person</i>
-          <span>{{ t("settings.profileSettings") }}</span>
+          <span>{{ t("settings.profileInfo") }}</span>
+        </router-link>
+        <router-link
+          to="/settings/password"
+          class="tabs__tab"
+          :aria-label="t('settings.changePassword')"
+          :title="t('settings.changePassword')"
+          :class="{ 'tabs__tab--active': $route.path === '/settings/password' }"
+        >
+          <i class="material-icons" aria-hidden="true">lock</i>
+          <span>{{ t("settings.changePassword") }}</span>
+        </router-link>
+        <router-link
+          to="/settings/system"
+          class="tabs__tab"
+          :aria-label="t('settings.system')"
+          :title="t('settings.system')"
+          :class="{ 'tabs__tab--active': $route.path === '/settings/system' }"
+        >
+          <i class="material-icons" aria-hidden="true">settings</i>
+          <span>{{ t("settings.system") }}</span>
         </router-link>
         <router-link
           v-if="user?.perm.share"
@@ -26,31 +46,6 @@
         >
           <i class="material-icons" aria-hidden="true">share</i>
           <span>{{ t("settings.shareManagement") }}</span>
-        </router-link>
-        <router-link
-          v-if="user?.perm.admin"
-          to="/settings/global"
-          class="tabs__tab"
-          :aria-label="t('settings.globalSettings')"
-          :title="t('settings.globalSettings')"
-          :class="{ 'tabs__tab--active': $route.path === '/settings/global' }"
-        >
-          <i class="material-icons" aria-hidden="true">tune</i>
-          <span>{{ t("settings.globalSettings") }}</span>
-        </router-link>
-        <router-link
-          v-if="user?.perm.admin"
-          to="/settings/users"
-          class="tabs__tab"
-          :aria-label="t('settings.userManagement')"
-          :title="t('settings.userManagement')"
-          :class="{
-            'tabs__tab--active':
-              $route.path === '/settings/users' || $route.name === 'User',
-          }"
-        >
-          <i class="material-icons" aria-hidden="true">group</i>
-          <span>{{ t("settings.userManagement") }}</span>
         </router-link>
       </div>
 

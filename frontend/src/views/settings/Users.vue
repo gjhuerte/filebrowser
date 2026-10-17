@@ -5,7 +5,7 @@
       <div class="card">
         <div class="card-title">
           <h2>{{ t("settings.users") }}</h2>
-          <router-link to="/settings/users/new" class="button button--icon">
+          <router-link to="/admin/users/new" class="button button--icon">
             <i class="material-icons" aria-hidden="true">add</i>
             {{ t("buttons.new") }}
           </router-link>
@@ -22,10 +22,7 @@
 
             <tr v-for="user in users" :key="user.id">
               <td>
-                <router-link
-                  :to="'/settings/users/' + user.id"
-                  class="cell-user"
-                >
+                <router-link :to="'/admin/users/' + user.id" class="cell-user">
                   <span class="avatar" aria-hidden="true">{{
                     user.username.charAt(0).toUpperCase()
                   }}</span>
@@ -43,7 +40,7 @@
               </td>
               <td class="cell-actions">
                 <router-link
-                  :to="'/settings/users/' + user.id"
+                  :to="'/admin/users/' + user.id"
                   class="action"
                   :aria-label="`${t('settings.user')} ${user.username}`"
                   :title="`${t('settings.user')} ${user.username}`"

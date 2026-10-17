@@ -91,9 +91,9 @@
           </p>
           <router-link
             v-if="user.perm.admin"
-            to="/settings/global"
+            to="/admin/settings/general"
             class="action"
-            :class="{ 'action--current': onRoute('/settings/global') }"
+            :class="{ 'action--current': onRoute('/admin/settings') }"
             @click="closeHovers"
           >
             <i class="material-icons">tune</i>
@@ -101,9 +101,9 @@
           </router-link>
           <router-link
             v-if="user.perm.admin"
-            to="/settings/users"
+            to="/admin/users"
             class="action"
-            :class="{ 'action--current': onRoute('/settings/users') }"
+            :class="{ 'action--current': onRoute('/admin/users') }"
             @click="closeHovers"
           >
             <i class="material-icons">group</i>

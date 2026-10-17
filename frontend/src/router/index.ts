@@ -8,9 +8,16 @@ import Share from "@/views/Share.vue";
 import Users from "@/views/settings/Users.vue";
 import User from "@/views/settings/User.vue";
 import Settings from "@/views/Settings.vue";
-import GlobalSettings from "@/views/settings/Global.vue";
-import ProfileSettings from "@/views/settings/Profile.vue";
+import ProfileInfo from "@/views/settings/ProfileInfo.vue";
+import ChangePassword from "@/views/settings/ChangePassword.vue";
+import SystemSettings from "@/views/settings/System.vue";
 import Shares from "@/views/settings/Shares.vue";
+import GlobalSettingsWrapper from "@/views/GlobalSettings.vue";
+import GeneralSettings from "@/views/admin/GeneralSettings.vue";
+import UserDefaultsSettings from "@/views/admin/UserDefaultsSettings.vue";
+import BrandingSettings from "@/views/admin/BrandingSettings.vue";
+import CommandsSettings from "@/views/admin/CommandsSettings.vue";
+import UserManagement from "@/views/admin/UserManagement.vue";
 import Errors from "@/views/Errors.vue";
 import { useAuthStore } from "@/stores/auth";
 import { baseURL, name } from "@/utils/constants";
@@ -24,10 +31,18 @@ const titles = {
   Home: "sidebar.home",
   Files: "files.files",
   Settings: "sidebar.settings",
-  ProfileSettings: "settings.profileSettings",
+  ProfileInfo: "settings.profileInfo",
+  ChangePassword: "settings.changePassword",
+  SystemSettings: "settings.system",
   Shares: "settings.shareManagement",
   GlobalSettings: "settings.globalSettings",
+  GeneralSettings: "settings.general",
+  UserDefaultsSettings: "settings.userDefaults",
+  BrandingSettings: "settings.branding",
+  CommandsSettings: "settings.commandRunner",
+  UserManagement: "settings.userManagement",
   Users: "settings.users",
+  UserNew: "settings.newUser",
   User: "settings.user",
   Forbidden: "errors.forbidden",
   NotFound: "errors.notFound",
@@ -96,37 +111,95 @@ const routes = [
         children: [
           {
             path: "profile",
-            name: "ProfileSettings",
-            component: ProfileSettings,
+            name: "ProfileInfo",
+            component: ProfileInfo,
+          },
+          {
+            path: "password",
+            name: "ChangePassword",
+            component: ChangePassword,
+          },
+          {
+            path: "system",
+            name: "SystemSettings",
+            component: SystemSettings,
           },
           {
             path: "shares",
             name: "Shares",
             component: Shares,
           },
+        ],
+      },
+    ],
+  },
+  {
+    path: "/admin/settings",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "GlobalSettings",
+        component: GlobalSettingsWrapper,
+        redirect: {
+          path: "/admin/settings/general",
+        },
+        children: [
           {
-            path: "global",
-            name: "GlobalSettings",
-            component: GlobalSettings,
-            meta: {
-              requiresAdmin: true,
-            },
+            path: "general",
+            name: "GeneralSettings",
+            component: GeneralSettings,
           },
           {
-            path: "users",
+            path: "user-defaults",
+            name: "UserDefaultsSettings",
+            component: UserDefaultsSettings,
+          },
+          {
+            path: "branding",
+            name: "BrandingSettings",
+            component: BrandingSettings,
+          },
+          {
+            path: "commands",
+            name: "CommandsSettings",
+            component: CommandsSettings,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: "/admin/users",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "UserManagement",
+        component: UserManagement,
+        children: [
+          {
+            path: "",
             name: "Users",
             component: Users,
-            meta: {
-              requiresAdmin: true,
-            },
           },
           {
-            path: "users/:id",
+            path: "new",
+            name: "UserNew",
+            component: User,
+          },
+          {
+            path: ":id",
             name: "User",
             component: User,
-            meta: {
-              requiresAdmin: true,
-            },
           },
         ],
       },
@@ -158,6 +231,15 @@ const routes = [
       errorCode: 500,
       showHeader: true,
     },
+  },
+  {
+    // Legacy redirects for old settings routes
+    path: "/settings/global",
+    redirect: "/admin/settings/general",
+  },
+  {
+    path: "/settings/users",
+    redirect: "/admin/users",
   },
   {
     path: "/:catchAll(.*)*",

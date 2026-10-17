@@ -29,7 +29,7 @@
             {{ $t("buttons.delete") }}
           </button>
           <router-link
-            to="/settings/users"
+            to="/admin/users"
             class="button button--flat button--grey"
           >
             {{ $t("buttons.cancel") }}
@@ -73,7 +73,7 @@ onMounted(() => {
   fetchData();
 });
 
-const isNew = computed(() => route.path === "/settings/users/new");
+const isNew = computed(() => route.path === "/admin/users/new");
 
 watch(route, () => fetchData());
 watch(user, () => {
@@ -141,7 +141,7 @@ const deleteUser = async (currentPassword: string) => {
     if (user.value.id == authStore.user?.id) {
       logout();
     } else {
-      router.push({ path: "/settings/users" });
+      router.push({ path: "/admin/users" });
     }
     $showSuccess(t("settings.userDeleted"));
   } catch (err) {
@@ -186,7 +186,9 @@ const send = async (currentPassword: string) => {
       };
 
       const loc = await api.create(newUser, currentPassword);
-      router.push({ path: loc || "/settings/users" });
+      router.push({
+        path: loc?.replace("/settings/users", "/admin/users") || "/admin/users",
+      });
       $showSuccess(t("settings.userCreated"));
     } else {
       await api.update(user.value, ["all"], currentPassword);
