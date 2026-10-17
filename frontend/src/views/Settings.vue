@@ -36,17 +36,7 @@
           <i class="material-icons" aria-hidden="true">settings</i>
           <span>{{ t("settings.system") }}</span>
         </router-link>
-        <router-link
-          v-if="user?.perm.share"
-          to="/settings/shares"
-          class="tabs__tab"
-          :aria-label="t('settings.shareManagement')"
-          :title="t('settings.shareManagement')"
-          :class="{ 'tabs__tab--active': $route.path === '/settings/shares' }"
-        >
-          <i class="material-icons" aria-hidden="true">share</i>
-          <span>{{ t("settings.shareManagement") }}</span>
-        </router-link>
+
       </div>
 
       <div v-if="loading">

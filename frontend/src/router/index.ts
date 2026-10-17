@@ -34,7 +34,7 @@ const titles = {
   ProfileInfo: "settings.profileInfo",
   ChangePassword: "settings.changePassword",
   SystemSettings: "settings.system",
-  Shares: "settings.shareManagement",
+  Shares: "sidebar.sharedLinks",
   GlobalSettings: "settings.globalSettings",
   GeneralSettings: "settings.general",
   UserDefaultsSettings: "settings.userDefaults",
@@ -124,12 +124,22 @@ const routes = [
             name: "SystemSettings",
             component: SystemSettings,
           },
-          {
-            path: "shares",
-            name: "Shares",
-            component: Shares,
-          },
+
         ],
+      },
+    ],
+  },
+  {
+    path: "/shares",
+    component: Layout,
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "Shares",
+        component: Shares,
       },
     ],
   },
@@ -231,6 +241,11 @@ const routes = [
       errorCode: 500,
       showHeader: true,
     },
+  },
+  {
+    // Legacy redirect for shares (now its own page)
+    path: "/settings/shares",
+    redirect: "/shares",
   },
   {
     // Legacy redirects for old settings routes

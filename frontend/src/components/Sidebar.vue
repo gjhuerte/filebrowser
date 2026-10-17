@@ -176,9 +176,9 @@
           </router-link>
           <router-link
             v-if="canShare"
-            to="/settings/shares"
+            to="/shares"
             class="action"
-            :class="{ 'action--current': onRoute('/settings/shares') }"
+            :class="{ 'action--current': onRoute('/shares') }"
             @click="closeHovers"
           >
             <i class="material-icons">link</i>
