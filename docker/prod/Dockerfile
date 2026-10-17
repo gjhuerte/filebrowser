@@ -17,7 +17,7 @@ COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 COPY frontend/ ./
-RUN pnpm run build
+RUN pnpm exec vite build
 
 # ---- 2. Go binary (frontend embedded) -----------------------------------
 FROM golang:${GO_VERSION}-alpine AS backend
