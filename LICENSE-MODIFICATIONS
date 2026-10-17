@@ -1,0 +1,48 @@
+Non-Commercial Personal Use License for Modifications
+
+Copyright (c) 2024 Gab Huerte
+
+This license applies to all modifications, additions, and new code contributed
+to this fork that are not part of the original File Browser project (which
+remains under the Apache License 2.0 — see LICENSE).
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of the modified portions of this software, to use, copy, and modify those
+modifications for personal, non-commercial purposes only, subject to the
+following conditions:
+
+1. NON-COMMERCIAL USE ONLY
+   The modifications covered by this license may not be used, in whole or in
+   part, for any commercial purpose. "Commercial purpose" means any activity
+   intended for or directed toward commercial advantage or monetary
+   compensation, including but not limited to:
+   - Selling, licensing, or sublicensing the modifications
+   - Using the modifications to provide paid services or as part of a paid
+     product
+   - Incorporating the modifications into any product or service that is sold,
+     rented, or otherwise made available for a fee
+
+2. PERSONAL USE PERMITTED
+   You may use, copy, and modify the covered modifications for personal,
+   educational, research, or other non-commercial purposes, provided that:
+   - This license notice is included in all copies
+   - Any further modifications are clearly marked as such
+   - You do not claim authorship of these modifications
+
+3. REDISTRIBUTION
+   You may redistribute the modifications, provided that:
+   - The redistribution is free of charge
+   - This license is included with the redistribution
+   - The original Apache 2.0 LICENSE file for the base project is also included
+   - The redistribution is not part of any commercial product or service
+
+4. NO WARRANTY
+   THE MODIFICATIONS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+5. RELATIONSHIP TO ORIGINAL LICENSE
+   The original File Browser code remains under the Apache License 2.0
+   (see LICENSE file). This license applies only to the modifications and
+   additions made in this fork. The Apache License 2.0 terms continue to
+   apply to all original, unmodified code.

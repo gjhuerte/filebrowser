@@ -1,16 +1,18 @@
 ## Description
 
-<!-- Please explain the changes you made here. -->
+<!-- Describe what this PR does and why -->
 
-## Additional Information
+## Type of Change
 
-<!-- If it is a relatively large or complex change, please add more information to explain what you did, how you did it, if you considered any alternatives, etc. -->
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Enhancement
+- [ ] Documentation update
+- [ ] Other (please describe)
 
 ## Checklist
 
-Before submitting your PR, please indicate which issues are either fixed or closed by this PR. See [GitHub Help: Closing issues using keywords](https://help.github.com/articles/closing-issues-via-commit-messages/).
-
-- [ ] I am aware this project is being **archived on 2026-09-01** and that no further changes will be merged, including bug fixes. See [README](https://github.com/filebrowser/filebrowser/blob/master/README.md)
-- [ ] I am aware that translations MUST be made through [Transifex](https://app.transifex.com/file-browser/file-browser/) and that this PR is NOT a translation update
-- [ ] I am making a PR against the `master` branch.
-- [ ] I am sure File Browser can be successfully built. See [CONTRIBUTING.md](https://github.com/filebrowser/filebrowser/blob/master/CONTRIBUTING.md).
+- [ ] I have tested my changes
+- [ ] File Browser builds successfully (`go build ./...`)
+- [ ] Tests pass (`go test ./...`)
+- [ ] I have followed the existing code conventions

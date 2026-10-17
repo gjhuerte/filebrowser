@@ -1,115 +1,77 @@
-# Building File Browser
+# Contributing
 
-This project is archived on 2026-09-01. Pull requests are not accepted and no further changes are merged. This document is kept as build documentation for anyone wishing to build the project from source.
+Thank you for your interest in contributing to File Browser!
 
-## Project Structure
+## Building from Source
 
-The backend side of the application is written in [Go](https://golang.org/), while the frontend (located on a subdirectory of the same name) is written in [Vue.js](https://vuejs.org/). Due to the tight coupling required by some features, basic knowledge of both Go and Vue.js is recommended.
+### Prerequisites
 
-* Learn Go: [https://github.com/golang/go/wiki/Learn](https://github.com/golang/go/wiki/Learn)
-* Learn Vue.js: [https://vuejs.org/guide/introduction.html](https://vuejs.org/guide/introduction.html)
+- [Go](https://golang.org/) (see `go.mod` for the required version)
+- [Node.js](https://nodejs.org/) (latest LTS recommended)
+- [pnpm](https://pnpm.io/) or npm
 
-We encourage you to use git to manage your fork. To clone the main repository, just run:
-
-```bash
-git clone https://github.com/filebrowser/filebrowser
-```
-
-We use [Taskfile](https://taskfile.dev/) to manage the different processes (building, releasing, etc) automatically.
-
-## Build
-
-You can fully build the project in order to produce a binary by running:
+### Getting Started
 
 ```bash
-task build
+git clone <your-repo-url>
+cd filebrowser
 ```
-
-## Development
-
-For development, there are a few things to have in mind.
 
 ### Frontend
 
-We use [Node.js](https://nodejs.org/en/) on the frontend to manage the build process. Prepare the frontend environment:
+The frontend lives under `frontend/` and uses Vue 3.
 
 ```bash
-# From the root of the repo, go to frontend/
 cd frontend
-
-# Install the dependencies
-pnpm install
+npm install
+npm run build
 ```
 
-If you just want to develop the backend, you can create a static build of the frontend:
+For development with hot-reload:
 
 ```bash
-pnpm run build
+npm run serve
 ```
-
-If you want to develop the frontend, start a development server which watches for changes:
-
-```bash
-pnpm run dev
-```
-
-Please note that you need to access File Browser's interface through the development server of the frontend.
 
 ### Backend
 
-First prepare the backend environment by downloading all required dependencies:
+From the project root:
 
 ```bash
-go mod download
+go build -o filebrowser
 ```
 
-You can now build or run File Browser as any other Go project:
+To run tests:
 
 ```bash
-# Build
-go build
-
-# Run
-go run .
+go test ./...
+go vet ./...
 ```
 
-## Documentation
-
-Documentation lives in [`docs`](docs) as plain Markdown and is no longer built into a site. The command line reference in [`docs/cli`](docs/cli) is generated from the commands themselves:
+### Building the Docker Image
 
 ```bash
-task docs:cli:generate
+docker build -t filebrowser .
 ```
 
-## Release
+## Code Style
 
-To make a release, just run:
+- **Go**: Follow standard Go conventions. Run `go vet` and `go fmt` before committing.
+- **Vue/TypeScript**: Follow the existing patterns in the codebase. Use Composition API with `<script setup>` for new components.
+- **Commits**: Use conventional commit messages (`fix(scope): …`, `feat: …`, `chore: …`).
 
-```bash
-task release
-```
+## Authentication Providers
 
-## Translations
+To build a new authentication provider, implement the `Auther` interface in `auth/auth.go`. The method will be called on the login page after the user has submitted their login data.
 
-The Transifex integration stopped on 2026-09-01 and translations submitted there no longer reach this repository. Locale files live in [`frontend/src/i18n`](frontend/src/i18n) and can be edited directly.
+Steps:
+1. Add your provider to the `auth` directory
+2. Add it to the configuration parser in `cmd/config.go`
+3. Register it in `storage/bolt/auth.go`
 
-## Authentication Provider
+## Pull Request Guidelines
 
-To build a new authentication provider, you need to implement the [Auther interface](https://github.com/filebrowser/filebrowser/blob/master/auth/auth.go), whose method will be called on the login page after the user has submitted their login data.
-
-```go
-// Auther is the authentication interface.
-type Auther interface {
-    // Auth is called to authenticate a request.
-    Auth(r *http.Request, s *users.Storage, root string) (*users.User, error)
-}
-```
-
-After implementing the interface you should:
-
-1. Add it to [`auth` directory](https://github.com/filebrowser/filebrowser/blob/master/auth).
-2. Add it to the [configuration parser](https://github.com/filebrowser/filebrowser/blob/master/cmd/config.go) for the CLI.
-3. Add it to the [`authBackend.Get`](https://github.com/filebrowser/filebrowser/blob/master/storage/bolt/auth.go).
-
-If you need to add more flags, please update the function `addConfigFlags`.
-
+- Keep changes focused and surgical
+- Include tests for new functionality
+- Make sure `go build ./...`, `go vet ./...`, and `go test ./...` pass
+- Follow the existing code conventions

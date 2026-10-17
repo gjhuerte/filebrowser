@@ -1,160 +1,147 @@
 # CLAUDE.md
 
-Guidance for Claude when working in this repository (File Browser, `filebrowser/filebrowser`).
+Guidance for Claude when working in this repository (File Browser).
 
-## Repo orientation
+## Repo Orientation
 
-- Go backend (`github.com/filebrowser/filebrowser/v2`, ecosystem `go`) + Vue frontend under `frontend/`.
-- The project is in **maintenance-only mode** (see `SECURITY.md`). Prefer small, surgical, well-tested changes.
-- Version scheme: `v2.63.x`. Conventional-commit messages (`fix(scope): …`, `feat: …`, `chore: …`).
-- Verify with `go build ./...`, `go vet ./...`, `go test ./...`. Reuse existing test harnesses (e.g. `signToken`, `scopedUserStorage`, `handle`, `customFSUser`, `mockUserStore`).
+- Go backend + Vue 3 frontend under `frontend/`.
+- Vue components use both Options API and Composition API (`<script setup>`).
+- State management via Pinia stores (`frontend/src/stores/`).
+- Internationalization via vue-i18n (`frontend/src/i18n/en.json`).
+- Design system tokens: `--primary`, `--textPrimary`, `--textSecondary`, `--surfaceSecondary`, `--borderPrimary`.
+- Bootstrap 5 utilities preferred, minimal custom CSS class files.
+- Conventional-commit messages (`fix(scope): …`, `feat: …`, `chore: …`).
+
+## Build & Test
+
+```bash
+# Backend
+go build ./...
+go vet ./...
+go test ./...
+
+# Frontend
+cd frontend
+npm install
+npm run build    # production build
+npm run serve    # dev server with hot-reload
+```
+
+## Code Conventions
+
+- **Go**: Standard Go conventions. Use `go vet` and `go fmt`.
+- **Vue/TypeScript**: Use Composition API with `<script setup>` for new components.
+- **Styling**: Inline styles or scoped `<style>` blocks using design tokens. Light-themed, minimal, no heavy custom CSS frameworks.
+- **i18n**: All user-facing strings go in `frontend/src/i18n/en.json`. Use `$t("key")` in templates, `t("key")` in setup scripts.
+
+## License
+
+This project uses a **dual-license structure**:
+- **LICENSE** — Apache License 2.0 for the original File Browser code (must be preserved)
+- **LICENSE-MODIFICATIONS** — Non-Commercial Personal Use License for Gab's modifications
+
+When modifying license-related content:
+- Never remove or alter the Apache 2.0 LICENSE file — it covers the original codebase
+- New copyright notices for modifications should reference "Gab Huerte"
+- The README must reference both licenses
+- Any new code added to this fork falls under LICENSE-MODIFICATIONS
 
 ---
 
-# Handling security advisories
+# Documentation Maintenance Rules
 
-Use this playbook when asked to triage, verify, fix, or manage GitHub security advisories.
-All advisory state lives on GitHub and is driven with the `gh` CLI. States are
-`triage → draft → published`, plus `closed`.
+These rules ensure documentation stays in sync with code changes. Follow them whenever making changes to the codebase.
 
-## 1. Fetch
+## When to Update Documentation
 
-```bash
-# List by state (also: published, draft, closed)
-gh api '/repos/filebrowser/filebrowser/security-advisories?state=triage&per_page=100' \
-  --jq '.[] | {ghsa_id, severity, summary, state}'
+### Always update docs when:
 
-# Full report for one advisory (read .summary and .description)
-gh api /repos/filebrowser/filebrowser/security-advisories/GHSA-xxxx-xxxx-xxxx \
-  --jq '.summary, "---", .description'
+1. **Adding a new feature or UI component**
+   - Add the feature to `README.md` under the appropriate Features section
+   - If it has user-facing interactions, add it to `Help.vue` (the help modal)
+   - Update `docs/README.md` Recent Updates section
+   - If it involves configuration, update the relevant doc in `docs/`
+
+2. **Changing keyboard shortcuts or hotkeys**
+   - Update `frontend/src/components/prompts/Help.vue` (Shortcuts tab)
+   - Update `frontend/src/i18n/en.json` under the `help` key
+
+3. **Changing authentication or security behavior**
+   - Update `docs/authentication.md`
+   - Update `SECURITY.md` if security-relevant
+   - Update Help.vue troubleshooting section if user-facing
+
+4. **Changing CLI commands or flags**
+   - Update the relevant file in `docs/cli/`
+   - If it's a new command, create a new CLI doc following the existing pattern
+
+5. **Changing Docker configuration or deployment**
+   - Update `docs/deployment.md` and/or `docs/installation.md`
+   - Update README.md Quick Start section if the basic usage changes
+   - Update Help.vue troubleshooting Docker section
+
+6. **Changing branding or theming**
+   - Update `docs/customization.md`
+   - Update any screenshots in `docs/static/` if the UI has changed
+
+7. **Changing command execution / hooks**
+   - Update `docs/command-execution.md`
+
+8. **Adding or modifying i18n strings**
+   - Always add new keys to `frontend/src/i18n/en.json`
+   - Follow the existing key hierarchy pattern
+
+### Files to check for each change type:
+
+| Change Type | Files to Update |
+|---|---|
+| New feature | `README.md`, `docs/README.md`, `Help.vue` |
+| UI change | `Help.vue`, screenshots in `docs/static/` |
+| Config change | Relevant `docs/*.md`, `docs/cli/*.md` |
+| API change | `docs/README.md` |
+| Security change | `SECURITY.md`, `docs/authentication.md` |
+| Docker change | `docs/installation.md`, `docs/deployment.md`, `README.md` |
+| Keyboard shortcut | `Help.vue`, `en.json` |
+| Password/auth flow | `docs/authentication.md`, `Help.vue` |
+
+## Documentation Style
+
+- Use clear, concise language
+- Include code examples for configuration options
+- Use `> **Note:**` for important callouts (not `> [!WARNING]` or deprecated notices)
+- Keep troubleshooting sections practical — describe the symptom, then the fix
+- Reference design tokens by name when documenting UI components
+
+## Project Structure Reference
+
 ```
-
-Always pull the **published** set too — you need it to dedup against.
-
-## 2. Verify each report — do NOT trust the report text
-
-Read the actual source **at HEAD** and reach one verdict per advisory:
-
-- **CONFIRMED** — defect exists at HEAD. Quote the exact `file:line`.
-- **FIXED** — already patched (find the fix commit).
-- **FALSE / NOT APPLICABLE** — claim is wrong, or targets a different project.
-- **NOT EXPLOITABLE** — pattern exists but no code path can reach the precondition.
-- **DUPLICATE** — of a published advisory, or of another triage advisory.
-
-Common traps — check each before accepting a report:
-
-- **"Incomplete fix of a prior advisory."** Read the original fix commit and confirm the *specific*
-  sibling code path is actually still unguarded — a prior fix may already cover a related path.
-- **Wrong project.** Confirm the referenced files, symbols, and endpoints exist in this repo; reports
-  sometimes describe a fork. If the cited code isn't here, close as not applicable.
-- **"Legacy / upgraded / imported records are affected."** Trace the field's git history and confirm that
-  some released version could actually produce such a record before believing it
-  (`git log -S'Field' -- path`, `git show <commit>`, `git tag --contains <commit>`).
-- **Overlapping reports.** Two triage advisories may share one root cause — consolidate and fix once.
-- **Known, intentionally-unaddressed classes.** Some areas are known and tracked but not fixed (see
-  `SECURITY.md`'s Known Issues); matching reports are duplicates.
-
-Record, per advisory: verdict, the `file:line` evidence, exploitability preconditions
-(default config? platform-specific? auth required?), and the disposition.
-
-## 3. Fix (one commit per advisory)
-
-- Branch off `master` first; never commit fixes directly to `master`.
-- **One commit per fix**, each referencing the GHSA in the body (`Refs GHSA-xxxx-xxxx-xxxx`).
-- When several advisories share a root cause because parallel code paths diverged, **centralize** the logic
-  (e.g. `settings.CreateUserHome` used by signup, proxy, and hook provisioning) so they cannot drift again.
-- Keep it surgical; match surrounding style.
-
-## 4. Add a regression test per fix
-
-- Reuse the existing harnesses; add a focused test asserting the fixed behavior (and that the legitimate
-  path still works). Commit tests alongside the fixes (`test(scope): …`, `Refs GHSA-…`).
-- Run `go test ./... && go vet ./...` before finishing.
-
-## 5. Severity — set a CVSS vector, don't hand-assert
-
-Set a CVSS v3.1 vector; GitHub derives the score **and** severity from it (overriding the plain `severity`
-field). Encode the real preconditions in the vector so the band is defensible:
-
-- Requires a specific target configuration/platform (e.g. case-insensitive FS) → **AC:H**.
-- Unauthenticated vs needs an account → **PR:N / PR:L**.
-- Keep it consistent with the **predecessor CVE's** rating (an incomplete-fix follow-up should not outrank
-  its parent). Bands: `0.1–3.9` low, `4.0–6.9` medium, `7.0–8.9` high, `9.0–10.0` critical.
-
-```bash
-gh api -X PATCH /repos/filebrowser/filebrowser/security-advisories/GHSA-xxxx-xxxx-xxxx \
-  -f cvss_vector_string='CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H' \
-  --jq '{ghsa_id, severity, score: .cvss.score, vector: .cvss.vector_string}'
+├── .claude/CLAUDE.md          # This file — AI development rules
+├── LICENSE                     # Non-Commercial Personal Use License
+├── README.md                   # Project overview and features
+├── SECURITY.md                 # Security policy
+├── CONTRIBUTING.md             # Build instructions
+├── branding/                   # Logo and banner assets
+├── docs/                       # Full documentation
+│   ├── README.md              # Docs index with recent updates
+│   ├── installation.md        # Installation methods
+│   ├── deployment.md          # Reverse proxy and production setup
+│   ├── authentication.md      # Auth providers
+│   ├── customization.md       # Branding and themes
+│   ├── command-execution.md   # Hooks and shell
+│   ├── troubleshooting.md     # Common issues
+│   ├── cli/                   # CLI command reference
+│   └── static/                # Screenshots and media
+├── frontend/                   # Vue 3 frontend
+│   └── src/
+│       ├── components/        # Vue components
+│       │   └── prompts/       # Modal components (Help.vue, Info.vue)
+│       ├── views/             # Page-level components
+│       ├── stores/            # Pinia stores
+│       ├── i18n/              # Translations (en.json)
+│       └── api/               # API client
+├── http/                       # Go HTTP handlers
+├── users/                      # User management (password validation)
+├── auth/                       # Authentication providers
+├── storage/                    # Database layer (BoltDB)
+└── cmd/                        # CLI entry point
 ```
-
-## 6. Clean up the title
-
-Rewrite reporter titles to the concise, sentence-case, backtick-free style of the published advisories
-(state the vuln; drop "Incomplete fix of…" prefixes and jargon). The title is the `summary` field:
-
-```bash
-gh api -X PATCH .../security-advisories/GHSA-xxxx-xxxx-xxxx \
-  -f summary='Proxy-auth auto-provisioning ignores createUserDir and grants the server root scope'
-```
-
-## 7. Rewrite the body into the standard structure
-
-Reporter reports arrive in whatever shape the reporter used. Before drafting, rewrite the
-`description` into the sections below — **reusing the reporter's own wording wherever it is
-accurate**, rather than paraphrasing it. Drop the greeting, the offer to help, and any claim the
-verification in step 2 disproved. Keep sections in this order and omit the ones that don't apply:
-
-| Section | Contents |
-| --- | --- |
-| `## Summary` | What the defect is, in two or three sentences. Note the version it was reported against and the range it was verified over. |
-| `## Details` | Root cause, naming `file.go`, the function, and a short quote of the **pre-fix** code. |
-| `## PoC` | The reporter's reproduction steps and observed result, trimmed to the essentials. |
-| `## Impact` | Who can exploit it (privilege level, preconditions) and what they get. |
-| `## Patches` | Fixed version plus a link to the fix commit, and one sentence on what the fix does. Mention it if the reporter re-tested and confirmed. |
-| `## Workarounds` | Real mitigations, or `None. Upgrade to vX.Y.Z.` |
-| `## Out of scope` | Anything in the original report deliberately **not** treated as a vulnerability, with the reasoning. Needed whenever the advisory is narrower than the report. |
-| `## References` | Fix and regression-test commit links. |
-
-Use `##` headings (matching the published advisories) and keep the body in the maintainer's voice —
-first person ("I reproduced…") belongs only inside quoted PoC steps.
-
-Send it as a file so the Markdown survives shell quoting:
-
-```bash
-jq -Rs '{description: .}' desc.md \
-  | gh api -X PATCH .../security-advisories/GHSA-xxxx-xxxx-xxxx --input -
-```
-
-## 8. Set affected & patched versions
-
-The package is always `{ecosystem: "go", name: "github.com/filebrowser/filebrowser/v2"}`.
-
-- `vulnerable_version_range` — `<= <latest released version>` (the newest tag; find it with
-  `git tag --list 'v2.*' --sort=-version:refname | head -1`).
-- `patched_versions` — the **next** release that will actually ship the fix. It doesn't exist just
-  because the branch does; it still has to be cut. **When unsure which version that will be, ask.**
-
-Replace the placeholder versions below before sending:
-
-```bash
-printf '%s' '{"vulnerabilities":[{"package":{"ecosystem":"go","name":"github.com/filebrowser/filebrowser/v2"},"vulnerable_version_range":"<= <latest>","patched_versions":"<next>","vulnerable_functions":[]}]}' \
-  | gh api -X PATCH .../security-advisories/GHSA-xxxx-xxxx-xxxx --input -
-```
-
-## 9. Move state / close, by disposition
-
-```bash
-gh api -X PATCH .../security-advisories/GHSA-xxxx-xxxx-xxxx -f state=draft    # fixed, awaiting release
-gh api -X PATCH .../security-advisories/GHSA-xxxx-xxxx-xxxx -f state=closed   # duplicate / N-A / not-exploitable
-```
-
-- **CONFIRMED & fixed** → metadata done → **draft**. Publish after the patched release ships.
-- **DUPLICATE / NOT APPLICABLE / NOT EXPLOITABLE** → **closed**.
-- **DEFERRED** (confirmed but not yet fixed) → leave in **triage** with a note.
-- The REST API **cannot post advisory comments** — replies to reporters (dup notice, evidence, links to
-  the relevant tracking issue) must be posted manually in the advisory UI. Draft the text for the maintainer.
-
-## 10. Release & publish
-
-Push the branch, open a PR, merge, tag/release the `patched_versions` you set, then publish the drafts.
-Confirm outward-facing/irreversible advisory actions (close, publish) with the maintainer before doing them.

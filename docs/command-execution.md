@@ -1,8 +1,7 @@
 # Command Execution
 
-> [!CAUTION]
->
-> The **hook runner** and **interactive shell** functionalities have been disabled for all existent and new installations by default from version v2.33.8 and onwards, due to continuous and known security vulnerabilities. You should only use this feature if you are aware of all of the security risks involved. For more up to date information, consult issue [#5199](https://github.com/filebrowser/filebrowser/issues/5199).
+> **Note:** The hook runner and interactive shell are disabled by default. Only enable them if you understand the security implications.
+
 
 ## Hook Runner
 
@@ -46,9 +45,9 @@ You can do this by adding them in Settings > User Management > (edit user) > Com
 
 > [!NOTE]
 > 
-> If using Docker and you want to add a new command that is not in the base image then you will need to build a custom Docker image using `filebrowser/filebrowser` as a base image.  For example to add 7z:
+> If using Docker and you want to add a new command that is not in the base image then you will need to build a custom Docker image using `filebrowser` as a base image.  For example to add 7z:
 > 
 > ```docker
-> FROM filebrowser/filebrowser
+> FROM filebrowser
 > RUN sudo apt install p7zip-full
 > ```

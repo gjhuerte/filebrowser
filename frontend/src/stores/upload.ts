@@ -10,8 +10,6 @@ const UPLOADS_LIMIT = 5;
 
 const beforeUnload = (event: Event) => {
   event.preventDefault();
-  // To remove >> is deprecated
-  // event.returnValue = "";
 };
 
 export const useUploadStore = defineStore("upload", () => {

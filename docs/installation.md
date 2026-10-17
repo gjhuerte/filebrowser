@@ -4,7 +4,7 @@ File Browser is a single binary and can be used as standalone executable. Howeve
 
 ## Binary
 
-The quickest and easiest way to install File Browser is to use a package manager, or our download script, which automatically fetches the latest version of File Browser for your platform. Alternatively, you can manually download the binary from the [releases page](https://github.com/filebrowser/filebrowser/releases).
+The quickest and easiest way to install File Browser is to use a package manager, or our download script, which automatically fetches the latest version of File Browser for your platform. Alternatively, you can manually download the binary from the [releases page](the releases page).
 
 ### Brew
 
@@ -32,7 +32,7 @@ File Browser is now up and running. Read the ["First Boot"](#first-boot) section
 
 ## Docker
 
-File Browser is available as two different Docker images, which can be found on [Docker Hub](https://hub.docker.com/r/filebrowser/filebrowser): a [bare Alpine image](#bare-alpine-image) and an [S6 Overlay image](#s6-overlay-image).
+File Browser is available as two different Docker images, which can be found on [Docker Hub](Docker Hub): a [bare Alpine image](#bare-alpine-image) and an [S6 Overlay image](#s6-overlay-image).
 
 ### Bare Alpine Image
 
@@ -42,7 +42,7 @@ docker run \
     -v filebrowser_database:/database \
     -v filebrowser_config:/config \
     -p 8080:80 \
-    filebrowser/filebrowser
+    filebrowser
 ```
 
 Where `filebrowser_data`, `filebrowser_database` and `filebrowser_config` are Docker [volumes](https://docs.docker.com/engine/storage/volumes/), where the data, database and configuration will be stored, respectively. The default configuration and database will be automatically initialized.
@@ -67,7 +67,7 @@ docker run \
     -e PUID=$(id -u) \
     -e PGID=$(id -g) \
     -p 8080:80 \
-    filebrowser/filebrowser:s6
+    filebrowser:s6
 ```
 
 Where:

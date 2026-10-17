@@ -15,7 +15,7 @@ defineProps<{
 }>();
 
 const clicked = () => {
-  window.open("https://github.com/filebrowser/filebrowser/issues/new/choose");
+  // Issue reporting disabled
 };
 </script>
 

@@ -18,7 +18,7 @@
             <a
               class="link"
               target="_blank"
-              href="https://github.com/filebrowser/filebrowser/blob/master/docs/command-execution.md#hook-runner"
+              href="/docs/command-execution.md#hook-runner"
               >{{ t("settings.documentation") }}</a
             >
           </i18n-t>
