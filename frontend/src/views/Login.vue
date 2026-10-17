@@ -185,6 +185,17 @@ const submit = async (event: Event) => {
 
 // Run hooks
 onMounted(() => {
+  // If arriving from logout, a cover div hides the teardown. Fade it out
+  // after the login card has had a moment to render.
+  const cover = document.getElementById("logout-cover");
+  if (cover) {
+    requestAnimationFrame(() => {
+      cover.style.transition = "opacity 0.25s ease-out";
+      cover.style.opacity = "0";
+      cover.addEventListener("transitionend", () => cover.remove());
+    });
+  }
+
   if (!recaptcha) return;
 
   window.grecaptcha.ready(function () {

@@ -54,7 +54,8 @@ const uploadStore = useUploadStore();
 const uploading = computed(() => uploadStore.totalBytes > 0);
 
 const logOut = () => {
-  layoutStore.closeHovers();
+  // Don't close hovers first — the logout cover handles the visual
+  // transition so there's no flash of the underlying page.
   logout();
 };
 </script>

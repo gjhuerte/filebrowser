@@ -21,26 +21,56 @@
           <p class="sidebar__heading">{{ $t("sidebar.favorites") }}</p>
           <div v-for="fav in favorites" :key="fav.path" class="sidebar__item">
             <router-link
+              v-if="renamingPath !== fav.path"
               :to="fav.url"
               class="action"
               :class="{ 'action--current': isCurrent(fav.url, true) }"
               :title="fav.path"
               @click="closeHovers"
+              @dblclick.prevent="startRename(fav)"
+              @contextmenu.prevent="openCtxMenu($event, fav)"
             >
               <i class="material-icons">{{
                 fav.isDir ? "folder" : "description"
               }}</i>
-              <span>{{ fav.name }}</span>
+              <span>{{ fav.customName || fav.name }}</span>
             </router-link>
-            <button
-              type="button"
-              class="sidebar__remove"
-              :aria-label="`${$t('sidebar.removeFavorite')}: ${fav.name}`"
-              :title="$t('sidebar.removeFavorite')"
-              @click="removeFavorite(fav.path)"
+            <div v-else class="sidebar__rename-row">
+              <i class="material-icons">{{
+                fav.isDir ? "folder" : "description"
+              }}</i>
+              <input
+                ref="renameInput"
+                class="sidebar__rename-input"
+                type="text"
+                v-model="renameValue"
+                @keydown.enter="commitRename(fav.path)"
+                @keydown.esc="cancelRename"
+                @blur="commitRename(fav.path)"
+              />
+            </div>
+            <div
+              v-if="ctxMenuPath === fav.path"
+              class="sidebar__ctx"
+              :style="{ top: ctxMenuY + 'px', left: ctxMenuX + 'px' }"
             >
-              <i class="material-icons" aria-hidden="true">close</i>
-            </button>
+              <button
+                type="button"
+                class="sidebar__ctx-item"
+                @mousedown.prevent="ctxRename(fav)"
+              >
+                <i class="material-icons" aria-hidden="true">edit</i>
+                <span>{{ $t("sidebar.editName") }}</span>
+              </button>
+              <button
+                type="button"
+                class="sidebar__ctx-item sidebar__ctx-item--danger"
+                @mousedown.prevent="ctxRemove(fav.path)"
+              >
+                <i class="material-icons" aria-hidden="true">delete</i>
+                <span>{{ $t("sidebar.removeFavorite") }}</span>
+              </button>
+            </div>
           </div>
           <p v-if="favorites.length === 0" class="sidebar__empty">
             <i class="material-icons" aria-hidden="true">star_border</i>
@@ -60,18 +90,60 @@
             <i class="material-icons">dns</i>
             <span>{{ $t("sidebar.myFiles") }}</span>
           </router-link>
-          <router-link
+          <div
             v-for="loc in visibleLocations"
             :key="loc.url"
-            :to="loc.url"
-            class="action"
-            :class="{ 'action--current': currentLocation === loc.url }"
-            :title="loc.name"
-            @click="closeHovers"
+            class="sidebar__item"
           >
-            <i class="material-icons">folder</i>
-            <span>{{ loc.name }}</span>
-          </router-link>
+            <router-link
+              :to="loc.url"
+              class="action"
+              :class="{ 'action--current': currentLocation === loc.url }"
+              :title="loc.name"
+              @click="closeHovers"
+              @contextmenu.prevent="openLocCtxMenu($event, loc)"
+            >
+              <i class="material-icons">folder</i>
+              <span>{{ loc.name }}</span>
+            </router-link>
+            <div
+              v-if="locCtxMenuUrl === loc.url"
+              class="sidebar__ctx"
+              :style="{ top: ctxMenuY + 'px', left: ctxMenuX + 'px' }"
+            >
+              <button
+                v-if="canShare"
+                type="button"
+                class="sidebar__ctx-item"
+                @mousedown.prevent="locCtxShare(loc)"
+              >
+                <i class="material-icons" aria-hidden="true">link</i>
+                <span>{{ $t("buttons.share") }}</span>
+              </button>
+              <button
+                type="button"
+                class="sidebar__ctx-item"
+                @mousedown.prevent="locCtxFavorite(loc)"
+              >
+                <i class="material-icons" aria-hidden="true">{{
+                  isFavorited(loc) ? "star" : "star_border"
+                }}</i>
+                <span>{{
+                  isFavorited(loc)
+                    ? $t("sidebar.removeFavorite")
+                    : $t("sidebar.addFavorite")
+                }}</span>
+              </button>
+              <button
+                type="button"
+                class="sidebar__ctx-item"
+                @mousedown.prevent="locCtxInfo(loc)"
+              >
+                <i class="material-icons" aria-hidden="true">info</i>
+                <span>{{ $t("prompts.fileInfo") }}</span>
+              </button>
+            </div>
+          </div>
           <router-link
             v-if="locations.length > maxLocations"
             to="/files/"
@@ -262,7 +334,17 @@ export default {
     };
   },
   data() {
-    return { locations: [], maxLocations: 6, usageLoaded: false };
+    return {
+      locations: [],
+      maxLocations: 6,
+      usageLoaded: false,
+      renamingPath: null,
+      renameValue: "",
+      ctxMenuPath: null,
+      ctxMenuX: 0,
+      ctxMenuY: 0,
+      locCtxMenuUrl: null,
+    };
   },
   components: {
     ProgressBar,
@@ -315,6 +397,8 @@ export default {
     ...mapActions(useFavoritesStore, {
       loadFavorites: "load",
       removeFavorite: "remove",
+      renameFavorite: "rename",
+      toggleFavorite: "toggle",
     }),
     onRoute(prefix) {
       return this.$route.path.startsWith(prefix);
@@ -380,6 +464,102 @@ export default {
     // Ask first; the dialog does the actual logout
     confirmLogout() {
       this.showHover("logout");
+    },
+    openCtxMenu(event, fav) {
+      this.ctxMenuPath = fav.path;
+      this.ctxMenuX = event.clientX;
+      this.ctxMenuY = event.clientY;
+      const dismiss = (e) => {
+        // Close on any click/contextmenu outside the menu
+        if (!e.target.closest(".sidebar__ctx")) {
+          this.closeCtxMenu();
+        }
+        document.removeEventListener("mousedown", dismiss, true);
+        document.removeEventListener("contextmenu", dismiss, true);
+      };
+      this.$nextTick(() => {
+        document.addEventListener("mousedown", dismiss, true);
+        document.addEventListener("contextmenu", dismiss, true);
+      });
+    },
+    closeCtxMenu() {
+      this.ctxMenuPath = null;
+      this.locCtxMenuUrl = null;
+    },
+    ctxRename(fav) {
+      this.closeCtxMenu();
+      this.startRename(fav);
+    },
+    ctxRemove(path) {
+      this.closeCtxMenu();
+      this.removeFavorite(path);
+    },
+    // --- Location context menu ---
+    openLocCtxMenu(event, loc) {
+      this.locCtxMenuUrl = loc.url;
+      this.ctxMenuX = event.clientX;
+      this.ctxMenuY = event.clientY;
+      const dismiss = (e) => {
+        if (!e.target.closest(".sidebar__ctx")) {
+          this.closeCtxMenu();
+        }
+        document.removeEventListener("mousedown", dismiss, true);
+        document.removeEventListener("contextmenu", dismiss, true);
+      };
+      this.$nextTick(() => {
+        document.addEventListener("mousedown", dismiss, true);
+        document.addEventListener("contextmenu", dismiss, true);
+      });
+    },
+    isFavorited(loc) {
+      const path = loc.url.replace(/^\/files/, "").replace(/\/$/, "") || "/";
+      return useFavoritesStore().has(path);
+    },
+    locCtxFavorite(loc) {
+      this.closeCtxMenu();
+      const path = loc.url.replace(/^\/files/, "").replace(/\/$/, "") || "/";
+      this.toggleFavorite({
+        path,
+        url: loc.url,
+        name: loc.name,
+        isDir: true,
+      });
+    },
+    locCtxShare(loc) {
+      this.closeCtxMenu();
+      this.$router.push({ path: loc.url });
+      this.$nextTick(() => {
+        this.showHover("share");
+      });
+    },
+    locCtxInfo(loc) {
+      this.closeCtxMenu();
+      this.$router.push({ path: loc.url });
+      this.$nextTick(() => {
+        this.showHover("info");
+      });
+    },
+    startRename(fav) {
+      this.renamingPath = fav.path;
+      this.renameValue = fav.customName || fav.name;
+      this.$nextTick(() => {
+        const input = this.$refs.renameInput;
+        if (input) {
+          const el = Array.isArray(input) ? input[0] : input;
+          el.focus();
+          el.select();
+        }
+      });
+    },
+    commitRename(path) {
+      if (this.renamingPath !== path) return;
+      this.renameFavorite(path, this.renameValue);
+      this.renamingPath = null;
+      this.renameValue = "";
+    },
+    cancelRename() {
+      this.renamingPath = null;
+      this.renameValue = "";
     },
   },
   watch: {

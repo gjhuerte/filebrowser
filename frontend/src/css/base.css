@@ -200,46 +200,85 @@ html[dir="rtl"] nav .action {
 nav .sidebar__item .action {
   flex: 1;
   min-width: 0;
-  padding-inline-end: 2.25em;
 }
 
-.sidebar__remove {
-  position: absolute;
-  inset-inline-end: 0.25em;
-  display: grid;
-  place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  padding: 0;
+/* Right-click context menu for favorites */
+.sidebar__ctx {
+  position: fixed;
+  z-index: 9999;
+  min-width: 10rem;
+  padding: 0.25rem 0;
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: 6px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.12),
+    0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar__ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  font: inherit;
+  font-size: 0.85em;
   color: var(--textPrimary);
   background: transparent;
   border: 0;
-  border-radius: 6px;
   cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity 0.15s ease-out,
-    background-color 0.15s ease-out;
+  white-space: nowrap;
 }
 
-.sidebar__remove i {
-  font-size: 1rem;
-}
-
-.sidebar__item:hover .sidebar__remove,
-.sidebar__remove:focus-visible {
-  opacity: 1;
-}
-
-.sidebar__remove:hover {
-  color: var(--textSecondary);
+.sidebar__ctx-item:hover {
   background: var(--surfaceSecondary);
 }
 
-@media (hover: none) {
-  .sidebar__remove {
-    opacity: 0.7;
-  }
+.sidebar__ctx-item i {
+  font-size: 1.1rem;
+}
+
+.sidebar__ctx-item--danger {
+  color: var(--red);
+}
+
+.sidebar__ctx-item--danger:hover {
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+}
+
+/* Inline rename input */
+.sidebar__rename-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  flex: 1;
+  min-width: 0;
+  padding: 0.375em 0.75em;
+}
+
+.sidebar__rename-row i {
+  font-size: 1.25em;
+  color: var(--textPrimary);
+  flex-shrink: 0;
+}
+
+.sidebar__rename-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25em 0.375em;
+  font: inherit;
+  font-size: 0.875em;
+  color: var(--textSecondary);
+  background: var(--surfaceSecondary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: 4px;
+  outline: none;
+}
+
+.sidebar__rename-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-soft);
 }
 
 /* Favorites hint: a quiet dashed card until something is pinned */

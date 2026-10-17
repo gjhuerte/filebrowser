@@ -116,6 +116,14 @@ export async function signup(username: string, password: string) {
 }
 
 export function logout(reason?: string) {
+  // Cover the screen immediately so the old layout doesn't flash
+  // while Vue tears down the authenticated shell and mounts the login page.
+  const cover = document.createElement("div");
+  cover.id = "logout-cover";
+  cover.style.cssText =
+    "position:fixed;inset:0;z-index:99999;background:var(--background);";
+  document.body.appendChild(cover);
+
   document.cookie = "auth=; Max-Age=0; Path=/; SameSite=Strict;";
 
   const authStore = useAuthStore();

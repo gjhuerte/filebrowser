@@ -392,6 +392,8 @@
     "noFavorites": "Star a file or folder to pin it here.",
     "addFavorite": "Add to favorites",
     "removeFavorite": "Remove from favorites",
+    "renameFavorite": "Rename favorite",
+    "editName": "Edit name",
     "locations": "Locations",
     "moreLocations": "Show all",
     "administration": "Administration",

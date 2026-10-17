@@ -10,7 +10,8 @@ import { useAuthStore } from "./auth";
 export interface Favorite {
   path: string; // e.g. "/Projects" or "/notes.txt"
   url: string; // router path, e.g. "/files/Projects/"
-  name: string;
+  name: string; // original file/folder name
+  customName?: string; // user-chosen display name (falls back to `name`)
   isDir: boolean;
 }
 
@@ -85,6 +86,18 @@ export const useFavoritesStore = defineStore("favorites", {
     remove(path: string) {
       const p = normalize(path);
       this.items = this.items.filter((f) => f.path !== p);
+      this.save();
+    },
+    rename(path: string, customName: string) {
+      const p = normalize(path);
+      const fav = this.items.find((f) => f.path === p);
+      if (!fav) return;
+      const trimmed = customName.trim();
+      if (trimmed && trimmed !== fav.name) {
+        fav.customName = trimmed;
+      } else {
+        delete fav.customName;
+      }
       this.save();
     },
   },
