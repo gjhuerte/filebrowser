@@ -66,7 +66,7 @@ RUN addgroup -g "$GID" user && \
     chown user:user /config /database /srv && \
     chmod 755 /init.sh /healthcheck.sh
 
-USER user
+# USER user — handled by init.sh via setuidgid
 VOLUME ["/srv", "/config", "/database"]
 EXPOSE 80
 
