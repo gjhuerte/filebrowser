@@ -1,0 +1,216 @@
+/* * * * * * * * * * * * * * * * * * * * * * *
+ *  SIDEBAR — reordering and hiding locations  *
+ * * * * * * * * * * * * * * * * * * * * * * */
+
+/* Heading with the reorder toggle on the right */
+.sidebar__heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  margin-bottom: 0.375em;
+}
+
+.sidebar__heading-row .sidebar__heading {
+  margin: 0;
+}
+
+.sidebar__heading-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: 0.25em;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--textPrimary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.sidebar__heading-btn:hover {
+  background: var(--surfaceSecondary);
+  color: var(--textSecondary);
+}
+
+.sidebar__heading-btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+.sidebar__heading-btn--on,
+.sidebar__heading-btn--on:hover {
+  background: var(--primary-soft);
+  color: var(--primary-text);
+}
+
+.sidebar__heading-btn .material-icons {
+  font-size: 1.125rem;
+}
+
+.sidebar__reorder-hint {
+  margin: 0 0 0.375em;
+  padding: 0.5em 0.75em;
+  border-radius: var(--radius-control);
+  background: var(--primary-soft);
+  color: var(--primary-text);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.sidebar__locations {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* While reordering, rows read as movable cards rather than links */
+.sidebar__locations--reordering .sidebar__item {
+  border-radius: var(--radius-control);
+  background: var(--surfaceSecondary);
+}
+
+.sidebar__locations--reordering .action,
+.sidebar__locations--reordering .action:hover {
+  background: transparent;
+  cursor: default;
+  user-select: none;
+}
+
+/* Eye toggle shown while editing */
+.sidebar__visibility {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--textPrimary);
+  cursor: pointer;
+}
+
+.sidebar__visibility:hover {
+  color: var(--textSecondary);
+}
+
+.sidebar__visibility:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.sidebar__visibility .material-icons {
+  font-size: 1.125rem;
+}
+
+/* A hidden location, as seen while editing */
+.sidebar__item--hidden .action span,
+.sidebar__item--hidden .action i {
+  opacity: 0.45;
+}
+
+.sidebar__item--hidden .sidebar__visibility {
+  color: var(--textPrimary);
+  opacity: 0.8;
+}
+
+/* "2 hidden folders" under the list, opens edit mode */
+.sidebar__hidden-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  align-self: flex-start;
+  margin: 0.25em 0 0 0.75em;
+  padding: 0.25em 0.5em 0.25em 0.25em;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--textPrimary);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.sidebar__hidden-link:hover {
+  background: var(--surfaceSecondary);
+  color: var(--textSecondary);
+}
+
+.sidebar__hidden-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+.sidebar__hidden-link .material-icons {
+  font-size: 1rem;
+}
+
+.sidebar__handle {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--textPrimary);
+  cursor: grab;
+  /* Keep the page from scrolling while a finger drags the handle */
+  touch-action: none;
+}
+
+.sidebar__handle:hover {
+  color: var(--textSecondary);
+}
+
+.sidebar__handle:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.sidebar__handle .material-icons {
+  font-size: 1.25rem;
+}
+
+/* The row being dragged lifts above the others */
+.sidebar__item--dragging {
+  z-index: 1;
+  background: var(--surfacePrimary) !important;
+  box-shadow: var(--shadow-pop);
+}
+
+.sidebar__item--dragging .sidebar__handle {
+  color: var(--primary-text);
+  cursor: grabbing;
+}
+
+/* Rows glide into their new place (TransitionGroup move class) */
+.sidebar-reorder-move {
+  transition: transform 0.18s var(--ease-out);
+}
+
+/* Announcements for screen readers only */
+.sidebar__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-reorder-move,
+  .sidebar__heading-btn {
+    transition: none;
+  }
+}

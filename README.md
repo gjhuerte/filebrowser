@@ -30,6 +30,7 @@ File Browser provides a clean, intuitive web interface for managing files on you
 - **Bulk Operations** — Select multiple files for move, copy, delete, or download as zip
 - **Search** — Full-text search across your file system
 - **Favorites** — Star files and folders for quick access from the sidebar
+- **Customizable Locations** — Reorder the sidebar's folders by dragging and hide the ones you don't use (button, long press or right-click), saved per browser
 
 ### User Interface
 - **Modern Design** — Clean, responsive interface that works on desktop and mobile

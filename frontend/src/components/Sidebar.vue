@@ -80,7 +80,34 @@
 
         <!-- Locations: the root and its top-level folders -->
         <div class="sidebar__group">
-          <p class="sidebar__heading">{{ $t("sidebar.locations") }}</p>
+          <div class="sidebar__heading-row">
+            <p class="sidebar__heading">{{ $t("sidebar.locations") }}</p>
+            <button
+              v-if="locations.length > 0"
+              type="button"
+              class="sidebar__heading-btn"
+              :class="{ 'sidebar__heading-btn--on': editingLocations }"
+              :aria-pressed="editingLocations"
+              :aria-label="
+                editingLocations
+                  ? $t('sidebar.doneEditing')
+                  : $t('sidebar.editLocations')
+              "
+              :title="
+                editingLocations
+                  ? $t('sidebar.doneEditing')
+                  : $t('sidebar.editLocations')
+              "
+              @click="toggleEditing"
+            >
+              <i class="material-icons" aria-hidden="true">{{
+                editingLocations ? "check" : "tune"
+              }}</i>
+            </button>
+          </div>
+          <p v-if="editingLocations" class="sidebar__reorder-hint">
+            {{ $t("sidebar.editHint") }}
+          </p>
           <router-link
             to="/files/"
             class="action"
@@ -90,61 +117,145 @@
             <i class="material-icons">dns</i>
             <span>{{ $t("sidebar.myFiles") }}</span>
           </router-link>
-          <div
-            v-for="loc in visibleLocations"
-            :key="loc.url"
-            class="sidebar__item"
+          <TransitionGroup
+            ref="locList"
+            tag="div"
+            name="sidebar-reorder"
+            class="sidebar__locations"
+            :class="{ 'sidebar__locations--reordering': editingLocations }"
           >
-            <router-link
-              :to="loc.url"
-              class="action"
-              :class="{ 'action--current': currentLocation === loc.url }"
-              :title="loc.name"
-              @click="closeHovers"
-              @contextmenu.prevent="openLocCtxMenu($event, loc)"
-            >
-              <i class="material-icons">folder</i>
-              <span>{{ loc.name }}</span>
-            </router-link>
             <div
-              v-if="locCtxMenuUrl === loc.url"
-              class="sidebar__ctx"
-              :style="{ top: ctxMenuY + 'px', left: ctxMenuX + 'px' }"
+              v-for="(loc, index) in visibleLocations"
+              :key="loc.url"
+              class="sidebar__item"
+              :class="{
+                'sidebar__item--dragging': dragUrl === loc.url,
+                'sidebar__item--hidden': isHidden(loc),
+              }"
             >
-              <button
-                v-if="canShare"
-                type="button"
-                class="sidebar__ctx-item"
-                @mousedown.prevent="locCtxShare(loc)"
+              <router-link
+                :to="loc.url"
+                class="action"
+                :class="{ 'action--current': currentLocation === loc.url }"
+                :title="loc.name"
+                :tabindex="editingLocations ? -1 : undefined"
+                @click.capture="onLocClick"
+                @click="closeHovers"
+                @pointerdown="onLocPointerDown($event, loc)"
+                @pointermove="onLocPointerMove"
+                @pointerup="cancelLongPress"
+                @pointercancel="cancelLongPress"
+                @pointerleave="cancelLongPress"
+                @contextmenu="onLocContextMenu($event, loc)"
               >
-                <i class="material-icons" aria-hidden="true">link</i>
-                <span>{{ $t("buttons.share") }}</span>
-              </button>
+                <i class="material-icons">folder</i>
+                <span>{{ loc.name }}</span>
+              </router-link>
               <button
+                v-if="editingLocations"
                 type="button"
-                class="sidebar__ctx-item"
-                @mousedown.prevent="locCtxFavorite(loc)"
+                class="sidebar__visibility"
+                :aria-pressed="!isHidden(loc)"
+                :aria-label="
+                  isHidden(loc)
+                    ? $t('sidebar.showLocation', { name: loc.name })
+                    : $t('sidebar.hideLocation', { name: loc.name })
+                "
+                :title="
+                  isHidden(loc)
+                    ? $t('sidebar.showInSidebar')
+                    : $t('sidebar.hideFromSidebar')
+                "
+                @click="toggleHidden(loc)"
               >
                 <i class="material-icons" aria-hidden="true">{{
-                  isFavorited(loc) ? "star" : "star_border"
+                  isHidden(loc) ? "visibility_off" : "visibility"
                 }}</i>
-                <span>{{
-                  isFavorited(loc)
-                    ? $t("sidebar.removeFavorite")
-                    : $t("sidebar.addFavorite")
-                }}</span>
               </button>
               <button
+                v-if="editingLocations"
                 type="button"
-                class="sidebar__ctx-item"
-                @mousedown.prevent="locCtxInfo(loc)"
+                class="sidebar__handle"
+                :data-url="loc.url"
+                :aria-label="
+                  $t('sidebar.dragToReorder', {
+                    name: loc.name,
+                    position: index + 1,
+                    total: visibleLocations.length,
+                  })
+                "
+                :title="$t('sidebar.dragToReorderShort')"
+                @pointerdown="onHandlePointerDown($event, loc)"
+                @pointermove="onHandlePointerMove"
+                @pointerup="onHandlePointerUp"
+                @pointercancel="onHandlePointerUp"
+                @keydown="onHandleKeydown($event, loc)"
               >
-                <i class="material-icons" aria-hidden="true">info</i>
-                <span>{{ $t("prompts.fileInfo") }}</span>
+                <i class="material-icons" aria-hidden="true">drag_indicator</i>
               </button>
+              <div
+                v-if="locCtxMenuUrl === loc.url"
+                class="sidebar__ctx"
+                :style="{ top: ctxMenuY + 'px', left: ctxMenuX + 'px' }"
+              >
+                <button
+                  v-if="canShare"
+                  type="button"
+                  class="sidebar__ctx-item"
+                  @mousedown.prevent="locCtxShare(loc)"
+                >
+                  <i class="material-icons" aria-hidden="true">link</i>
+                  <span>{{ $t("buttons.share") }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="sidebar__ctx-item"
+                  @mousedown.prevent="locCtxFavorite(loc)"
+                >
+                  <i class="material-icons" aria-hidden="true">{{
+                    isFavorited(loc) ? "star" : "star_border"
+                  }}</i>
+                  <span>{{
+                    isFavorited(loc)
+                      ? $t("sidebar.removeFavorite")
+                      : $t("sidebar.addFavorite")
+                  }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="sidebar__ctx-item"
+                  @mousedown.prevent="locCtxInfo(loc)"
+                >
+                  <i class="material-icons" aria-hidden="true">info</i>
+                  <span>{{ $t("prompts.fileInfo") }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="sidebar__ctx-item"
+                  @mousedown.prevent="locCtxHide(loc)"
+                >
+                  <i class="material-icons" aria-hidden="true"
+                    >visibility_off</i
+                  >
+                  <span>{{ $t("sidebar.hideFromSidebar") }}</span>
+                </button>
+              </div>
             </div>
-          </div>
-
+          </TransitionGroup>
+          <button
+            v-if="!editingLocations && hiddenCount > 0"
+            type="button"
+            class="sidebar__hidden-link"
+            @click="startEditing"
+          >
+            <i class="material-icons" aria-hidden="true">visibility_off</i>
+            <span>{{
+              $t("sidebar.hiddenCount", { count: hiddenCount }, hiddenCount)
+            }}</span>
+          </button>
+          <span class="sidebar__sr-only" aria-live="polite">{{
+            locationAnnouncement
+          }}</span>
         </div>
       </div>
 
@@ -240,11 +351,7 @@
 
         <p class="sidebar__credits">
           <span v-if="disableExternal">File Browser</span>
-          <a
-            v-else
-            rel="noopener noreferrer"
-            target="_blank"
-            href="#"
+          <a v-else rel="noopener noreferrer" target="_blank" href="#"
             >File Browser</a
           >
           <span>{{ version }}</span>
@@ -305,6 +412,9 @@ import prettyBytes from "pretty-bytes";
 
 const USAGE_DEFAULT = { used: "0 B", total: "0 B", usedPercentage: 0 };
 
+// How long a press on a location must last to start editingLocations
+const LONG_PRESS_MS = 500;
+
 // Compare router paths regardless of encoding and trailing slash
 const normalizePath = (path) => {
   let p = path;
@@ -324,6 +434,12 @@ export default {
       usage,
       usageAbortController: new AbortController(),
       locationsAbortController: new AbortController(),
+      // Long-press and drag bookkeeping; not rendered, so not reactive
+      longPressTimer: null,
+      longPressFired: false,
+      pressStart: null,
+      dragTop: 0,
+      dragRowHeight: 0,
     };
   },
   data() {
@@ -337,6 +453,13 @@ export default {
       ctxMenuX: 0,
       ctxMenuY: 0,
       locCtxMenuUrl: null,
+
+      // Editing locations: order and visibility
+      editingLocations: false,
+      dragUrl: null,
+      locationAnnouncement: "",
+      // Names of locations the user hid from the sidebar
+      hiddenLocations: [],
     };
   },
   components: {
@@ -369,8 +492,13 @@ export default {
     onProfile() {
       return this.$route.path.startsWith("/settings/profile");
     },
+    // Hidden locations stay listed while editing, so they can be shown again
     visibleLocations() {
-      return this.locations;
+      if (this.editingLocations) return this.locations;
+      return this.locations.filter((l) => !this.isHidden(l));
+    },
+    hiddenCount() {
+      return this.locations.filter((l) => this.isHidden(l)).length;
     },
     // The location the current page lives in (longest matching prefix)
     currentLocation() {
@@ -424,10 +552,211 @@ export default {
     },
     setLocations(items) {
       const hideDot = this.user?.hideDotfiles;
-      this.locations = (items || [])
+      const sorted = (items || [])
         .filter((i) => i.isDir && !(hideDot && i.name.startsWith(".")))
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((i) => ({ name: i.name, url: i.url }));
+      // Folders the user has arranged come first, in their order; new ones
+      // follow alphabetically. Saved names that no longer exist are ignored.
+      const order = this.loadLocationOrder();
+      const rank = new Map(order.map((name, i) => [name, i]));
+      this.locations = sorted.sort(
+        (a, b) =>
+          (rank.get(a.name) ?? Infinity) - (rank.get(b.name) ?? Infinity)
+      );
+    },
+    // --- Location order (stored per user in this browser) ---
+    locationOrderKey() {
+      return `sidebar-location-order:${this.user?.username ?? ""}`;
+    },
+    loadLocationOrder() {
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem(this.locationOrderKey()) ?? "[]"
+        );
+        return Array.isArray(saved) ? saved : [];
+      } catch {
+        return [];
+      }
+    },
+    saveLocationOrder() {
+      try {
+        localStorage.setItem(
+          this.locationOrderKey(),
+          JSON.stringify(this.locations.map((l) => l.name))
+        );
+      } catch {
+        // Private mode or storage full: the order lasts for this visit only
+      }
+    },
+    hiddenLocationsKey() {
+      return `sidebar-hidden-locations:${this.user?.username ?? ""}`;
+    },
+    loadHiddenLocations() {
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem(this.hiddenLocationsKey()) ?? "[]"
+        );
+        this.hiddenLocations = Array.isArray(saved) ? saved : [];
+      } catch {
+        this.hiddenLocations = [];
+      }
+    },
+    saveHiddenLocations() {
+      try {
+        localStorage.setItem(
+          this.hiddenLocationsKey(),
+          JSON.stringify(this.hiddenLocations)
+        );
+      } catch {
+        // Private mode or storage full: the change lasts for this visit only
+      }
+    },
+    isHidden(loc) {
+      return this.hiddenLocations.includes(loc.name);
+    },
+    toggleHidden(loc) {
+      const hidden = this.isHidden(loc);
+      this.hiddenLocations = hidden
+        ? this.hiddenLocations.filter((n) => n !== loc.name)
+        : [...this.hiddenLocations, loc.name];
+      this.saveHiddenLocations();
+      this.locationAnnouncement = this.$t(
+        hidden ? "sidebar.locationShown" : "sidebar.locationHidden",
+        { name: loc.name }
+      );
+    },
+    locCtxHide(loc) {
+      this.closeCtxMenu();
+      if (!this.isHidden(loc)) this.toggleHidden(loc);
+    },
+    startEditing() {
+      if (this.editingLocations) return;
+      this.closeCtxMenu();
+      this.editingLocations = true;
+      document.addEventListener("keydown", this.onEditEscape);
+    },
+    stopEditing() {
+      if (!this.editingLocations) return;
+      this.editingLocations = false;
+      this.dragUrl = null;
+      this.saveLocationOrder();
+      document.removeEventListener("keydown", this.onEditEscape);
+    },
+    toggleEditing() {
+      if (this.editingLocations) this.stopEditing();
+      else this.startEditing();
+    },
+    onEditEscape(event) {
+      if (event.key === "Escape") this.stopEditing();
+    },
+    moveLocation(url, toIndex) {
+      const from = this.locations.findIndex((l) => l.url === url);
+      const to = Math.max(0, Math.min(toIndex, this.locations.length - 1));
+      if (from === -1 || from === to) return false;
+      const [item] = this.locations.splice(from, 1);
+      this.locations.splice(to, 0, item);
+      this.locationAnnouncement = this.$t("sidebar.movedTo", {
+        name: item.name,
+        position: to + 1,
+        total: this.locations.length,
+      });
+      return true;
+    },
+    // Long press on a location turns edit mode on
+    onLocPointerDown(event, loc) {
+      if (this.editingLocations || event.button !== 0) return;
+      this.cancelLongPress();
+      this.longPressFired = false;
+      this.pressStart = { x: event.clientX, y: event.clientY };
+      this.longPressTimer = window.setTimeout(() => {
+        this.longPressTimer = null;
+        this.longPressFired = true;
+        this.startEditing();
+        navigator.vibrate?.(15);
+        this.$nextTick(() => this.focusHandle(loc.url));
+      }, LONG_PRESS_MS);
+    },
+    onLocPointerMove(event) {
+      if (!this.longPressTimer || !this.pressStart) return;
+      const dx = event.clientX - this.pressStart.x;
+      const dy = event.clientY - this.pressStart.y;
+      // Moving the finger means scrolling, not pressing
+      if (Math.hypot(dx, dy) > 8) this.cancelLongPress();
+    },
+    cancelLongPress() {
+      if (this.longPressTimer) window.clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    },
+    // Links don't navigate while editingLocations, or on the click that ends a
+    // long press.
+    onLocClick(event) {
+      if (this.editingLocations || this.longPressFired) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        this.longPressFired = false;
+      }
+    },
+    onLocContextMenu(event, loc) {
+      // A long press on touch screens also fires contextmenu
+      if (this.editingLocations || this.longPressFired) {
+        event.preventDefault();
+        return;
+      }
+      event.preventDefault();
+      this.openLocCtxMenu(event, loc);
+    },
+    // Dragging by the handle. Rows are equal height, so the target slot is
+    // worked out from the pointer position within the list.
+    onHandlePointerDown(event, loc) {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      const list = this.$refs.locList?.$el;
+      const row = event.currentTarget.closest(".sidebar__item");
+      if (!list || !row) return;
+      this.dragUrl = loc.url;
+      this.dragTop = list.getBoundingClientRect().top;
+      this.dragRowHeight = row.offsetHeight + 2; // + the 2px gap
+    },
+    onHandlePointerMove(event) {
+      if (!this.dragUrl) return;
+      const index = Math.floor(
+        (event.clientY - this.dragTop) / this.dragRowHeight
+      );
+      this.moveLocation(this.dragUrl, index);
+    },
+    onHandlePointerUp() {
+      if (!this.dragUrl) return;
+      this.dragUrl = null;
+      this.saveLocationOrder();
+    },
+    // Keyboard: arrow keys move the focused location
+    onHandleKeydown(event, loc) {
+      const index = this.locations.findIndex((l) => l.url === loc.url);
+      let target = null;
+      if (event.key === "ArrowUp") target = index - 1;
+      else if (event.key === "ArrowDown") target = index + 1;
+      else if (event.key === "Home") target = 0;
+      else if (event.key === "End") target = this.locations.length - 1;
+      else if (event.key === "Enter") {
+        event.preventDefault();
+        this.stopEditing();
+        return;
+      }
+      if (target === null) return;
+      event.preventDefault();
+      if (this.moveLocation(loc.url, target)) {
+        this.saveLocationOrder();
+        this.$nextTick(() => this.focusHandle(loc.url));
+      }
+    },
+    focusHandle(url) {
+      const handles =
+        this.$refs.locList?.$el.querySelectorAll(".sidebar__handle");
+      for (const h of handles ?? []) {
+        if (h.dataset.url === url) h.focus();
+      }
     },
     async fetchLocations() {
       if (!this.isLoggedIn) return;
@@ -556,6 +885,10 @@ export default {
     },
   },
   watch: {
+    // Closing the mobile sidebar ends editingLocations
+    active(open) {
+      if (!open && window.innerWidth <= 736) this.stopEditing();
+    },
     $route: {
       handler(to) {
         // Usage reflects the disk of the folder you're in; elsewhere, the root
@@ -575,6 +908,7 @@ export default {
       handler(value) {
         if (!value) return;
         this.loadFavorites();
+        this.loadHiddenLocations();
         this.fetchLocations();
       },
       immediate: true,
@@ -583,6 +917,8 @@ export default {
   unmounted() {
     this.abortOngoingFetchUsage();
     this.locationsAbortController.abort();
+    this.cancelLongPress();
+    document.removeEventListener("keydown", this.onEditEscape);
   },
 };
 </script>

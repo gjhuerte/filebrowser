@@ -18,6 +18,7 @@ File Browser provides a file managing interface within a specified directory and
 
 ## Recent Updates
 
+- **Customizable Locations** — Reorder sidebar locations by dragging and hide the ones you don't need
 - **Security Hardening** — Login and share-password rate limiting, safer hook commands, clickjacking and MIME-sniffing protection, and several bug fixes (see [SECURITY.md](../SECURITY.md))
 - **Terminal** — Closing the terminal now stops the running command; long or stderr-heavy output no longer hangs it
 - **Preview & Editor Top Bar** — Back button, file type icon, folder/size/position details, and a primary Download or Save button

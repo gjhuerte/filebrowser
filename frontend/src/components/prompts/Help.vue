@@ -83,6 +83,19 @@
             <p>You can rename or remove favorites at any time.</p>
           </div>
         </div>
+
+        <div class="help-section">
+          <h3 class="help-heading">
+            <i class="material-icons">tune</i>
+            Customizing Locations
+          </h3>
+          <div class="help-list">
+            <p>Click the <strong>tune</strong> button next to <strong>Locations</strong>, or press and hold a location, to edit the list.</p>
+            <p>Drag a handle to move a folder, or focus it and use the <strong>arrow keys</strong>. Use the <strong>eye</strong> to hide or show a folder. Tap <strong>✓</strong> or press <strong>Esc</strong> when you're done.</p>
+            <p>You can also right-click a location and choose <strong>Hide from sidebar</strong>. Hidden folders are counted under the list; click that line to bring them back.</p>
+            <p>Your order and hidden folders are saved in this browser for your account. New folders appear at the end.</p>
+          </div>
+        </div>
       </div>
 
       <!-- Keyboard Shortcuts Tab -->

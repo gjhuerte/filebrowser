@@ -422,7 +422,20 @@
     "tools": "Tools",
     "terminal": "Terminal",
     "storage": "Storage",
-    "account": "Account"
+    "account": "Account",
+    "dragToReorder": "Move {name} (position {position} of {total}). Drag, or use the arrow keys.",
+    "dragToReorderShort": "Drag to reorder",
+    "movedTo": "{name} moved to position {position} of {total}",
+    "editLocations": "Edit locations",
+    "doneEditing": "Done editing",
+    "editHint": "Drag the handles to reorder, and use the eye to hide or show a folder. Tap ✓ or press Esc when you're done.",
+    "hideLocation": "Hide {name} from the sidebar",
+    "showLocation": "Show {name} in the sidebar",
+    "hideFromSidebar": "Hide from sidebar",
+    "showInSidebar": "Show in sidebar",
+    "hiddenCount": "no hidden folders | 1 hidden folder | {count} hidden folders",
+    "locationHidden": "{name} hidden from the sidebar",
+    "locationShown": "{name} shown in the sidebar"
   },
   "success": {
     "linkCopied": "Link copied!"
