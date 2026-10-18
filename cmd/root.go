@@ -192,11 +192,6 @@ user created with the credentials from options "username" and "password".`,
 		}
 		setupLog(server.Log)
 
-		log.Println("NOTICE: File Browser is being wound down.")
-		log.Println("NOTICE: The project is archived on 2026-09-01, after which there will be no")
-		log.Println("NOTICE: further releases and no security fixes. Known unfixed issues are at")
-		log.Println("NOTICE: https://github.com/filebrowser/filebrowser/security/advisories")
-
 		root, err := filepath.Abs(server.Root)
 		if err != nil {
 			return err
@@ -379,9 +374,9 @@ func getServerSettings(v *viper.Viper, st *storage.Storage) (*settings.Server, e
 
 	if server.EnableExec {
 		log.Println("WARNING: Command Runner feature enabled!")
-		log.Println("WARNING: This feature has known security vulnerabilities and should not")
-		log.Println("WARNING: you fully understand the risks involved. For more information")
-		log.Println("WARNING: read https://github.com/filebrowser/filebrowser/issues/5199")
+		log.Println("WARNING: Hooks and the terminal run programs on this server. Only enable")
+		log.Println("WARNING: this if you understand the risks and trust every user allowed")
+		log.Println("WARNING: to run commands. See docs/command-execution.md.")
 	}
 
 	if server.FollowExternalSymlinks {
