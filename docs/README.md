@@ -18,6 +18,8 @@ File Browser provides a file managing interface within a specified directory and
 
 ## Recent Updates
 
+- **Security Hardening** — Login and share-password rate limiting, safer hook commands, clickjacking and MIME-sniffing protection, and several bug fixes (see [SECURITY.md](../SECURITY.md))
+- **Terminal** — Closing the terminal now stops the running command; long or stderr-heavy output no longer hangs it
 - **Preview & Editor Top Bar** — Back button, file type icon, folder/size/position details, and a primary Download or Save button
 - **Media Viewer** — Redesigned image, video, and audio previews that follow the light/dark theme
 - **FLV Playback** — Flash video files play in the browser (remuxed on the fly; not supported on iPhone)

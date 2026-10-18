@@ -8,6 +8,7 @@ import (
 	"github.com/filebrowser/filebrowser/v2/settings"
 )
 
+// settingsData is the admin-editable part of the settings.
 type settingsData struct {
 	Signup                bool                  `json:"signup"`
 	HideLoginButton       bool                  `json:"hideLoginButton"`
@@ -23,6 +24,7 @@ type settingsData struct {
 	Commands              map[string][]string   `json:"commands"`
 }
 
+// settingsGetHandler serves GET /api/settings (admins only).
 var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	data := &settingsData{
 		Signup:                d.settings.Signup,
@@ -42,6 +44,7 @@ var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 	return renderJSON(w, r, data)
 })
 
+// settingsPutHandler serves PUT /api/settings (admins only).
 var settingsPutHandler = withAdmin(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	req := &settingsData{}
 	err := json.NewDecoder(r.Body).Decode(req)

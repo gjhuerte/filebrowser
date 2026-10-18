@@ -4,7 +4,7 @@
 # Source code is bind-mounted at runtime; use docker/dev/compose.yaml.
 
 ARG NODE_VERSION=24
-ARG GO_VERSION=1.25
+ARG GO_VERSION=1.27
 
 FROM golang:${GO_VERSION}-alpine AS go
 

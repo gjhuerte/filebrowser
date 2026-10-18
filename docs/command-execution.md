@@ -31,6 +31,19 @@ filebrowser cmds ls
 
 Or you can use the web interface to manage them via **Settings** → **Global Settings**.
 
+### How the variables are filled in
+
+* **Without a shell** (the default), File Browser replaces `$FILE`, `${FILE}` and the other variables inside each argument before running the program. No shell is involved, so a file name is always passed as a single argument.
+* **With a shell** (the `shell` setting, for example `sh -c`), the hook is handed to the shell as a script and the shell expands the variables itself from the environment. Quote them so names with spaces stay together:
+
+  ```bash
+  filebrowser cmds add after_upload 'echo "$FILE" >> /var/log/uploads.log'
+  ```
+
+  Use your shell's own syntax: `"$FILE"` for `sh`/`bash`, `%FILE%` for `cmd`, `$env:FILE` for PowerShell.
+
+> **Note:** File names are never pasted into a shell script. Earlier versions did, so an uploaded file named like `a;rm -rf ~` could run commands when a shell was configured. If you wrote hooks for `cmd` or PowerShell using `$FILE`, switch them to that shell's syntax.
+
 ## Interactive Shell
 
 Within File Browser you can toggle the shell (`< >` icon at the top right) and this will open a shell command window at the bottom of the screen. This functionality can be turned on using the environment variable `FB_DISABLE_EXEC=false` or the flag `--disable-exec=false`.
@@ -39,14 +52,14 @@ By default no commands are available as the command list is empty. To enable com
 
 You can do this by adding them in Settings > User Management > (edit user) > Commands or to *apply to all new users created from that point forward* they can be set in Settings > Global Settings
 
-> [!NOTE]
-> 
-> If using a proxy manager then remember to enable websockets support for the File Browser proxy
+> **Note:** The allowed-commands list only checks the **first word** of what the user types. When a `shell` is configured, the whole line goes to that shell, so a user allowed to run `ls` can also run `ls; anything`. Leave `shell` empty if you rely on the list to restrict users, or only give the terminal to people you would trust with a real shell.
 
-> [!NOTE]
-> 
-> If using Docker and you want to add a new command that is not in the base image then you will need to build a custom Docker image using `filebrowser` as a base image.  For example to add 7z:
-> 
+Closing the terminal tab (or leaving the page) stops the running command.
+
+> **Note:** If using a proxy manager then remember to enable websockets support for the File Browser proxy
+
+> **Note:** If using Docker and you want to add a new command that is not in the base image then you will need to build a custom Docker image using `filebrowser` as a base image.  For example to add 7z:
+>
 > ```docker
 > FROM filebrowser
 > RUN sudo apt install p7zip-full

@@ -12,7 +12,11 @@ File Browser allows you to enable user self-registration (signup). This can be e
 
 ## Fail2ban
 
-File Browser does not natively support protection against brute force attacks. Therefore, we suggest using something like [fail2ban](https://github.com/fail2ban/fail2ban), which takes care of that by tracking the logs of your File Browser instance. For more information on how fail2ban works, please refer to their [wiki](https://github.com/fail2ban/fail2ban/wiki).
+File Browser has built-in brute-force protection: after **10 failed logins within 15 minutes** from one address, further attempts get `429 Too Many Requests` until the window passes. Password-protected share links have the same limit per address and link. The counters live in memory, so restarting File Browser clears them.
+
+The client address comes from the `X-Real-IP` / `X-Forwarded-For` headers when present, so run File Browser behind a reverse proxy that sets them (Nginx Proxy Manager does). Exposed directly, a client could forge those headers to dodge the limit.
+
+For longer bans, or to block an address at the firewall, add [fail2ban](https://github.com/fail2ban/fail2ban) on top. It works from File Browser's logs; see its [wiki](https://github.com/fail2ban/fail2ban/wiki).
 
 ### Filter Configuration
 
@@ -24,7 +28,7 @@ before = common.conf
 
 [Definition]
 datepattern = `^%%Y\/%%m\/%%d %%H:%%M:%%S`
-failregex   = `\/api\/login: 403 <HOST> *`
+failregex   = `\/api\/login: (403|429) <HOST> *`
 ```
 
 ### Jail Configuration

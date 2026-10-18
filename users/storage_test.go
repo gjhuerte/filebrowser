@@ -41,12 +41,12 @@ func (b *slowBackend) Save(u *User) error {
 	return nil
 }
 
-func (b *slowBackend) GetBy(interface{}) (*User, error) { return nil, fberrors.ErrNotExist }
-func (b *slowBackend) Gets() ([]*User, error)           { return b.users, nil }
-func (b *slowBackend) Update(*User, ...string) error    { return nil }
-func (b *slowBackend) DeleteByID(uint) error            { return nil }
-func (b *slowBackend) DeleteByUsername(string) error    { return nil }
-func (b *slowBackend) CountAdmins() (int, error)        { return 0, nil }
+func (b *slowBackend) GetBy(any) (*User, error)      { return nil, fberrors.ErrNotExist }
+func (b *slowBackend) Gets() ([]*User, error)        { return b.users, nil }
+func (b *slowBackend) Update(*User, ...string) error { return nil }
+func (b *slowBackend) DeleteByID(uint) error         { return nil }
+func (b *slowBackend) DeleteByUsername(string) error { return nil }
+func (b *slowBackend) CountAdmins() (int, error)     { return 0, nil }
 
 // Two usernames that normalize to the same home directory must not both be
 // provisioned, even when their requests are handled concurrently: checking the

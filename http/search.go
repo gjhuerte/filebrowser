@@ -12,10 +12,14 @@ import (
 	"github.com/filebrowser/filebrowser/v2/search"
 )
 
+// searchPingInterval is how often, in seconds, an empty line is sent while a
+// search runs, so proxies do not time out a quiet connection.
 const searchPingInterval = 5
 
+// searchHandler serves GET /api/search/{path}?query=…, streaming results as
+// newline-separated JSON objects while the search walks the tree.
 var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	response := make(chan map[string]interface{})
+	response := make(chan map[string]any)
 	ctx, cancel := context.WithCancelCause(r.Context())
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -61,7 +65,7 @@ var searchHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *dat
 	err := search.Search(ctx, d.user.Fs, r.URL.Path, query, d, func(path string, f os.FileInfo) error {
 		select {
 		case <-ctx.Done():
-		case response <- map[string]interface{}{
+		case response <- map[string]any{
 			"dir":  f.IsDir(),
 			"path": path,
 		}:

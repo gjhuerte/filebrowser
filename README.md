@@ -43,6 +43,7 @@ File Browser provides a clean, intuitive web interface for managing files on you
 - **Role-Based Access** — Admin and regular user roles with configurable scopes
 - **Flexible Passwords** — Strong password recommendations with option to use simpler passwords
 - **Share Links** — Generate shareable links for files and directories with optional expiration
+- **Brute-Force Protection** — Failed logins and share-password attempts are rate limited per address
 
 ### Administration
 - **User Management** — Create, edit, and delete users from the admin panel

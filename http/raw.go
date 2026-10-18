@@ -13,31 +13,35 @@ import (
 
 	"github.com/filebrowser/filebrowser/v2/files"
 	"github.com/filebrowser/filebrowser/v2/fileutils"
-	"github.com/filebrowser/filebrowser/v2/users"
 	"github.com/mholt/archives"
 )
 
-func parseQueryFiles(r *http.Request, f *files.FileInfo, _ *users.User) ([]string, error) {
-	var fileSlice []string
-	names := strings.Split(r.URL.Query().Get("files"), ",")
+// parseQueryFiles returns the paths to put in an archive download: the
+// comma-separated "files" query parameter resolved against the directory f,
+// or f itself when the parameter is absent.
+func parseQueryFiles(r *http.Request, f *files.FileInfo) ([]string, error) {
+	raw := r.URL.Query().Get("files")
+	if raw == "" {
+		return []string{f.Path}, nil
+	}
 
-	if len(names) == 0 {
-		fileSlice = append(fileSlice, f.Path)
-	} else {
-		for _, name := range names {
-			name, err := url.QueryUnescape(strings.ReplaceAll(name, "+", "%2B"))
-			if err != nil {
-				return nil, err
-			}
-
-			name = slashClean(name)
-			fileSlice = append(fileSlice, filepath.Join(f.Path, name))
+	names := strings.Split(raw, ",")
+	fileSlice := make([]string, 0, len(names))
+	for _, name := range names {
+		name, err := url.QueryUnescape(strings.ReplaceAll(name, "+", "%2B"))
+		if err != nil {
+			return nil, err
 		}
+
+		name = slashClean(name)
+		fileSlice = append(fileSlice, filepath.Join(f.Path, name))
 	}
 
 	return fileSlice, nil
 }
 
+// parseQueryAlgorithm returns the file extension and archiver for the ?algo
+// parameter of a folder download (zip by default).
 func parseQueryAlgorithm(r *http.Request) (string, archives.Archival, error) {
 	switch r.URL.Query().Get("algo") {
 	case "zip", "true", "":
@@ -63,6 +67,8 @@ func parseQueryAlgorithm(r *http.Request) (string, archives.Archival, error) {
 	}
 }
 
+// setContentDisposition marks the response for inline display (?inline=true)
+// or as a download, with the file name encoded per RFC 6266.
 func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.FileInfo) {
 	if r.URL.Query().Get("inline") == "true" {
 		// As per RFC6266 section 4.3
@@ -74,6 +80,8 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.F
 	}
 }
 
+// rawHandler serves GET /api/raw/{path}: the file itself, or a folder (or a
+// selection via ?files=) as an archive.
 var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
@@ -103,6 +111,8 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	return rawDirHandler(w, r, d, file)
 })
 
+// getFiles collects path, and everything below it that the rules allow, as
+// archive entries named relative to commonPath.
 func getFiles(d *data, path, commonPath string) ([]archives.FileInfo, error) {
 	if !d.Check(path) {
 		return nil, nil
@@ -168,8 +178,9 @@ func getFiles(d *data, path, commonPath string) ([]archives.FileInfo, error) {
 	return archiveFiles, nil
 }
 
+// rawDirHandler streams the requested folder or selection as an archive.
 func rawDirHandler(w http.ResponseWriter, r *http.Request, d *data, file *files.FileInfo) (int, error) {
-	filenames, err := parseQueryFiles(r, file, d.user)
+	filenames, err := parseQueryFiles(r, file)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -216,6 +227,8 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *data, file *files.
 	return 0, nil
 }
 
+// rawFileHandler serves one file with range support. Scripts are disabled in
+// case a browser renders it as a page.
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
 	fd, err := file.Fs.Open(file.Path)
 	if err != nil {

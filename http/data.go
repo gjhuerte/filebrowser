@@ -15,6 +15,9 @@ import (
 	"github.com/filebrowser/filebrowser/v2/users"
 )
 
+// handleFunc is the signature of every File Browser handler. It returns the
+// HTTP status to send, or 0 when it already wrote the response itself, and an
+// error that is logged (and, for 400 responses, shown to the client).
 type handleFunc func(w http.ResponseWriter, r *http.Request, d *data) (int, error)
 
 type data struct {
@@ -23,7 +26,7 @@ type data struct {
 	server   *settings.Server
 	store    *storage.Storage
 	user     *users.User
-	raw      interface{}
+	raw      any
 
 	// checkerPrefix is prepended to every path before evaluating rules. It is
 	// set when the user's filesystem has been rebased onto a subdirectory (as
@@ -86,13 +89,19 @@ func (d *data) rulePath(path string) string {
 
 func handle(fn handleFunc, prefix string, store *storage.Storage, server *settings.Server) http.Handler {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for k, v := range securityHeaders {
+			w.Header().Set(k, v)
+		}
 		for k, v := range globalHeaders {
 			w.Header().Set(k, v)
 		}
 
 		settings, err := store.Settings.Get()
 		if err != nil {
-			log.Fatalf("ERROR: couldn't get settings: %v\n", err)
+			// Fail this request only. log.Fatalf here used to stop the whole
+			// server on a transient database error.
+			log.Printf("ERROR: couldn't get settings: %v", err)
+			http.Error(w, strconv.Itoa(http.StatusInternalServerError)+" "+http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 

@@ -162,3 +162,28 @@ func signShareTestToken(t *testing.T, id uint, username string, perm users.Permi
 	}
 	return signed
 }
+
+func TestShareExpiry(t *testing.T) {
+	t.Parallel()
+
+	if got, err := shareExpiry("", "hours"); err != nil || got != 0 {
+		t.Errorf("empty amount: got %d, %v; want 0 (never expires)", got, err)
+	}
+
+	before := time.Now().Add(2 * time.Hour).Unix()
+	got, err := shareExpiry("2", "hours")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got < before || got > before+5 {
+		t.Errorf("2 hours: got %d, want about %d", got, before)
+	}
+
+	// Bad input is the client's mistake: it must be rejected, not crash or
+	// overflow into a share that expired long ago.
+	for _, amount := range []string{"abc", "-5", "0", "999999999999"} {
+		if _, err := shareExpiry(amount, "days"); err == nil {
+			t.Errorf("amount %q: expected an error", amount)
+		}
+	}
+}

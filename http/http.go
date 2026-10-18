@@ -12,6 +12,7 @@ import (
 	"github.com/filebrowser/filebrowser/v2/storage"
 )
 
+// modifyRequest is the common envelope of user and settings update requests.
 type modifyRequest struct {
 	What            string   `json:"what"`             // Answer to: what data type?
 	Which           []string `json:"which"`            // Answer to: which fields?
@@ -19,6 +20,9 @@ type modifyRequest struct {
 	ForcePassword   bool     `json:"force_password"`   // Skip common-password check
 }
 
+// NewHandler builds File Browser's HTTP handler: the REST API under /api,
+// static assets under /static, and the app page for every other path. All of
+// it is mounted under server.BaseURL.
 func NewHandler(
 	imgSvc ImgService,
 	fileCache FileCache,
@@ -31,6 +35,9 @@ func NewHandler(
 	server.CaseInsensitiveFs = files.CaseInsensitive(afero.NewOsFs(), server.Root)
 
 	r := mux.NewRouter()
+	// Restrict what API responses and raw files can do if a browser renders
+	// them as a page. gorilla/mux only runs middleware for matched routes, so
+	// this does not apply to the app page served by NotFoundHandler.
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)

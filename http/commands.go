@@ -2,6 +2,7 @@ package fbhttp
 
 import (
 	"bufio"
+	"context"
 	"io"
 	"log"
 	"net/http"
@@ -16,9 +17,22 @@ import (
 )
 
 const (
+	// WSWriteDeadline bounds every write to the terminal WebSocket, so a client
+	// that stops reading cannot stall the command forever.
 	WSWriteDeadline = 10 * time.Second
+
+	// maxOutputLine is the longest single line of command output sent as one
+	// message. Longer lines end the live output; the rest is discarded so the
+	// command can still finish.
+	maxOutputLine = 1 << 20 // 1 MiB
+
+	// commandWaitDelay is how long a stopped command's children may keep its
+	// output open before File Browser stops waiting for them.
+	commandWaitDelay = 2 * time.Second
 )
 
+// upgrader keeps gorilla/websocket's default origin check, which rejects
+// cross-site WebSocket requests that would otherwise ride on the auth cookie.
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -28,6 +42,7 @@ var (
 	cmdNotAllowed = []byte("Command not allowed.")
 )
 
+// wsErr logs a terminal failure and closes the WebSocket with a short reason.
 func wsErr(ws *websocket.Conn, r *http.Request, status int, err error) {
 	txt := http.StatusText(status)
 	if err != nil || status >= 400 {
@@ -38,6 +53,20 @@ func wsErr(ws *websocket.Conn, r *http.Request, status int, err error) {
 	}
 }
 
+// wsWrite sends one text message, bounded by WSWriteDeadline.
+func wsWrite(ws *websocket.Conn, msg []byte) error {
+	if err := ws.SetWriteDeadline(time.Now().Add(WSWriteDeadline)); err != nil {
+		return err
+	}
+	return ws.WriteMessage(websocket.TextMessage, msg)
+}
+
+// commandsHandler runs one allowed command per WebSocket connection in the
+// folder named by the request path and streams its output back line by line.
+//
+// The client sends the command line as the first message. Closing the socket
+// stops the command: the process is killed so nothing is left running after
+// the user leaves the page or cancels.
 var commandsHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -61,8 +90,8 @@ var commandsHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *d
 	}
 
 	// Fail fast
-	if !d.server.EnableExec || !d.user.Perm.Execute {
-		if err := conn.WriteMessage(websocket.TextMessage, cmdNotAllowed); err != nil {
+	if !d.server.EnableExec || !d.user.Perm.Execute || !d.Check(r.URL.Path) {
+		if err := wsWrite(conn, cmdNotAllowed); err != nil {
 			wsErr(conn, r, http.StatusInternalServerError, err)
 		}
 
@@ -71,48 +100,68 @@ var commandsHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *d
 
 	command, name, err := runner.ParseCommand(d.settings, raw)
 	if err != nil {
-		if err := conn.WriteMessage(websocket.TextMessage, []byte(err.Error())); err != nil {
+		if err := wsWrite(conn, []byte(err.Error())); err != nil {
 			wsErr(conn, r, http.StatusInternalServerError, err)
 		}
 		return 0, nil
 	}
 
 	if !slices.Contains(d.user.Commands, name) {
-		if err := conn.WriteMessage(websocket.TextMessage, cmdNotAllowed); err != nil {
+		if err := wsWrite(conn, cmdNotAllowed); err != nil {
 			wsErr(conn, r, http.StatusInternalServerError, err)
 		}
 
 		return 0, nil
 	}
 
-	cmd := exec.Command(command[0], command[1:]...)
+	// The request context is not cancelled when a hijacked WebSocket closes,
+	// so watch the socket instead: any read error means the client is gone.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		for {
+			if _, _, err := conn.NextReader(); err != nil {
+				cancel()
+				return
+			}
+		}
+	}()
+
+	cmd := exec.CommandContext(ctx, command[0], command[1:]...)
 	cmd.Dir = d.user.FullPath(r.URL.Path)
+	cmd.WaitDelay = commandWaitDelay
 
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		wsErr(conn, r, http.StatusInternalServerError, err)
-		return 0, nil
-	}
-
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		wsErr(conn, r, http.StatusInternalServerError, err)
-		return 0, nil
-	}
+	// One pipe for both streams, so a command writing a lot to stderr cannot
+	// block while stdout is still being read (and the other way round).
+	out, pw := io.Pipe()
+	cmd.Stdout = pw
+	cmd.Stderr = pw
 
 	if err := cmd.Start(); err != nil {
 		wsErr(conn, r, http.StatusInternalServerError, err)
 		return 0, nil
 	}
 
-	s := bufio.NewScanner(io.MultiReader(stdout, stderr))
+	waitErr := make(chan error, 1)
+	go func() {
+		err := cmd.Wait()
+		_ = pw.Close()
+		waitErr <- err
+	}()
+
+	s := bufio.NewScanner(out)
+	s.Buffer(make([]byte, 0, 64*1024), maxOutputLine)
 	for s.Scan() {
-		if err := conn.WriteMessage(websocket.TextMessage, s.Bytes()); err != nil {
-			log.Print(err)
+		if err := wsWrite(conn, s.Bytes()); err != nil {
+			// The client is gone; stop the command and just drain its output.
+			cancel()
+			break
 		}
 	}
+	// Keep reading until the command exits so it never blocks on a full pipe.
+	_, _ = io.Copy(io.Discard, out)
 
-	if err := cmd.Wait(); err != nil {
+	if err := <-waitErr; err != nil && ctx.Err() == nil {
 		wsErr(conn, r, http.StatusInternalServerError, err)
 	}
 

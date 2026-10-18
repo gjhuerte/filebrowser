@@ -21,7 +21,7 @@ services:
         UID: ${PUID:-1000}
         GID: ${PGID:-1000}
         NODE_VERSION: ${NODE_VERSION:-24}
-        GO_VERSION: ${GO_VERSION:-1.25}
+        GO_VERSION: ${GO_VERSION:-1.27}
         ALPINE_VERSION: ${ALPINE_VERSION:-3.23}
     restart: unless-stopped
     ports:

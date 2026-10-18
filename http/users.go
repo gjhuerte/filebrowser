@@ -18,15 +18,17 @@ import (
 	"github.com/filebrowser/filebrowser/v2/users"
 )
 
-var (
-	NonModifiableFieldsForNonAdmin = []string{"Username", "Scope", "LockPassword", "Perm", "Commands", "Rules"}
-)
+// NonModifiableFieldsForNonAdmin lists the user fields only an admin may
+// change, even on their own account.
+var NonModifiableFieldsForNonAdmin = []string{"Username", "Scope", "LockPassword", "Perm", "Commands", "Rules"}
 
+// modifyUserRequest is the body of user create and update requests.
 type modifyUserRequest struct {
 	modifyRequest
 	Data *users.User `json:"data"`
 }
 
+// getUserID reads the numeric {id} route variable.
 func getUserID(r *http.Request) (uint, error) {
 	vars := mux.Vars(r)
 	i, err := strconv.ParseUint(vars["id"], 10, 0)
@@ -36,10 +38,13 @@ func getUserID(r *http.Request) (uint, error) {
 	return uint(i), err
 }
 
-func getUser(_ http.ResponseWriter, r *http.Request) (*modifyUserRequest, error) {
+// getUser decodes the body of a user create or update request. It rejects a
+// request without user data, which every caller dereferences.
+func getUser(w http.ResponseWriter, r *http.Request) (*modifyUserRequest, error) {
 	if r.Body == nil {
 		return nil, fberrors.ErrEmptyRequest
 	}
+	r.Body = http.MaxBytesReader(w, r.Body, maxAuthBodySize)
 
 	req := &modifyUserRequest{}
 	err := json.NewDecoder(r.Body).Decode(req)
@@ -51,9 +56,15 @@ func getUser(_ http.ResponseWriter, r *http.Request) (*modifyUserRequest, error)
 		return nil, fberrors.ErrInvalidDataType
 	}
 
+	if req.Data == nil {
+		return nil, fberrors.ErrEmptyRequest
+	}
+
 	return req, nil
 }
 
+// withSelfOrAdmin lets users act on their own account and admins on any. It
+// stores the target user ID in d.raw.
 func withSelfOrAdmin(fn handleFunc) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		id, err := getUserID(r)
@@ -70,6 +81,7 @@ func withSelfOrAdmin(fn handleFunc) handleFunc {
 	})
 }
 
+// usersGetHandler serves GET /api/users (admins only), without passwords.
 var usersGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	users, err := d.store.Users.Gets(d.server.Root, d.server.FollowExternalSymlinks)
 	if err != nil {
@@ -87,6 +99,7 @@ var usersGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 	return renderJSON(w, r, users)
 })
 
+// userGetHandler serves GET /api/users/{id}.
 var userGetHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	u, err := d.store.Users.Get(d.server.Root, d.server.FollowExternalSymlinks, d.raw.(uint))
 	if errors.Is(err, fberrors.ErrNotExist) {
@@ -104,6 +117,8 @@ var userGetHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 	return renderJSON(w, r, u)
 })
 
+// userDeleteHandler serves DELETE /api/users/{id}. With password auth the
+// caller must confirm with their current password.
 var userDeleteHandler = withSelfOrAdmin(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if r.Body == nil {
 		return http.StatusBadRequest, fberrors.ErrEmptyRequest
@@ -131,6 +146,8 @@ var userDeleteHandler = withSelfOrAdmin(func(_ http.ResponseWriter, r *http.Requ
 	return http.StatusOK, nil
 })
 
+// userPostHandler serves POST /api/users (admins only), creating a user and
+// their home folder.
 var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	req, err := getUser(w, r)
 	if err != nil {
@@ -181,6 +198,8 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 	return http.StatusCreated, nil
 })
 
+// userPutHandler serves PUT /api/users/{id}. "which" lists the fields to
+// change (or "all", admins only); sensitive fields need the current password.
 var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	req, err := getUser(w, r)
 	if err != nil {

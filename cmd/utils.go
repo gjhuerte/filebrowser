@@ -199,7 +199,7 @@ func withStore(fn func(cmd *cobra.Command, args []string, store *store) error, o
 	}, options)
 }
 
-func marshal(filename string, data interface{}) error {
+func marshal(filename string, data any) error {
 	fd, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -219,7 +219,7 @@ func marshal(filename string, data interface{}) error {
 	}
 }
 
-func unmarshal(filename string, data interface{}) error {
+func unmarshal(filename string, data any) error {
 	fd, err := os.Open(filename)
 	if err != nil {
 		return err

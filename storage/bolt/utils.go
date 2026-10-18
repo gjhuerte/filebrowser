@@ -8,7 +8,8 @@ import (
 	fberrors "github.com/filebrowser/filebrowser/v2/errors"
 )
 
-func get(db *storm.DB, name string, to interface{}) error {
+// get reads the value stored under name in the "config" bucket into to.
+func get(db *storm.DB, name string, to any) error {
 	err := db.Get("config", name, to)
 	if errors.Is(err, storm.ErrNotFound) {
 		return fberrors.ErrNotExist
@@ -17,6 +18,7 @@ func get(db *storm.DB, name string, to interface{}) error {
 	return err
 }
 
-func save(db *storm.DB, name string, from interface{}) error {
+// save stores from under name in the "config" bucket.
+func save(db *storm.DB, name string, from any) error {
 	return db.Set("config", name, from)
 }

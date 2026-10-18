@@ -17,7 +17,7 @@ x-app: &app
     dockerfile: docker/dev/Dockerfile
     args:
       NODE_VERSION: ${NODE_VERSION:-24}
-      GO_VERSION: ${GO_VERSION:-1.25}
+      GO_VERSION: ${GO_VERSION:-1.27}
   volumes:
     - ../..:/app
     - node-modules:/app/frontend/node_modules

@@ -31,6 +31,7 @@ type shareResponse struct {
 	HasPassword bool   `json:"hasPassword"`
 }
 
+// toShareResponse converts a link to its client-facing form.
 func toShareResponse(l *share.Link) *shareResponse {
 	return &shareResponse{
 		Hash:        l.Hash,
@@ -41,6 +42,7 @@ func toShareResponse(l *share.Link) *shareResponse {
 	}
 }
 
+// toShareResponses converts links to their client-facing form.
 func toShareResponses(links []*share.Link) []*shareResponse {
 	res := make([]*shareResponse, 0, len(links))
 	for _, l := range links {
@@ -49,6 +51,7 @@ func toShareResponses(links []*share.Link) []*shareResponse {
 	return res
 }
 
+// withPermShare requires the Share and Download permissions.
 func withPermShare(fn handleFunc) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Share || !d.user.Perm.Download {
@@ -59,6 +62,8 @@ func withPermShare(fn handleFunc) handleFunc {
 	})
 }
 
+// shareListHandler serves GET /api/shares: every link for admins, otherwise
+// the caller's own.
 var shareListHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	var (
 		s   []*share.Link
@@ -87,6 +92,7 @@ var shareListHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 	return renderJSON(w, r, toShareResponses(s))
 })
 
+// shareGetsHandler serves GET /api/share/{path}: the links for one file.
 var shareGetsHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	var (
 		s   []*share.Link
@@ -108,6 +114,9 @@ var shareGetsHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 	return renderJSON(w, r, toShareResponses(s))
 })
 
+// getSharesForAdminPath finds the links, by any user, that point at the file
+// the admin sees at path. Owners have different scopes, so paths are compared
+// on disk.
 func getSharesForAdminPath(d *data, path string) ([]*share.Link, error) {
 	links, err := d.store.Share.All()
 	if err != nil {
@@ -134,6 +143,8 @@ func getSharesForAdminPath(d *data, path string) ([]*share.Link, error) {
 	return filtered, nil
 }
 
+// shareDeleteHandler serves DELETE /api/share/{hash}, for the link's owner or
+// an admin.
 var shareDeleteHandler = withPermShare(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	hash := strings.TrimSuffix(r.URL.Path, "/")
 	hash = strings.TrimPrefix(hash, "/")
@@ -155,6 +166,8 @@ var shareDeleteHandler = withPermShare(func(_ http.ResponseWriter, r *http.Reque
 	return errToStatus(err), err
 })
 
+// sharePostHandler serves POST /api/share/{path}, creating a public link with
+// an optional password and expiry.
 var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	// Only allow sharing paths that currently exist. Otherwise a share could be
 	// created for a non-existent path and would silently start exposing
@@ -163,6 +176,9 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 	// d.user.Fs is scoped, so Stat also refuses to follow a symlink whose target
 	// escapes the user's scope: that returns a permission error here and so
 	// blocks creating a share that points out of scope.
+	if !d.Check(r.URL.Path) {
+		return http.StatusForbidden, nil
+	}
 	if _, err := d.user.Fs.Stat(r.URL.Path); err != nil {
 		return errToStatus(err), err
 	}
@@ -184,27 +200,9 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 
 	str := base64.URLEncoding.EncodeToString(bytes)
 
-	var expire int64 = 0
-
-	if body.Expires != "" {
-		num, err := strconv.Atoi(body.Expires)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-
-		var add time.Duration
-		switch body.Unit {
-		case "seconds":
-			add = time.Second * time.Duration(num)
-		case "minutes":
-			add = time.Minute * time.Duration(num)
-		case "days":
-			add = time.Hour * 24 * time.Duration(num)
-		default:
-			add = time.Hour * time.Duration(num)
-		}
-
-		expire = time.Now().Add(add).Unix()
+	expire, err := shareExpiry(body.Expires, body.Unit)
+	if err != nil {
+		return http.StatusBadRequest, err
 	}
 
 	hash, status, err := getSharePasswordHash(body)
@@ -237,6 +235,42 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 	return renderJSON(w, r, toShareResponse(s))
 })
 
+// maxShareLifetime caps how far in the future a share may expire, which also
+// keeps the duration arithmetic below from overflowing.
+const maxShareLifetime = 100 * 365 * 24 * time.Hour
+
+// shareExpiry turns the "expires" amount and unit of a create request into a
+// Unix timestamp. An empty amount means the share never expires (0).
+func shareExpiry(amount, unit string) (int64, error) {
+	if amount == "" {
+		return 0, nil
+	}
+
+	num, err := strconv.ParseInt(amount, 10, 64)
+	if err != nil || num <= 0 {
+		return 0, fmt.Errorf("invalid expiry %q: %w", amount, fberrors.ErrInvalidRequestParams)
+	}
+
+	var step time.Duration
+	switch unit {
+	case "seconds":
+		step = time.Second
+	case "minutes":
+		step = time.Minute
+	case "days":
+		step = 24 * time.Hour
+	default:
+		step = time.Hour
+	}
+
+	if num > int64(maxShareLifetime/step) {
+		return 0, fmt.Errorf("expiry %s %s is too far away: %w", amount, unit, fberrors.ErrInvalidRequestParams)
+	}
+
+	return time.Now().Add(time.Duration(num) * step).Unix(), nil
+}
+
+// getSharePasswordHash bcrypt-hashes the share password, if one was given.
 func getSharePasswordHash(body share.CreateBody) (data []byte, statuscode int, err error) {
 	if body.Password == "" {
 		return nil, 0, nil

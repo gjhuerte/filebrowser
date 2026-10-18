@@ -56,6 +56,8 @@ func keepUploadActive(cache UploadCache, filePath string) func() {
 	}
 }
 
+// tusPostHandler serves POST /api/tus/{path}, starting a resumable upload of
+// Upload-Length bytes (tus protocol).
 func tusPostHandler(cache UploadCache) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
@@ -145,6 +147,8 @@ func tusPostHandler(cache UploadCache) handleFunc {
 	})
 }
 
+// tusHeadHandler serves HEAD /api/tus/{path}, reporting how much of an upload
+// has arrived so the client can resume.
 func tusHeadHandler(cache UploadCache) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		w.Header().Set("Cache-Control", "no-store")
@@ -176,6 +180,7 @@ func tusHeadHandler(cache UploadCache) handleFunc {
 	})
 }
 
+// tusPatchHandler serves PATCH /api/tus/{path}, appending one chunk.
 func tusPatchHandler(cache UploadCache) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		status, err := tusPatchUpload(w, r, d, cache)
@@ -189,6 +194,8 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 	})
 }
 
+// tusPatchUpload validates and writes one chunk at Upload-Offset, refusing
+// more data than the upload declared.
 func tusPatchUpload(w http.ResponseWriter, r *http.Request, d *data, cache UploadCache) (int, error) {
 	if !d.user.Perm.Create || !d.Check(r.URL.Path) {
 		return http.StatusForbidden, nil
@@ -293,6 +300,8 @@ func tusPatchUpload(w http.ResponseWriter, r *http.Request, d *data, cache Uploa
 	return http.StatusNoContent, nil
 }
 
+// tusDeleteHandler serves DELETE /api/tus/{path}, cancelling an upload and
+// removing its partial file.
 func tusDeleteHandler(cache UploadCache) handleFunc {
 	return withUser(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.URL.Path == "/" || !d.user.Perm.Delete {
@@ -327,6 +336,7 @@ func tusDeleteHandler(cache UploadCache) handleFunc {
 	})
 }
 
+// getUploadLength parses the Upload-Length header.
 func getUploadLength(r *http.Request) (int64, error) {
 	uploadOffset, err := strconv.ParseInt(r.Header.Get("Upload-Length"), 10, 64)
 	if err != nil {
@@ -335,6 +345,7 @@ func getUploadLength(r *http.Request) (int64, error) {
 	return uploadOffset, nil
 }
 
+// getUploadOffset parses the Upload-Offset header.
 func getUploadOffset(r *http.Request) (int64, error) {
 	uploadOffset, err := strconv.ParseInt(r.Header.Get("Upload-Offset"), 10, 64)
 	if err != nil {

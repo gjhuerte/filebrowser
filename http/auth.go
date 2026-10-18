@@ -19,11 +19,16 @@ import (
 )
 
 const (
+	// DefaultTokenExpirationTime is how long a login token stays valid when the
+	// server settings do not say otherwise.
 	DefaultTokenExpirationTime = time.Hour * 2
 
+	// maxAuthBodySize caps the JSON body of login, signup and user requests.
 	maxAuthBodySize = 1 << 20 // 1 MiB
 )
 
+// userInfo is the part of a user embedded in the login token, which the
+// frontend reads to set itself up.
 type userInfo struct {
 	ID                    uint              `json:"id"`
 	Locale                string            `json:"locale"`
@@ -39,13 +44,17 @@ type userInfo struct {
 	AceEditorTheme        string            `json:"aceEditorTheme"`
 }
 
+// authToken is the JWT claim set issued at login.
 type authToken struct {
 	User userInfo `json:"user"`
 	jwt.RegisteredClaims
 }
 
+// extractor finds the auth token in a request: the X-Auth header, or for GET
+// requests (downloads, previews, the terminal) the auth cookie.
 type extractor []string
 
+// ExtractToken implements request.Extractor.
 func (e extractor) ExtractToken(r *http.Request) (string, error) {
 	token, _ := request.HeaderExtractor{"X-Auth"}.ExtractToken(r)
 
@@ -66,6 +75,9 @@ func (e extractor) ExtractToken(r *http.Request) (string, error) {
 	return "", request.ErrNoTokenInRequest
 }
 
+// renewableErr reports whether a token rejected with err may still be accepted:
+// only an expired token under proxy auth with a custom logout page, and only
+// while the proxy still vouches for the same user.
 func renewableErr(err error, r *http.Request, d *data, tk *authToken) bool {
 	if d.settings.AuthMethod != fbAuth.MethodProxyAuth || err == nil {
 		return false
@@ -113,9 +125,11 @@ func proxyAsserts(r *http.Request, d *data, id uint) bool {
 	return user.ID == id
 }
 
+// withUser authenticates the request from its token and loads the user into
+// d before calling fn. It answers 401 when there is no valid token.
 func withUser(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		keyFunc := func(_ *jwt.Token) (interface{}, error) {
+		keyFunc := func(_ *jwt.Token) (any, error) {
 			return d.settings.Key, nil
 		}
 
@@ -143,6 +157,7 @@ func withUser(fn handleFunc) handleFunc {
 	}
 }
 
+// withAdmin is withUser for admin-only endpoints; other users get 403.
 func withAdmin(fn handleFunc) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Admin {
@@ -153,10 +168,19 @@ func withAdmin(fn handleFunc) handleFunc {
 	})
 }
 
+// loginHandler signs a user in with the configured auth method and returns a
+// token valid for tokenExpireTime.
 func loginHandler(tokenExpireTime time.Duration) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.Body != nil {
 			r.Body = http.MaxBytesReader(w, r.Body, maxAuthBodySize)
+		}
+
+		// Slow down password guessing: after too many failures from one
+		// client, refuse further attempts for a while.
+		client := clientKey(r)
+		if ok, wait := loginLimiter.Allow(client); !ok {
+			return tooManyAttempts(w, wait), nil
 		}
 
 		auther, err := d.store.Auth.Get(d.settings.AuthMethod)
@@ -167,20 +191,26 @@ func loginHandler(tokenExpireTime time.Duration) handleFunc {
 		user, err := auther.Auth(r, d.store.Users, d.settings, d.server)
 		switch {
 		case errors.Is(err, os.ErrPermission):
+			loginLimiter.Fail(client)
 			return http.StatusForbidden, nil
 		case err != nil:
 			return http.StatusInternalServerError, err
 		}
 
+		loginLimiter.Reset(client)
 		return printToken(w, r, d, user, tokenExpireTime)
 	}
 }
 
+// signupBody is the request body of /api/signup.
 type signupBody struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
+// signupHandler creates an account when self-registration is enabled. New
+// accounts never get admin or command execution rights, whatever the
+// defaults say.
 var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.settings.Signup {
 		return http.StatusMethodNotAllowed, nil
@@ -242,6 +272,7 @@ var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, 
 	return http.StatusOK, nil
 }
 
+// renewHandler issues a fresh token for the signed-in user.
 func renewHandler(tokenExpireTime time.Duration) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		w.Header().Set("X-Renew-Token", "false")
@@ -249,6 +280,7 @@ func renewHandler(tokenExpireTime time.Duration) handleFunc {
 	})
 }
 
+// printToken signs a token for user and writes it as the response body.
 func printToken(w http.ResponseWriter, _ *http.Request, d *data, user *users.User, tokenExpirationTime time.Duration) (int, error) {
 	claims := &authToken{
 		User: userInfo{

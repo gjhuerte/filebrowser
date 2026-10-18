@@ -1,7 +1,12 @@
 package settings
 
-const DefaultTusChunkSize = 10 * 1024 * 1024 // 10MB
-const DefaultTusRetryCount = 5
+// Defaults for resumable uploads.
+const (
+	// DefaultTusChunkSize is the size of each upload chunk, 10 MiB.
+	DefaultTusChunkSize = 10 * 1024 * 1024
+	// DefaultTusRetryCount is how often the frontend retries a failed chunk.
+	DefaultTusRetryCount = 5
+)
 
 // Tus contains the tus.io settings of the app.
 type Tus struct {

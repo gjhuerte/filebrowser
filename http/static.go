@@ -21,6 +21,8 @@ import (
 	"github.com/filebrowser/filebrowser/v2/version"
 )
 
+// handleWithStaticData renders an HTML template from the frontend build with
+// the instance's branding and settings filled in.
 func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys fs.FS, file, contentType string) (int, error) {
 	w.Header().Set("Content-Type", contentType)
 
@@ -29,7 +31,7 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 		return http.StatusInternalServerError, err
 	}
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"Name":                  d.settings.Branding.Name,
 		"DisableExternal":       d.settings.Branding.DisableExternal,
 		"DisableUsedPercentage": d.settings.Branding.DisableUsedPercentage,
@@ -103,14 +105,18 @@ func handleWithStaticData(w http.ResponseWriter, _ *http.Request, d *data, fSys 
 	return 0, nil
 }
 
+// getStaticHandlers returns the handlers for the app page and for /static
+// assets, including branding overrides and pre-compressed JavaScript.
 func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs fs.FS) (index, static http.Handler) {
 	index = handle(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.Method != http.MethodGet {
 			return http.StatusNotFound, nil
 		}
 
-		w.Header().Set("x-xss-protection", "1; mode=block")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
+		// X-Content-Type-Options and framing protection come from handle().
+		// The old X-XSS-Protection header is deliberately not sent: browsers
+		// have removed the filter it controlled, and in older ones it could be
+		// abused to blank out parts of a page.
 		return handleWithStaticData(w, r, d, assetsFs, "public/index.html", "text/html; charset=utf-8")
 	}, "", store, server)
 
@@ -128,7 +134,9 @@ func getStaticHandlers(store *storage.Storage, server *settings.Server, assetsFs
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 
 		if d.settings.Branding.Files != "" {
-			if strings.HasPrefix(r.URL.Path, "img/") {
+			// filepath.IsLocal keeps the override inside the branding folder
+			// even if a path with ".." ever got past the router's cleaning.
+			if strings.HasPrefix(r.URL.Path, "img/") && filepath.IsLocal(r.URL.Path) {
 				fPath := filepath.Join(d.settings.Branding.Files, r.URL.Path)
 				_, err := os.Stat(fPath)
 				if err != nil && !os.IsNotExist(err) {

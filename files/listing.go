@@ -15,7 +15,8 @@ type Listing struct {
 	Sorting  Sorting     `json:"sorting"`
 }
 
-// ApplySort applies the sort order using .Order and .Sort
+// ApplySort sorts the items in place by l.Sorting.By ("name", "size" or
+// "modified") in the direction given by l.Sorting.Asc.
 func (l Listing) ApplySort() {
 	// Check '.Order' to know how to sort
 	if !l.Sorting.Asc {
@@ -45,21 +46,24 @@ func (l Listing) ApplySort() {
 	}
 }
 
-// Implement sorting for Listing
+// byName, bySize and byModified implement sort.Interface for a Listing. All
+// three keep folders together before (or, reversed, after) files.
 type byName Listing
 type bySize Listing
 type byModified Listing
 
-// By Name
+// Len implements sort.Interface.
 func (l byName) Len() int {
 	return len(l.Items)
 }
 
+// Swap implements sort.Interface.
 func (l byName) Swap(i, j int) {
 	l.Items[i], l.Items[j] = l.Items[j], l.Items[i]
 }
 
-// Treat upper and lower case equally
+// Less implements sort.Interface, comparing names naturally ("file2" before
+// "file10") and ignoring case.
 func (l byName) Less(i, j int) bool {
 	if l.Items[i].IsDir && !l.Items[j].IsDir {
 		return l.Sorting.Asc
@@ -72,16 +76,20 @@ func (l byName) Less(i, j int) bool {
 	return natural.Less(strings.ToLower(l.Items[j].Name), strings.ToLower(l.Items[i].Name))
 }
 
-// By Size
+// Len implements sort.Interface.
 func (l bySize) Len() int {
 	return len(l.Items)
 }
 
+// Swap implements sort.Interface.
 func (l bySize) Swap(i, j int) {
 	l.Items[i], l.Items[j] = l.Items[j], l.Items[i]
 }
 
+// directoryOffset is added to folder sizes so folders always sort before files.
 const directoryOffset = -1 << 31 // = math.MinInt32
+
+// Less implements sort.Interface, ordering by size.
 func (l bySize) Less(i, j int) bool {
 	iSize, jSize := l.Items[i].Size, l.Items[j].Size
 	if l.Items[i].IsDir {
@@ -93,15 +101,17 @@ func (l bySize) Less(i, j int) bool {
 	return iSize < jSize
 }
 
-// By Modified
+// Len implements sort.Interface.
 func (l byModified) Len() int {
 	return len(l.Items)
 }
 
+// Swap implements sort.Interface.
 func (l byModified) Swap(i, j int) {
 	l.Items[i], l.Items[j] = l.Items[j], l.Items[i]
 }
 
+// Less implements sort.Interface, ordering by modification time.
 func (l byModified) Less(i, j int) bool {
 	iModified, jModified := l.Items[i].ModTime, l.Items[j].ModTime
 	return iModified.Sub(jModified) < 0

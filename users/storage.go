@@ -10,7 +10,7 @@ import (
 
 // StorageBackend is the interface to implement for a users storage.
 type StorageBackend interface {
-	GetBy(interface{}) (*User, error)
+	GetBy(any) (*User, error)
 	GetByScope(scope string) (*User, error)
 	Gets() ([]*User, error)
 	Save(u *User) error
@@ -20,14 +20,16 @@ type StorageBackend interface {
 	CountAdmins() (int, error)
 }
 
+// Store is the user store used by the rest of File Browser. *Storage
+// implements it; tests substitute their own.
 type Store interface {
-	Get(baseScope string, followExternalSymlinks bool, id interface{}) (user *User, err error)
+	Get(baseScope string, followExternalSymlinks bool, id any) (user *User, err error)
 	GetByScope(scope string) (*User, error)
 	Gets(baseScope string, followExternalSymlinks bool) ([]*User, error)
 	Update(user *User, fields ...string) error
 	Save(user *User) error
 	SaveProvisioned(user *User, derivedScope bool) error
-	Delete(id interface{}) error
+	Delete(id any) error
 	LastUpdate(id uint) int64
 }
 
@@ -53,7 +55,7 @@ func NewStorage(back StorageBackend) *Storage {
 // Get allows you to get a user by its name or username. The provided
 // id must be a string for username lookup or a uint for id lookup. If id
 // is neither, a ErrInvalidDataType will be returned.
-func (s *Storage) Get(baseScope string, followExternalSymlinks bool, id interface{}) (user *User, err error) {
+func (s *Storage) Get(baseScope string, followExternalSymlinks bool, id any) (user *User, err error) {
 	user, err = s.back.GetBy(id)
 	if err != nil {
 		return
@@ -143,7 +145,7 @@ func (s *Storage) SaveProvisioned(user *User, derivedScope bool) error {
 // Delete allows you to delete a user by its name or username. The provided
 // id must be a string for username lookup or a uint for id lookup. If id
 // is neither, a ErrInvalidDataType will be returned.
-func (s *Storage) Delete(id interface{}) error {
+func (s *Storage) Delete(id any) error {
 	switch id := id.(type) {
 	case string:
 		user, err := s.back.GetBy(id)
@@ -180,6 +182,8 @@ func (s *Storage) LastUpdate(id uint) int64 {
 	return 0
 }
 
+// IsUniqueAdmin reports whether user is the only admin. When the count cannot
+// be read it answers true, so callers refuse to remove a possibly-last admin.
 func (s *Storage) IsUniqueAdmin(user *User) bool {
 	if !user.Perm.Admin {
 		return false

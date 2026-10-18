@@ -257,3 +257,74 @@ func TestResourcePostRunsUploadHooksForDirectories(t *testing.T) {
 		t.Fatalf("expected directory to be created before its after hook, got %v", err)
 	}
 }
+
+// A user without the Delete permission must not be able to erase a directory by
+// "overriding" it with an upload: writing over a directory fails, and the
+// failed-upload clean-up used to remove the whole tree.
+func TestResourcePostOverrideDoesNotDeleteDirectory(t *testing.T) {
+	root := t.TempDir()
+	userScope := filepath.Join(root, "user")
+	keep := filepath.Join(userScope, "photos", "keep.jpg")
+	if err := os.MkdirAll(filepath.Dir(keep), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(keep, []byte("keep"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	key := []byte("test-signing-key")
+	// Create and Modify, but deliberately no Delete.
+	perm := users.Permissions{Create: true, Modify: true}
+	st := scopedUserStorage(t, userScope, perm, key)
+
+	req, _ := http.NewRequest(http.MethodPost, "/photos?override=true", strings.NewReader("x"))
+	req.Header.Set("X-Auth", signToken(t, perm, key))
+	rec := httptest.NewRecorder()
+	handle(resourcePostHandler(diskcache.NewNoOp()), "", st, &settings.Server{}).ServeHTTP(rec, req)
+
+	if _, err := os.Stat(keep); err != nil {
+		t.Fatalf("directory contents were deleted by an upload override (status=%d): %v", rec.Code, err)
+	}
+	if rec.Code != http.StatusConflict {
+		t.Errorf("expected 409 when uploading over a directory, got %d", rec.Code)
+	}
+}
+
+// A failed overwrite must leave the existing file in place rather than delete it.
+func TestResourcePostFailedOverrideKeepsExistingFile(t *testing.T) {
+	root := t.TempDir()
+	userScope := filepath.Join(root, "user")
+	if err := os.MkdirAll(userScope, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	existing := filepath.Join(userScope, "report.txt")
+	if err := os.WriteFile(existing, []byte("original"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	key := []byte("test-signing-key")
+	perm := users.Permissions{Create: true, Modify: true}
+	st := scopedUserStorage(t, userScope, perm, key)
+	// A failing "before" hook aborts the upload before anything is written.
+	if err := st.Settings.Save(&settings.Settings{
+		Key: key,
+		Commands: map[string][]string{
+			"before_upload": {"filebrowser-hook-command-that-does-not-exist"},
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	req, _ := http.NewRequest(http.MethodPost, "/report.txt?override=true", strings.NewReader("new"))
+	req.Header.Set("X-Auth", signToken(t, perm, key))
+	rec := httptest.NewRecorder()
+	handle(resourcePostHandler(diskcache.NewNoOp()), "", st, &settings.Server{EnableExec: true}).ServeHTTP(rec, req)
+
+	got, err := os.ReadFile(existing)
+	if err != nil {
+		t.Fatalf("existing file was deleted after a failed overwrite (status=%d): %v", rec.Code, err)
+	}
+	if string(got) != "original" {
+		t.Errorf("existing file changed after a failed overwrite: %q", got)
+	}
+}

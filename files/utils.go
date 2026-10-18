@@ -50,10 +50,12 @@ func isBinary(content []byte) bool {
 	return false
 }
 
+// IsNamedPipe reports whether mode describes a named pipe (FIFO).
 func IsNamedPipe(mode os.FileMode) bool {
 	return mode&os.ModeNamedPipe != 0
 }
 
+// IsSymlink reports whether mode describes a symbolic link.
 func IsSymlink(mode os.FileMode) bool {
 	return mode&os.ModeSymlink != 0
 }

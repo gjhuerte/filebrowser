@@ -3,13 +3,14 @@ package auth
 import (
 	"errors"
 	"net/http"
+	"os"
 
 	fberrors "github.com/filebrowser/filebrowser/v2/errors"
 	"github.com/filebrowser/filebrowser/v2/settings"
 	"github.com/filebrowser/filebrowser/v2/users"
 )
 
-// MethodProxyAuth is used to identify no auth.
+// MethodProxyAuth is used to identify proxy auth.
 const MethodProxyAuth settings.AuthMethod = "proxy"
 
 // ProxyAuth is a proxy implementation of an auther.
@@ -20,6 +21,11 @@ type ProxyAuth struct {
 // Auth authenticates the user via an HTTP header.
 func (a ProxyAuth) Auth(r *http.Request, usr users.Store, setting *settings.Settings, srv *settings.Server) (*users.User, error) {
 	username := r.Header.Get(a.Header)
+	if a.Header == "" || username == "" {
+		// The proxy did not identify anyone, so there is no one to log in.
+		return nil, os.ErrPermission
+	}
+
 	user, err := usr.Get(srv.Root, srv.FollowExternalSymlinks, username)
 	if errors.Is(err, fberrors.ErrNotExist) {
 		return a.createUser(usr, setting, srv, username)

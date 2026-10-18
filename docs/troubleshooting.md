@@ -54,6 +54,8 @@ If you see permission errors when accessing or uploading files:
 
 - **Clear cookies** — Clear your browser's cookies for the File Browser domain and try again.
 
+- **"Too many failed attempts"** — After 10 wrong passwords within 15 minutes from one address, File Browser refuses logins from it for the rest of that window (`429` in the logs). Wait, or restart File Browser to clear the counter. If everyone is locked out at once behind a reverse proxy, the proxy is not sending `X-Real-IP` / `X-Forwarded-For`, so all visitors look like one address.
+
 ## Docker Issues
 
 - **Container won't start** — Check logs with `docker logs <container-name>`.
@@ -98,3 +100,10 @@ See [deployment.md](deployment.md) for full reverse proxy configuration examples
 **Symptom:** Home shows old file counts or sizes.
 
 **Fix:** Click the refresh button next to the auto-refresh menu on Home, or pick an interval (every 5–60 minutes) so File Browser rescans in the background while it's open. Scans pause while the browser tab is hidden. On very large drives, prefer a longer interval — each scan walks the whole tree.
+
+## File Browser Won't Load Inside Another Site
+
+**Symptom:** File Browser shows a blank or "refused to connect" frame when embedded in a dashboard (Organizr, Home Assistant, Heimdall, …) on a different domain.
+
+**Fix:** File Browser sends `X-Frame-Options: SAMEORIGIN`, which stops other sites from framing it (protection against clickjacking). Serve the dashboard and File Browser from the same origin, or open File Browser in its own tab.
+

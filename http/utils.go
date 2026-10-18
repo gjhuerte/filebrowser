@@ -56,7 +56,8 @@ func cleanSeparators(name, sep string) string {
 	return gopath.Clean(name)
 }
 
-func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, error) {
+// renderJSON writes data as a JSON response.
+func renderJSON(w http.ResponseWriter, _ *http.Request, data any) (int, error) {
 	marsh, err := json.Marshal(data)
 
 	if err != nil {
@@ -74,6 +75,7 @@ func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, 
 	return 0, nil
 }
 
+// errToStatus maps an error to the HTTP status that describes it.
 func errToStatus(err error) int {
 	switch {
 	case err == nil:
@@ -82,7 +84,7 @@ func errToStatus(err error) int {
 		return http.StatusForbidden
 	case os.IsNotExist(err), errors.Is(err, libErrors.ErrNotExist):
 		return http.StatusNotFound
-	case os.IsExist(err), errors.Is(err, libErrors.ErrExist):
+	case os.IsExist(err), errors.Is(err, libErrors.ErrExist), errors.Is(err, libErrors.ErrIsDirectory):
 		return http.StatusConflict
 	case errors.Is(err, libErrors.ErrPermissionDenied):
 		return http.StatusForbidden
@@ -97,8 +99,8 @@ func errToStatus(err error) int {
 	}
 }
 
-// This is an adaptation if http.StripPrefix in which we don't
-// return 404 if the page doesn't have the needed prefix.
+// stripPrefix is http.StripPrefix without the 404 for paths that lack the
+// prefix: those pass through unchanged.
 func stripPrefix(prefix string, h http.Handler) http.Handler {
 	if prefix == "" || prefix == "/" {
 		return h

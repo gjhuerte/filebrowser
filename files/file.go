@@ -66,6 +66,8 @@ type FileOptions struct {
 	Content    bool
 }
 
+// ImageResolution is the pixel size of an image, reported when resolution
+// detection is enabled.
 type ImageResolution struct {
 	Width  int `json:"width"`
 	Height int `json:"height"`
@@ -206,6 +208,8 @@ func (i *FileInfo) Checksum(algo string) error {
 	return nil
 }
 
+// RealPath returns the file's path on disk, or its virtual path when the
+// filesystem cannot tell.
 func (i *FileInfo) RealPath() string {
 	if realPathFs, ok := i.Fs.(interface {
 		RealPath(name string) (fPath string, err error)
@@ -377,6 +381,8 @@ func (i *FileInfo) loadSubtitles(subsPath, baseName string, recursive bool) {
 	}
 }
 
+// IsSupportedSubtitle reports whether fileName has a subtitle extension the
+// subtitle endpoint can serve (.vtt, .srt, .ass or .ssa).
 func IsSupportedSubtitle(fileName string) bool {
 	return reSubExts.MatchString(fileName)
 }

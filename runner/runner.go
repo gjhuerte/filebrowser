@@ -81,12 +81,19 @@ func (r *Runner) exec(raw, evt, path, dst string, user *users.User) error {
 			return os.Getenv(key)
 		}
 	}
-	for i, arg := range command {
-		if i == 0 {
-			continue
-		}
+	// Without a shell each argument goes straight to the program, so expanding
+	// $FILE and friends here is safe. With a shell the whole hook is one script
+	// string: pasting a user-chosen file name into it would let a name such as
+	// "a;rm -rf ~" run commands. The values are exported as environment
+	// variables below, so the shell expands them itself, as data.
+	if !usesShell(r.Settings) {
+		for i, arg := range command {
+			if i == 0 {
+				continue
+			}
 
-		command[i] = os.Expand(arg, envMapping)
+			command[i] = os.Expand(arg, envMapping)
+		}
 	}
 
 	cmd := exec.Command(command[0], command[1:]...)
@@ -115,4 +122,10 @@ func (r *Runner) exec(raw, evt, path, dst string, user *users.User) error {
 
 	log.Printf("[INFO] Blocking Command: \"%s\"", strings.Join(command, " "))
 	return cmd.Run()
+}
+
+// usesShell reports whether commands are run through the configured shell
+// rather than executed directly.
+func usesShell(s *settings.Settings) bool {
+	return len(s.Shell) > 0 && s.Shell[0] != ""
 }

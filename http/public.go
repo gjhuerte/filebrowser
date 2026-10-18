@@ -14,6 +14,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// withHashFile resolves a public share from the link hash in the path, checks
+// its password (with rate limiting) and rebases the owner's filesystem onto the
+// shared item, so the rest of the request can only see what was shared.
 var withHashFile = func(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		id, ifPath := ifPathWithName(r)
@@ -22,9 +25,25 @@ var withHashFile = func(fn handleFunc) handleFunc {
 			return errToStatus(err), err
 		}
 
+		// Password-protected shares are public, so limit guessing per client
+		// and share. A request without a password (the first visit, before
+		// the prompt) is not counted as a failure.
+		limitKey := clientKey(r) + "|" + link.Hash
+		if link.PasswordHash != "" {
+			if ok, wait := shareLimiter.Allow(limitKey); !ok {
+				return tooManyAttempts(w, wait), nil
+			}
+		}
+
 		status, err := authenticateShareRequest(r, link)
+		if status == http.StatusUnauthorized && r.Header.Get("X-SHARE-PASSWORD") != "" {
+			shareLimiter.Fail(limitKey)
+		}
 		if status != 0 || err != nil {
 			return status, err
+		}
+		if link.PasswordHash != "" {
+			shareLimiter.Reset(limitKey)
 		}
 
 		user, err := d.store.Users.Get(d.server.Root, d.server.FollowExternalSymlinks, link.UserID)
@@ -116,6 +135,8 @@ func ifPathWithName(r *http.Request) (id, filePath string) {
 	}
 }
 
+// publicShareHandler serves GET /api/public/share/{hash}/{path}: details or a
+// listing of a shared item.
 var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	file := d.raw.(*files.FileInfo)
 
@@ -128,6 +149,8 @@ var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Reques
 	return renderJSON(w, r, file)
 })
 
+// publicDlHandler serves GET /api/public/dl/{hash}/{path}: the shared file, or
+// a shared folder as an archive.
 var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	file := d.raw.(*files.FileInfo)
 	if !file.IsDir {
@@ -137,6 +160,9 @@ var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, 
 	return rawDirHandler(w, r, d, file)
 })
 
+// authenticateShareRequest checks a password-protected share: either the
+// share's download token (?token=) or the X-SHARE-PASSWORD header. It returns
+// 401 when neither matches.
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	if l.PasswordHash == "" {
 		return 0, nil
@@ -164,6 +190,7 @@ func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	return 0, nil
 }
 
+// healthHandler serves GET /health for container health checks.
 func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(`{"status":"OK"}`))

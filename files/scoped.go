@@ -30,6 +30,8 @@ var (
 // MAXSYMLINKS limit; the operation is rejected once the bound is exceeded.
 const maxSymlinkHops = 255
 
+// NewScopedFs returns a ScopedFs rooted at path on source. Wrapping another
+// ScopedFs re-roots its underlying filesystem rather than nesting checks.
 func NewScopedFs(source afero.Fs, path string) *ScopedFs {
 	if s, ok := source.(*ScopedFs); ok {
 		source = s.base
@@ -156,6 +158,7 @@ func (s *ScopedFs) within(p string) (bool, error) {
 	return resolved == root || strings.HasPrefix(resolved, prefix), nil
 }
 
+// Create implements afero.Fs within the scope.
 func (s *ScopedFs) Create(name string) (afero.File, error) {
 	if err := s.guard(name); err != nil {
 		return nil, err
@@ -163,6 +166,7 @@ func (s *ScopedFs) Create(name string) (afero.File, error) {
 	return s.base.Create(name)
 }
 
+// Mkdir implements afero.Fs within the scope.
 func (s *ScopedFs) Mkdir(name string, perm os.FileMode) error {
 	if err := s.guard(name); err != nil {
 		return err
@@ -170,6 +174,7 @@ func (s *ScopedFs) Mkdir(name string, perm os.FileMode) error {
 	return s.base.Mkdir(name, perm)
 }
 
+// MkdirAll implements afero.Fs within the scope.
 func (s *ScopedFs) MkdirAll(path string, perm os.FileMode) error {
 	if err := s.guard(path); err != nil {
 		return err
@@ -177,6 +182,7 @@ func (s *ScopedFs) MkdirAll(path string, perm os.FileMode) error {
 	return s.base.MkdirAll(path, perm)
 }
 
+// Open implements afero.Fs within the scope.
 func (s *ScopedFs) Open(name string) (afero.File, error) {
 	if err := s.guard(name); err != nil {
 		return nil, err
@@ -184,6 +190,7 @@ func (s *ScopedFs) Open(name string) (afero.File, error) {
 	return s.base.Open(name)
 }
 
+// OpenFile implements afero.Fs within the scope.
 func (s *ScopedFs) OpenFile(name string, flag int, perm os.FileMode) (afero.File, error) {
 	if err := s.guard(name); err != nil {
 		return nil, err
@@ -191,6 +198,7 @@ func (s *ScopedFs) OpenFile(name string, flag int, perm os.FileMode) (afero.File
 	return s.base.OpenFile(name, flag, perm)
 }
 
+// Remove implements afero.Fs within the scope.
 func (s *ScopedFs) Remove(name string) error {
 	if err := s.guard(name); err != nil {
 		return err
@@ -198,6 +206,7 @@ func (s *ScopedFs) Remove(name string) error {
 	return s.base.Remove(name)
 }
 
+// RemoveAll implements afero.Fs within the scope.
 func (s *ScopedFs) RemoveAll(path string) error {
 	if err := s.guard(path); err != nil {
 		return err
@@ -205,6 +214,7 @@ func (s *ScopedFs) RemoveAll(path string) error {
 	return s.base.RemoveAll(path)
 }
 
+// Rename implements afero.Fs; both paths must be within the scope.
 func (s *ScopedFs) Rename(oldname, newname string) error {
 	if err := s.guard(oldname); err != nil {
 		return err
@@ -215,6 +225,7 @@ func (s *ScopedFs) Rename(oldname, newname string) error {
 	return s.base.Rename(oldname, newname)
 }
 
+// Stat implements afero.Fs within the scope.
 func (s *ScopedFs) Stat(name string) (os.FileInfo, error) {
 	if err := s.guard(name); err != nil {
 		return nil, err
@@ -222,8 +233,10 @@ func (s *ScopedFs) Stat(name string) (os.FileInfo, error) {
 	return s.base.Stat(name)
 }
 
+// Name implements afero.Fs.
 func (s *ScopedFs) Name() string { return "ScopedFs" }
 
+// Chmod implements afero.Fs within the scope.
 func (s *ScopedFs) Chmod(name string, mode os.FileMode) error {
 	if err := s.guard(name); err != nil {
 		return err
@@ -231,6 +244,7 @@ func (s *ScopedFs) Chmod(name string, mode os.FileMode) error {
 	return s.base.Chmod(name, mode)
 }
 
+// Chown implements afero.Fs within the scope.
 func (s *ScopedFs) Chown(name string, uid, gid int) error {
 	if err := s.guard(name); err != nil {
 		return err
@@ -238,6 +252,7 @@ func (s *ScopedFs) Chown(name string, uid, gid int) error {
 	return s.base.Chown(name, uid, gid)
 }
 
+// Chtimes implements afero.Fs within the scope.
 func (s *ScopedFs) Chtimes(name string, atime, mtime time.Time) error {
 	if err := s.guard(name); err != nil {
 		return err
@@ -245,6 +260,7 @@ func (s *ScopedFs) Chtimes(name string, atime, mtime time.Time) error {
 	return s.base.Chtimes(name, atime, mtime)
 }
 
+// LstatIfPossible implements afero.Lstater within the scope.
 func (s *ScopedFs) LstatIfPossible(name string) (os.FileInfo, bool, error) {
 	if err := s.guard(name); err != nil {
 		return nil, false, err

@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 
@@ -14,7 +16,7 @@ type mockUserStore struct {
 	users map[string]*users.User
 }
 
-func (m *mockUserStore) Get(_ string, _ bool, id interface{}) (*users.User, error) {
+func (m *mockUserStore) Get(_ string, _ bool, id any) (*users.User, error) {
 	if v, ok := id.(string); ok {
 		if u, ok := m.users[v]; ok {
 			return u, nil
@@ -48,8 +50,8 @@ func (m *mockUserStore) SaveProvisioned(user *users.User, derivedScope bool) err
 	return m.Save(user)
 }
 
-func (m *mockUserStore) Delete(_ interface{}) error { return nil }
-func (m *mockUserStore) LastUpdate(_ uint) int64    { return 0 }
+func (m *mockUserStore) Delete(_ any) error      { return nil }
+func (m *mockUserStore) LastUpdate(_ uint) int64 { return 0 }
 
 func TestProxyAuthCreateUserRestrictsDefaults(t *testing.T) {
 	t.Parallel()
@@ -138,5 +140,23 @@ func TestProxyAuthCreateUserDirIsolatesScope(t *testing.T) {
 	}
 	if alice.Scope != "/users/alice" {
 		t.Errorf("expected /users/alice, got %q", alice.Scope)
+	}
+}
+
+// A request that reaches File Browser without the proxy's identity header must
+// be refused, not provisioned as a user with an empty name.
+func TestProxyAuthRejectsMissingHeader(t *testing.T) {
+	store := &mockUserStore{users: map[string]*users.User{}}
+	srv := &settings.Server{Root: t.TempDir()}
+	s := &settings.Settings{Key: []byte("key"), AuthMethod: MethodProxyAuth}
+
+	auth := ProxyAuth{Header: "X-Remote-User"}
+	req, _ := http.NewRequest(http.MethodGet, "/", http.NoBody)
+
+	if _, err := auth.Auth(req, store, s, srv); !errors.Is(err, os.ErrPermission) {
+		t.Fatalf("expected os.ErrPermission without the header, got %v", err)
+	}
+	if len(store.users) != 0 {
+		t.Errorf("a user was provisioned without an identity: %v", store.users)
 	}
 }

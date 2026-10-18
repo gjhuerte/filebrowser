@@ -26,6 +26,10 @@ filebrowser config set --recaptcha.host https://recaptcha.net
 
 Where `https://recaptcha.net` is any provider you want.
 
+### Brute-force protection
+
+Wrong passwords are counted per client address. After 10 failures within 15 minutes, logins from that address are refused with `429 Too Many Requests` (and a `Retry-After` header) until the window passes; a successful login clears the count. Password-protected share links are limited the same way. See [Fail2ban](deployment.md#fail2ban) for how the client address is determined behind a proxy.
+
 ## Proxy Header
 
 If you have a reverse proxy you want to use to login your users, you do it via our `proxy` authentication method. To configure this method, your proxy must send an HTTP header containing the username of the logged in user:
@@ -36,9 +40,9 @@ filebrowser config set --auth.method=proxy --auth.header=X-My-Header
 
 Where `X-My-Header` is the HTTP header provided by your proxy with the username.
 
-> [!WARNING]
-> 
-> File Browser will blindly trust the provided header. If the proxy can be bypassed, an attacker could simply attach the header and get admin access. Please ensure that File Browser is not accessible from untrusted networks, and that the proxy is correctly configured to strip/overwrite the header from client requests.
+> **Note:** File Browser trusts this header completely. If the proxy can be bypassed, anyone can send the header and sign in as any user. Make sure File Browser is not reachable except through the proxy, and that the proxy strips or overwrites the header on incoming requests.
+
+Requests that arrive without the header are refused (`403`) rather than creating an account with an empty name.
 
 ## Hook Authentication
 

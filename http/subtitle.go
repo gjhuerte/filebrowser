@@ -12,8 +12,11 @@ import (
 	"github.com/filebrowser/filebrowser/v2/files"
 )
 
+// srtLineBreakTag matches <br> tags, which some SRT files use for line breaks.
 var srtLineBreakTag = regexp.MustCompile(`(?i)<br(?:\s+[^>]*)?\s*/?>`)
 
+// subtitleHandler serves GET /api/subtitle/{path}, converting SRT, ASS and SSA
+// subtitles to WebVTT for the video player.
 var subtitleHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
@@ -38,6 +41,7 @@ var subtitleHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *d
 	return subtitleFileHandler(w, r, file)
 })
 
+// subtitleFileHandler writes file as WebVTT.
 func subtitleFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo) (int, error) {
 	// if its not a subtitle file, reject
 	if !files.IsSupportedSubtitle(file.Name) {
@@ -87,6 +91,7 @@ func subtitleFileHandler(w http.ResponseWriter, r *http.Request, file *files.Fil
 	return 0, nil
 }
 
+// normalizeSRTLineBreaks turns <br> tags into real line breaks before parsing.
 func normalizeSRTLineBreaks(content []byte) []byte {
 	return srtLineBreakTag.ReplaceAll(content, []byte("\n"))
 }

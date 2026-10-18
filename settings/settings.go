@@ -10,11 +10,19 @@ import (
 	"github.com/filebrowser/filebrowser/v2/rules"
 )
 
-const DefaultUsersHomeBasePath = "/users"
-const DefaultLogoutPage = "/login"
-const DefaultMinimumPasswordLength = 4
-const DefaultFileMode = 0640
-const DefaultDirMode = 0750
+// Defaults used when the corresponding setting is empty.
+const (
+	// DefaultUsersHomeBasePath is where per-user home folders are created.
+	DefaultUsersHomeBasePath = "/users"
+	// DefaultLogoutPage is where the frontend goes after signing out.
+	DefaultLogoutPage = "/login"
+	// DefaultMinimumPasswordLength is the shortest password accepted.
+	DefaultMinimumPasswordLength = 4
+	// DefaultFileMode is the permission given to new files.
+	DefaultFileMode = 0o640
+	// DefaultDirMode is the permission given to new folders.
+	DefaultDirMode = 0o750
+)
 
 // AuthMethod describes an authentication method.
 type AuthMethod string
@@ -38,11 +46,6 @@ type Settings struct {
 	FileMode              fs.FileMode         `json:"fileMode"`
 	DirMode               fs.FileMode         `json:"dirMode"`
 	HideDotfiles          bool                `json:"hideDotfiles"`
-}
-
-// GetRules implements rules.Provider.
-func (s *Settings) GetRules() []rules.Rule {
-	return s.Rules
 }
 
 // Server specific settings.
@@ -75,6 +78,8 @@ func (s *Server) Clean() {
 	s.BaseURL = strings.TrimSuffix(s.BaseURL, "/")
 }
 
+// GetTokenExpirationTime returns how long login tokens stay valid: the
+// configured duration, or fallback when it is unset or invalid.
 func (s *Server) GetTokenExpirationTime(fallback time.Duration) time.Duration {
 	if s.TokenExpirationTime == "" {
 		return fallback

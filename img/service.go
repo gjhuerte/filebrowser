@@ -22,17 +22,19 @@ var ErrUnsupportedFormat = errors.New("unsupported image format")
 // ErrImageTooLarge means the image is too large to create a thumbnail.
 var ErrImageTooLarge = errors.New("image too large for thumbnail generation")
 
-// Maximum dimensions for thumbnail generation to prevent server crashes
+// MaxImageWidth and MaxImageHeight bound the images File Browser will resize.
+// Decoding a larger image can exhaust memory, so such images get no preview.
 const (
 	MaxImageWidth  = 10000
 	MaxImageHeight = 10000
 )
 
-// Service
+// Service resizes images, running at most a fixed number of jobs at once.
 type Service struct {
 	sem semaphore.Semaphore
 }
 
+// New returns a Service that runs up to workers resize jobs concurrently.
 func New(workers int) *Service {
 	return &Service{
 		sem: semaphore.New(workers),
@@ -51,6 +53,7 @@ bmp
 */
 type Format int
 
+// toImaging returns the imaging package's equivalent of x.
 func (x Format) toImaging() imaging.Format {
 	switch x {
 	case FormatJpeg:
@@ -68,6 +71,7 @@ func (x Format) toImaging() imaging.Format {
 	}
 }
 
+// Quality trades resize speed for output quality.
 /*
 ENUM(
 high
@@ -77,6 +81,7 @@ low
 */
 type Quality int
 
+// resampleFilter returns the resampling filter used for quality x.
 func (x Quality) resampleFilter() imaging.ResampleFilter {
 	switch x {
 	case QualityHigh:
@@ -90,6 +95,8 @@ func (x Quality) resampleFilter() imaging.ResampleFilter {
 	}
 }
 
+// ResizeMode chooses between fitting the whole image inside the target size
+// and filling the target size by cropping.
 /*
 ENUM(
 fit
@@ -98,6 +105,8 @@ fill
 */
 type ResizeMode int
 
+// FormatFromExtension returns the Format for a file extension such as ".png",
+// or ErrUnsupportedFormat.
 func (s *Service) FormatFromExtension(ext string) (Format, error) {
 	format, err := imaging.FormatFromExtension(ext)
 	if err != nil {
@@ -118,32 +127,40 @@ func (s *Service) FormatFromExtension(ext string) (Format, error) {
 	return -1, ErrUnsupportedFormat
 }
 
+// resizeConfig collects the Options of one Resize call.
 type resizeConfig struct {
 	format     Format
 	resizeMode ResizeMode
 	quality    Quality
 }
 
+// Option customizes a Resize call.
 type Option func(*resizeConfig)
 
+// WithFormat sets the output format (by default, the input's).
 func WithFormat(format Format) Option {
 	return func(config *resizeConfig) {
 		config.format = format
 	}
 }
 
+// WithMode sets how the image is fitted to the target size.
 func WithMode(mode ResizeMode) Option {
 	return func(config *resizeConfig) {
 		config.resizeMode = mode
 	}
 }
 
+// WithQuality sets the resampling quality.
 func WithQuality(quality Quality) Option {
 	return func(config *resizeConfig) {
 		config.quality = quality
 	}
 }
 
+// Resize reads an image from in, scales it to width × height and writes the
+// result to out. It waits for a free worker first, so ctx can cancel a job that
+// has not started yet.
 func (s *Service) Resize(ctx context.Context, in io.Reader, width, height int, out io.Writer, options ...Option) error {
 	if err := s.sem.Acquire(ctx, 1); err != nil {
 		return err

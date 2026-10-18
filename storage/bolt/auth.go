@@ -8,10 +8,13 @@ import (
 	"github.com/filebrowser/filebrowser/v2/settings"
 )
 
+// authBackend stores the configuration of the active auth method.
 type authBackend struct {
 	db *storm.DB
 }
 
+// Get implements auth.StorageBackend, decoding the stored configuration into
+// the Auther for method t.
 func (s authBackend) Get(t settings.AuthMethod) (auth.Auther, error) {
 	var auther auth.Auther
 
@@ -31,6 +34,7 @@ func (s authBackend) Get(t settings.AuthMethod) (auth.Auther, error) {
 	return auther, get(s.db, "auther", auther)
 }
 
+// Save implements auth.StorageBackend.
 func (s authBackend) Save(a auth.Auther) error {
 	return save(s.db, "auther", a)
 }

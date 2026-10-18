@@ -11,10 +11,12 @@ import (
 	"github.com/filebrowser/filebrowser/v2/share"
 )
 
+// shareBackend stores share links, indexed by hash and path.
 type shareBackend struct {
 	db *storm.DB
 }
 
+// All implements share.StorageBackend.
 func (s shareBackend) All() ([]*share.Link, error) {
 	var v []*share.Link
 	err := s.db.All(&v)
@@ -25,6 +27,7 @@ func (s shareBackend) All() ([]*share.Link, error) {
 	return v, err
 }
 
+// FindByUserID implements share.StorageBackend.
 func (s shareBackend) FindByUserID(id uint) ([]*share.Link, error) {
 	var v []*share.Link
 	err := s.db.Select(q.Eq("UserID", id)).Find(&v)
@@ -35,6 +38,7 @@ func (s shareBackend) FindByUserID(id uint) ([]*share.Link, error) {
 	return v, err
 }
 
+// GetByHash implements share.StorageBackend.
 func (s shareBackend) GetByHash(hash string) (*share.Link, error) {
 	var v share.Link
 	err := s.db.One("Hash", hash, &v)
@@ -45,16 +49,7 @@ func (s shareBackend) GetByHash(hash string) (*share.Link, error) {
 	return &v, err
 }
 
-func (s shareBackend) GetPermanent(path string, id uint) (*share.Link, error) {
-	var v share.Link
-	err := s.db.Select(q.Eq("Path", path), q.Eq("Expire", 0), q.Eq("UserID", id)).First(&v)
-	if errors.Is(err, storm.ErrNotFound) {
-		return nil, fberrors.ErrNotExist
-	}
-
-	return &v, err
-}
-
+// Gets implements share.StorageBackend.
 func (s shareBackend) Gets(path string, id uint) ([]*share.Link, error) {
 	var v []*share.Link
 	err := s.db.Select(q.Eq("Path", path), q.Eq("UserID", id)).Find(&v)
@@ -65,10 +60,13 @@ func (s shareBackend) Gets(path string, id uint) ([]*share.Link, error) {
 	return v, err
 }
 
+// Save implements share.StorageBackend.
 func (s shareBackend) Save(l *share.Link) error {
 	return s.db.Save(l)
 }
 
+// Delete implements share.StorageBackend. Deleting a missing link is not an
+// error.
 func (s shareBackend) Delete(hash string) error {
 	err := s.db.DeleteStruct(&share.Link{Hash: hash})
 	if errors.Is(err, storm.ErrNotFound) {
@@ -77,6 +75,7 @@ func (s shareBackend) Delete(hash string) error {
 	return err
 }
 
+// DeleteWithPathPrefix implements share.StorageBackend.
 func (s shareBackend) DeleteWithPathPrefix(pathPrefix string, userID uint) error {
 	// Share paths are stored without a trailing slash
 	prefix := strings.TrimRight(pathPrefix, "/")

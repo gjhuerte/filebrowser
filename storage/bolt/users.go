@@ -14,11 +14,13 @@ import (
 	"github.com/filebrowser/filebrowser/v2/users"
 )
 
+// usersBackend stores users, indexed by ID and unique username.
 type usersBackend struct {
 	db *storm.DB
 }
 
-func (st usersBackend) GetBy(i interface{}) (user *users.User, err error) {
+// GetBy implements users.StorageBackend: i is a uint ID or a string username.
+func (st usersBackend) GetBy(i any) (user *users.User, err error) {
 	user = &users.User{}
 
 	var arg string
@@ -43,6 +45,7 @@ func (st usersBackend) GetBy(i interface{}) (user *users.User, err error) {
 	return
 }
 
+// GetByScope implements users.StorageBackend.
 func (st usersBackend) GetByScope(scope string) (*users.User, error) {
 	user := &users.User{}
 	// Match case-insensitively: on a case-insensitive filesystem two scopes
@@ -60,6 +63,7 @@ func (st usersBackend) GetByScope(scope string) (*users.User, error) {
 	return user, nil
 }
 
+// Gets implements users.StorageBackend.
 func (st usersBackend) Gets() ([]*users.User, error) {
 	var allUsers []*users.User
 	err := st.db.All(&allUsers)
@@ -74,6 +78,8 @@ func (st usersBackend) Gets() ([]*users.User, error) {
 	return allUsers, err
 }
 
+// Update implements users.StorageBackend, writing only the named fields, or
+// the whole user when none are given.
 func (st usersBackend) Update(user *users.User, fields ...string) error {
 	if len(fields) == 0 {
 		return st.Save(user)
@@ -93,6 +99,7 @@ func (st usersBackend) Update(user *users.User, fields ...string) error {
 	return nil
 }
 
+// Save implements users.StorageBackend.
 func (st usersBackend) Save(user *users.User) error {
 	err := st.db.Save(user)
 	if errors.Is(err, storm.ErrAlreadyExists) {
@@ -101,10 +108,12 @@ func (st usersBackend) Save(user *users.User) error {
 	return err
 }
 
+// DeleteByID implements users.StorageBackend.
 func (st usersBackend) DeleteByID(id uint) error {
 	return st.db.DeleteStruct(&users.User{ID: id})
 }
 
+// DeleteByUsername implements users.StorageBackend.
 func (st usersBackend) DeleteByUsername(username string) error {
 	user, err := st.GetBy(username)
 	if err != nil {
@@ -114,6 +123,7 @@ func (st usersBackend) DeleteByUsername(username string) error {
 	return st.db.DeleteStruct(user)
 }
 
+// CountAdmins implements users.StorageBackend.
 func (st usersBackend) CountAdmins() (int, error) {
 	count := 0
 

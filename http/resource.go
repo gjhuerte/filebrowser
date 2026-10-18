@@ -22,6 +22,9 @@ import (
 	"github.com/spf13/afero"
 )
 
+// resourceGetHandler serves GET /api/resources/{path}: a folder listing, or a
+// file's details and (for text files) its content. ?checksum=algo adds a
+// checksum; the X-Encoding header asks for the raw text.
 var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	file, err := files.NewFileInfo(&files.FileOptions{
 		Fs:         d.user.Fs,
@@ -85,6 +88,8 @@ var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 	return renderJSON(w, r, file)
 })
 
+// resourceDeleteHandler serves DELETE /api/resources/{path}, removing a file
+// or folder along with its shares and cached previews.
 func resourceDeleteHandler(fileCache FileCache) handleFunc {
 	return withUser(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if r.URL.Path == "/" || !d.user.Perm.Delete {
@@ -130,6 +135,9 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 	})
 }
 
+// resourcePostHandler serves POST /api/resources/{path}: a trailing slash
+// creates a folder, otherwise the body is written as a new file. ?override=true
+// replaces an existing file (needs Modify).
 func resourcePostHandler(fileCache FileCache) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
@@ -152,7 +160,15 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 			ReadHeader: d.server.TypeDetectionByHeader,
 			Checker:    d,
 		})
-		if err == nil {
+		existed := err == nil
+		if existed {
+			// An upload can only ever replace a file. Writing over a directory
+			// fails, and the clean-up below would then remove the whole tree,
+			// letting a user without the Delete permission erase a folder.
+			if file.IsDir {
+				return http.StatusConflict, fberrors.ErrIsDirectory
+			}
+
 			if r.URL.Query().Get("override") != "true" {
 				return http.StatusConflict, nil
 			}
@@ -179,14 +195,18 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 			return nil
 		}, "upload", r.URL.Path, "", d.user)
 
-		if err != nil {
-			_ = d.user.Fs.RemoveAll(r.URL.Path)
+		// Only clean up a file this request created. Removing a file that
+		// existed before would turn a failed hook or write into data loss.
+		if err != nil && !existed {
+			_ = d.user.Fs.Remove(r.URL.Path)
 		}
 
 		return errToStatus(err), err
 	})
 }
 
+// resourcePutHandler serves PUT /api/resources/{path}, saving the body over an
+// existing file (the editor's Save).
 var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	if !d.user.Perm.Modify || !d.Check(r.URL.Path) {
 		return http.StatusForbidden, nil
@@ -219,6 +239,8 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 	return errToStatus(err), err
 })
 
+// resourcePatchHandler serves PATCH /api/resources/{path}?action=copy|rename
+// &destination=…, with ?override or ?rename to resolve name clashes.
 func resourcePatchHandler(fileCache FileCache) handleFunc {
 	return withUser(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		src := r.URL.Path
@@ -311,6 +333,7 @@ func checkDescendants(d *data, src, dst string) error {
 	})
 }
 
+// checkParent rejects copying or moving a folder into itself.
 func checkParent(src, dst string) error {
 	rel, err := filepath.Rel(src, dst)
 	if err != nil {
@@ -325,6 +348,8 @@ func checkParent(src, dst string) error {
 	return nil
 }
 
+// addVersionSuffix returns source, or the first free "name(n).ext" variant of
+// it when source already exists.
 func addVersionSuffix(source string, afs afero.Fs) string {
 	counter := 1
 	dir, name := path.Split(source)
@@ -343,6 +368,7 @@ func addVersionSuffix(source string, afs afero.Fs) string {
 	return source
 }
 
+// writeFile writes in to dst, creating parent folders, and syncs it to disk.
 func writeFile(afs afero.Fs, dst string, in io.Reader, fileMode, dirMode fs.FileMode) (os.FileInfo, error) {
 	dir, _ := path.Split(dst)
 	err := afs.MkdirAll(dir, dirMode)
@@ -376,6 +402,7 @@ func writeFile(afs afero.Fs, dst string, in io.Reader, fileMode, dirMode fs.File
 	return info, nil
 }
 
+// delThumbs removes every cached preview of file.
 func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) error {
 	for _, previewSizeName := range PreviewSizeNames() {
 		size, _ := ParsePreviewSize(previewSizeName)
@@ -387,6 +414,7 @@ func delThumbs(ctx context.Context, fileCache FileCache, file *files.FileInfo) e
 	return nil
 }
 
+// patchAction performs the copy or rename requested by a PATCH.
 func patchAction(ctx context.Context, action, src, dst string, d *data, fileCache FileCache) error {
 	switch action {
 	case "copy":
@@ -442,6 +470,10 @@ var resourceGetRecursiveHandler = withUser(func(w http.ResponseWriter, r *http.R
 	rootPath := r.URL.Path
 	if rootPath == "" {
 		rootPath = "/"
+	}
+
+	if !d.Check(rootPath) {
+		return http.StatusForbidden, nil
 	}
 
 	// Make sure the root itself exists and is a directory.
@@ -505,11 +537,14 @@ var resourceGetRecursiveHandler = withUser(func(w http.ResponseWriter, r *http.R
 	return renderJSON(w, r, entries)
 })
 
+// DiskUsageResponse is the body of GET /api/usage: bytes in total and in use
+// on the disk holding the requested folder.
 type DiskUsageResponse struct {
 	Total uint64 `json:"total"`
 	Used  uint64 `json:"used"`
 }
 
+// diskUsage serves GET /api/usage/{path}.
 var diskUsage = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	file, err := files.NewFileInfo(&files.FileOptions{
 		Fs:         d.user.Fs,

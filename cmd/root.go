@@ -253,6 +253,10 @@ user created with the credentials from options "username" and "password".`,
 		srv := &http.Server{
 			Handler:           handler,
 			ReadHeaderTimeout: 60 * time.Second,
+			// Close keep-alive connections that sit unused, so idle clients
+			// cannot hold sockets open indefinitely. Uploads and downloads are
+			// not affected: this only applies between requests.
+			IdleTimeout: 2 * time.Minute,
 		}
 
 		go func() {

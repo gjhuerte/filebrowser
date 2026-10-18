@@ -22,7 +22,9 @@ func ValidateAndHashPwd(password string, minimumLength uint) (string, error) {
 	return HashPwd(password)
 }
 
-// ValidateMinLengthAndHashPwd validates minimum length only (no common-password check) and hashes.
+// ValidateMinLengthAndHashPwd checks only the minimum length (skipping the
+// common-password list) and hashes the password. Admins use it to set a weak
+// password on purpose.
 func ValidateMinLengthAndHashPwd(password string, minimumLength uint) (string, error) {
 	if uint(len(password)) < minimumLength {
 		return "", fberrors.ErrShortPassword{MinimumLength: minimumLength}
@@ -42,6 +44,9 @@ func CheckPwd(password, hash string) bool {
 	return err == nil
 }
 
+// RandomPwd returns a random password made from passwordLength random bytes,
+// base64 (URL alphabet) encoded so it can be typed. It is used for accounts
+// that never log in with a password, such as proxy-auth users.
 func RandomPwd(passwordLength uint) (string, error) {
 	randomPasswordBytes := make([]byte, passwordLength)
 	var _, err = rand.Read(randomPasswordBytes)

@@ -5,7 +5,7 @@
 # Or use:                    docker compose -f docker/prod/compose.yaml up -d --build
 
 ARG NODE_VERSION=24
-ARG GO_VERSION=1.25
+ARG GO_VERSION=1.27
 ARG ALPINE_VERSION=3.23
 
 # ---- 1. Frontend assets -------------------------------------------------

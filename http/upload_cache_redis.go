@@ -15,6 +15,8 @@ type redisUploadCache struct {
 	client *redis.Client
 }
 
+// newRedisUploadCache returns an UploadCache stored in Redis, shared by every
+// replica.
 func newRedisUploadCache(redisURL string) (*redisUploadCache, error) {
 	if redisURL == "" {
 		return nil, fmt.Errorf("redis URL is required")
@@ -35,6 +37,7 @@ func newRedisUploadCache(redisURL string) (*redisUploadCache, error) {
 	return &redisUploadCache{client: client}, nil
 }
 
+// filePathKey is the Redis key for an upload.
 func (c *redisUploadCache) filePathKey(filePath string) string {
 	return "filebrowser:upload:" + filePath
 }
@@ -48,6 +51,7 @@ func (c *redisUploadCache) Register(filePath string, fileSize int64, _ func() er
 	}
 }
 
+// Complete implements UploadCache.
 func (c *redisUploadCache) Complete(filePath string) {
 	err := c.client.Del(context.Background(), c.filePathKey(filePath)).Err()
 	if err != nil {
@@ -55,6 +59,7 @@ func (c *redisUploadCache) Complete(filePath string) {
 	}
 }
 
+// GetLength implements UploadCache.
 func (c *redisUploadCache) GetLength(filePath string) (int64, error) {
 	result, err := c.client.Get(context.Background(), c.filePathKey(filePath)).Result()
 	if err != nil {
@@ -74,6 +79,7 @@ func (c *redisUploadCache) GetLength(filePath string) (int64, error) {
 	return size, nil
 }
 
+// Touch implements UploadCache.
 func (c *redisUploadCache) Touch(filePath string) {
 	err := c.client.Expire(context.Background(), c.filePathKey(filePath), uploadCacheTTL).Err()
 	if err != nil {
@@ -81,6 +87,7 @@ func (c *redisUploadCache) Touch(filePath string) {
 	}
 }
 
+// Close implements UploadCache.
 func (c *redisUploadCache) Close() {
 	c.client.Close()
 }

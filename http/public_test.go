@@ -275,7 +275,7 @@ type customFSUser struct {
 	followExternal bool
 }
 
-func (cu *customFSUser) Get(baseScope string, followExternalSymlinks bool, id interface{}) (*users.User, error) {
+func (cu *customFSUser) Get(baseScope string, followExternalSymlinks bool, id any) (*users.User, error) {
 	user, err := cu.Store.Get(baseScope, followExternalSymlinks, id)
 	if err != nil {
 		return nil, err

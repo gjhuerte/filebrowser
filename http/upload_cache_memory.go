@@ -44,6 +44,7 @@ type memoryUploadCache struct {
 	cache *ttlcache.Cache[string, memoryUploadEntry]
 }
 
+// newMemoryUploadCache returns an UploadCache kept in process memory.
 func newMemoryUploadCache() *memoryUploadCache {
 	cache := ttlcache.New[string, memoryUploadEntry]()
 	cache.OnEviction(func(_ context.Context, reason ttlcache.EvictionReason, item *ttlcache.Item[string, memoryUploadEntry]) {
@@ -65,14 +66,17 @@ func newMemoryUploadCache() *memoryUploadCache {
 	return &memoryUploadCache{cache: cache}
 }
 
+// Register implements UploadCache.
 func (c *memoryUploadCache) Register(filePath string, fileSize int64, remove func() error) {
 	c.cache.Set(filePath, memoryUploadEntry{size: fileSize, remove: remove}, uploadCacheTTL)
 }
 
+// Complete implements UploadCache.
 func (c *memoryUploadCache) Complete(filePath string) {
 	c.cache.Delete(filePath)
 }
 
+// GetLength implements UploadCache.
 func (c *memoryUploadCache) GetLength(filePath string) (int64, error) {
 	item := c.cache.Get(filePath)
 	if item == nil {
@@ -81,10 +85,12 @@ func (c *memoryUploadCache) GetLength(filePath string) (int64, error) {
 	return item.Value().size, nil
 }
 
+// Touch implements UploadCache.
 func (c *memoryUploadCache) Touch(filePath string) {
 	c.cache.Touch(filePath)
 }
 
+// Close implements UploadCache.
 func (c *memoryUploadCache) Close() {
 	c.cache.Stop()
 }

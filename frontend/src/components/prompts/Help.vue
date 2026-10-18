@@ -275,6 +275,7 @@
               <p>Default credentials are <strong>admin / admin</strong>. If you've changed them and forgotten, you'll need to reset the database or use the CLI.</p>
               <p>Clear your browser cookies for this site and try again.</p>
               <p>If using proxy authentication, check that the proxy headers are configured correctly.</p>
+              <p>Seeing <strong>"Too many failed attempts"</strong>? After 10 wrong passwords in 15 minutes, logins from your address pause for the rest of that window. Wait a few minutes, or ask your administrator to restart File Browser.</p>
             </div>
           </div>
 

@@ -68,7 +68,7 @@ func runRules(st *storage.Storage, cmd *cobra.Command, usersFn func(*users.User)
 	return nil
 }
 
-func getUserIdentifier(flags *pflag.FlagSet) (interface{}, error) {
+func getUserIdentifier(flags *pflag.FlagSet) (any, error) {
 	id, err := flags.GetUint("id")
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func getUserIdentifier(flags *pflag.FlagSet) (interface{}, error) {
 	return nil, nil
 }
 
-func printRules(rulez []rules.Rule, id interface{}) {
+func printRules(rulez []rules.Rule, id any) {
 	if id == nil {
 		fmt.Printf("Global Rules:\n\n")
 	} else {

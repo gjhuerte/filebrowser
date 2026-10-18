@@ -1,9 +1,13 @@
 package share
 
+// CreateBody is the request body for creating a share link.
 type CreateBody struct {
+	// Password protects the link when set.
 	Password string `json:"password"`
-	Expires  string `json:"expires"`
-	Unit     string `json:"unit"`
+	// Expires is how long the link lasts, in Unit. Empty means forever.
+	Expires string `json:"expires"`
+	// Unit is "seconds", "minutes", "hours" (the default) or "days".
+	Unit string `json:"unit"`
 }
 
 // Link is the information needed to build a shareable link.

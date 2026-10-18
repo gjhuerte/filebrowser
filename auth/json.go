@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/filebrowser/filebrowser/v2/settings"
 	"github.com/filebrowser/filebrowser/v2/users"
@@ -78,7 +79,10 @@ func (a JSONAuth) LoginPage() bool {
 	return true
 }
 
-const reCaptchaAPI = "/recaptcha/api/siteverify"
+const (
+	reCaptchaAPI     = "/recaptcha/api/siteverify"
+	reCaptchaTimeout = 10 * time.Second
+)
 
 // ReCaptcha identifies a recaptcha connection.
 type ReCaptcha struct {
@@ -87,13 +91,14 @@ type ReCaptcha struct {
 	Secret string `json:"secret"`
 }
 
-// Ok checks if a reCaptcha responde is correct.
+// Ok asks the reCAPTCHA server whether response is a valid solution.
 func (r *ReCaptcha) Ok(response string) (bool, error) {
 	body := url.Values{}
 	body.Set("secret", r.Secret)
 	body.Add("response", response)
 
-	client := &http.Client{}
+	// Never let a slow or unreachable verification server hang logins.
+	client := &http.Client{Timeout: reCaptchaTimeout}
 
 	resp, err := client.Post(
 		r.Host+reCaptchaAPI,

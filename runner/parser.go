@@ -13,7 +13,7 @@ func ParseCommand(s *settings.Settings, raw string) (command []string, name stri
 		return
 	}
 
-	if len(s.Shell) == 0 || s.Shell[0] == "" {
+	if !usesShell(s) {
 		command = append(command, name)
 		command = append(command, args...)
 	} else {

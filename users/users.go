@@ -12,8 +12,11 @@ import (
 // ViewMode describes a view mode.
 type ViewMode string
 
+// The view modes the file list supports.
 const (
-	ListViewMode   ViewMode = "list"
+	// ListViewMode shows files as rows with details.
+	ListViewMode ViewMode = "list"
+	// MosaicViewMode shows files as a grid of tiles.
 	MosaicViewMode ViewMode = "mosaic"
 )
 
@@ -36,11 +39,6 @@ type User struct {
 	HideDotfiles          bool          `json:"hideDotfiles"`
 	DateFormat            bool          `json:"dateFormat"`
 	AceEditorTheme        string        `json:"aceEditorTheme"`
-}
-
-// GetRules implements rules.Provider.
-func (u *User) GetRules() []rules.Rule {
-	return u.Rules
 }
 
 var checkableFields = []string{
