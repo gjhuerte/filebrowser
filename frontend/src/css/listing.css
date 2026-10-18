@@ -104,6 +104,41 @@ html[dir="rtl"] #listing {
   color: var(--primary-text);
 }
 
+/* Check badge on the icon of each selected item, so every selection reads as
+   its own item even when several sit next to each other */
+#listing .item:not(.header) div:first-of-type {
+  position: relative;
+}
+
+#listing .item[aria-selected="true"] div:first-of-type::after {
+  content: "check";
+  position: absolute;
+  right: -0.3125rem;
+  bottom: -0.3125rem;
+  display: grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 2px solid var(--surfacePrimary);
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: #fff;
+  font-family: "Material Icons";
+  font-size: 0.75rem;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-feature-settings: "liga";
+  font-feature-settings: "liga";
+  animation: listing-check-in 0.15s var(--ease-out);
+}
+
+@keyframes listing-check-in {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+
 .message {
   text-align: center;
   font-size: 1.5em;
@@ -155,11 +190,23 @@ html[dir="rtl"] #listing {
   background: transparent;
 }
 
-/* Hairlines between rows, hidden around hovered/selected rows */
+/* A small, constant gap between rows: neighbouring selected rows stay apart,
+   and nothing moves when the selection changes */
+#listing.list .item:not(.header) + .item:not(.header) {
+  margin-top: 4px;
+}
+
+/* Selected rows get a faint outline as well as the tint */
+#listing.list .item[aria-selected="true"] {
+  box-shadow: inset 0 0 0 1px var(--primary-soft-strong);
+}
+
+/* Hairlines between rows (centred in the gap), hidden around hovered and
+   selected rows */
 #listing.list .item:not(.header) + .item:not(.header)::before {
   content: "";
   position: absolute;
-  top: 0;
+  top: -2.5px;
   right: 0.875em;
   left: 3.25em;
   border-top: 1px solid var(--divider);
@@ -345,6 +392,17 @@ html[dir="rtl"] #listing {
   transform: scale(1.03);
 }
 
+/* In the gallery the badge sits on the thumbnail's corner */
+#listing.mosaic.gallery .item[aria-selected="true"] div:first-of-type::after {
+  top: 0.5rem;
+  right: 0.5rem;
+  bottom: auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
 #listing.mosaic.gallery .item div:last-of-type {
   padding: 0 0.375em;
   text-align: left;
@@ -381,4 +439,10 @@ html[dir="rtl"] #listing {
 
 #listing #multiple-selection .action:hover {
   background: rgba(255, 255, 255, 0.16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #listing .item[aria-selected="true"] div:first-of-type::after {
+    animation: none;
+  }
 }
