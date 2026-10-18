@@ -207,6 +207,7 @@
           <div class="help-list">
             <p>Home shows your storage, file counts, and the largest and most recent files.</p>
             <p>Use the <strong>auto-refresh</strong> menu (top right of Home) to rescan your files every 5, 15, 30, or 60 minutes. Scans run in the background while File Browser is open and pause when the tab is hidden.</p>
+            <p>Opening Home or reloading the page shows the last scan instead of starting a new one, so it loads instantly. The time of that scan is shown at the top right.</p>
             <p>The refresh button rescans right away.</p>
           </div>
         </div>

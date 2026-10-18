@@ -99,7 +99,7 @@ See [deployment.md](deployment.md) for full reverse proxy configuration examples
 
 **Symptom:** Home shows old file counts or sizes.
 
-**Fix:** Click the refresh button next to the auto-refresh menu on Home, or pick an interval (every 5–60 minutes) so File Browser rescans in the background while it's open. Scans pause while the browser tab is hidden. On very large drives, prefer a longer interval — each scan walks the whole tree.
+**Fix:** Home keeps showing the last scan (with its time at the top right) and does not rescan on every visit or page reload. Click the refresh button next to the auto-refresh menu to rescan now, or pick an interval (every 5–60 minutes) so File Browser rescans on that schedule while it's open. Scans pause while the browser tab is hidden. On very large drives, prefer a longer interval — each scan walks the whole tree.
 
 ## File Browser Won't Load Inside Another Site
 

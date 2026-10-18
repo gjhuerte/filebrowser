@@ -293,9 +293,10 @@ const canShare = computed(
 const load = () => homeStore.refresh();
 
 onMounted(() => {
-  // Show the previous result instantly, then refresh in the background
+  // Show the saved result. Rescanning happens on the auto-refresh schedule
+  // or when the user presses Refresh; only a first visit loads on its own.
   homeStore.ensureOwner(authStore.user?.username ?? "");
-  if (!homeStore.refreshing) load();
+  if (homeStore.isEmpty() && !homeStore.refreshing) load();
 });
 
 /* Auto-refresh */

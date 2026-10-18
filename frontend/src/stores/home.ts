@@ -5,12 +5,16 @@ import { useAuthStore } from "@/stores/auth";
 import { summarize, type ScanSummary } from "@/utils/fileStats";
 
 /*
- * Home dashboard data, kept for the whole session.
+ * Home dashboard data.
  *
- * Sections load independently and in parallel. When auto-refresh is on,
- * the scan also re-runs in the background while the app is open (even on
- * other pages), so Home is already up to date when you come back to it.
- * Background runs pause while the browser tab is hidden.
+ * The last result is kept in the browser, so opening Home or reloading the
+ * page shows it straight away without rescanning. A new scan runs only when
+ * the user presses Refresh, on the auto-refresh schedule (if it is on), or
+ * the very first time Home has nothing to show.
+ *
+ * Sections load independently and in parallel. Scheduled scans run in the
+ * background while the app is open (even on other pages) and pause while the
+ * browser tab is hidden.
  */
 
 export type SectionStatus = "loading" | "ready" | "error";
@@ -26,6 +30,8 @@ export interface Usage {
 /** Choices offered in the UI, in minutes. 0 = off. */
 export const REFRESH_CHOICES = [0, 5, 15, 30, 60] as const;
 const STORAGE_KEY = "home-refresh-interval";
+// Also cleared on logout in utils/auth.ts
+const CACHE_KEY = "home-dashboard-cache";
 const TICK_MS = 30_000;
 
 function readInterval(): number {
@@ -38,6 +44,28 @@ function readInterval(): number {
 }
 
 const emptySection = <T>(): Section<T> => ({ status: "loading", data: null });
+
+/** What is saved between page loads: the data of each section. */
+interface SavedDashboard {
+  owner: string;
+  lastUpdated: number;
+  usage: Usage | null;
+  scan: ScanSummary | null;
+  shares: number | null;
+  users: number | null;
+}
+
+function readSaved(owner: string): SavedDashboard | null {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CACHE_KEY) ?? "null");
+    return saved && saved.owner === owner ? (saved as SavedDashboard) : null;
+  } catch {
+    return null;
+  }
+}
+
+const restored = <T>(data: T | null): Section<T> =>
+  data === null ? emptySection<T>() : { status: "ready", data };
 
 interface HomeState {
   owner: string;
@@ -78,17 +106,43 @@ export const useHomeStore = defineStore("home", {
   },
 
   actions: {
-    /** Forget everything if a different user is signed in. */
+    /**
+     * Switch to owner's dashboard: restore their saved result if there is
+     * one, otherwise start empty.
+     */
     ensureOwner(owner: string) {
       if (this.owner === owner) return;
       controller?.abort();
+      const saved = owner ? readSaved(owner) : null;
       this.owner = owner;
-      this.usage = emptySection();
-      this.scan = emptySection();
-      this.shares = emptySection();
-      this.users = emptySection();
+      this.usage = restored(saved?.usage ?? null);
+      this.scan = restored(saved?.scan ?? null);
+      this.shares = restored(saved?.shares ?? null);
+      this.users = restored(saved?.users ?? null);
       this.refreshing = false;
-      this.lastUpdated = null;
+      this.lastUpdated = saved?.lastUpdated ?? null;
+    },
+
+    /** True when nothing has been loaded or saved yet. */
+    isEmpty(): boolean {
+      return this.lastUpdated === null && this.scan.data === null;
+    },
+
+    save() {
+      if (!this.owner || this.lastUpdated === null) return;
+      const saved: SavedDashboard = {
+        owner: this.owner,
+        lastUpdated: this.lastUpdated,
+        usage: this.usage.data,
+        scan: this.scan.data,
+        shares: this.shares.data,
+        users: this.users.data,
+      };
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(saved));
+      } catch {
+        // Private mode or storage full: the result lasts for this visit only
+      }
     },
 
     setInterval(minutes: number) {
@@ -162,11 +216,16 @@ export const useHomeStore = defineStore("home", {
       this.refreshing = false;
       this.lastUpdated = Date.now();
       this.now = this.lastUpdated;
+      this.save();
     },
 
     /** Start the background scheduler. Safe to call more than once. */
     startAutoRefresh() {
       if (timer !== null) return;
+      // Load the saved result first, so the schedule continues from the last
+      // scan rather than from this page load.
+      const auth = useAuthStore();
+      if (auth.user) this.ensureOwner(auth.user.username);
       const tick = () => {
         this.now = Date.now();
         const due = this.nextRefreshAt;
@@ -181,6 +240,8 @@ export const useHomeStore = defineStore("home", {
       };
       timer = window.setInterval(tick, TICK_MS);
       document.addEventListener("visibilitychange", tick);
+      // A scan that fell due while the app was closed runs now
+      tick();
     },
 
     stopAutoRefresh() {

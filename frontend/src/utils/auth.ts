@@ -129,6 +129,14 @@ export function logout(reason?: string) {
   const authStore = useAuthStore();
   authStore.clearUser();
 
+  // The saved Home dashboard lists file names; don't leave them for the next
+  // user of this browser (key from stores/home.ts)
+  try {
+    localStorage.removeItem("home-dashboard-cache");
+  } catch {
+    /* storage unavailable */
+  }
+
   localStorage.setItem("jwt", "");
   if (noAuth) {
     window.location.reload();
