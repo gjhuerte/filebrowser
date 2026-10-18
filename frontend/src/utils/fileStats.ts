@@ -1,6 +1,8 @@
 /*
- * Summarise a recursive directory listing for the Home dashboard.
- * Runs in a single pass so it stays fast on large trees.
+ * File categories for the Home dashboard and search.
+ *
+ * The Home numbers themselves are computed on the server (stats/summary.go),
+ * which keeps its own copy of this extension list: keep the two in sync.
  */
 
 export interface RecursiveEntryLike {
@@ -129,47 +131,4 @@ export function fileType(name: string): FileTypeKey {
   const dot = name.lastIndexOf(".");
   if (dot <= 0) return "other";
   return BY_EXTENSION.get(name.slice(dot + 1).toLowerCase()) ?? "other";
-}
-
-/** Keep the top `n` items of `list` by `score`, highest first. */
-function pushTop<T>(list: T[], item: T, n: number, score: (x: T) => number) {
-  const s = score(item);
-  if (list.length === n && s <= score(list[n - 1])) return;
-  let i = list.length;
-  while (i > 0 && score(list[i - 1]) < s) i--;
-  list.splice(i, 0, item);
-  if (list.length > n) list.pop();
-}
-
-export function summarize(entries: RecursiveEntryLike[], top = 6): ScanSummary {
-  const totals = new Map<FileTypeKey, { bytes: number; count: number }>();
-  const recent: RecursiveEntryLike[] = [];
-  const largest: RecursiveEntryLike[] = [];
-  let files = 0;
-  let folders = 0;
-  let bytes = 0;
-
-  for (const e of entries) {
-    if (e.isDir) {
-      folders++;
-      continue;
-    }
-    files++;
-    bytes += e.size;
-    const key = fileType(e.name);
-    const t = totals.get(key) ?? { bytes: 0, count: 0 };
-    t.bytes += e.size;
-    t.count++;
-    totals.set(key, t);
-    pushTop(recent, e, top, (x) => Date.parse(x.modified) || 0);
-    pushTop(largest, e, top, (x) => x.size);
-  }
-
-  const byType = [...totals.entries()]
-    .map(([key, v]) => ({ key, ...v }))
-    .sort((a, b) =>
-      a.key === "other" ? 1 : b.key === "other" ? -1 : b.bytes - a.bytes
-    );
-
-  return { files, folders, bytes, byType, recent, largest };
 }

@@ -101,6 +101,18 @@ See [deployment.md](deployment.md) for full reverse proxy configuration examples
 
 **Fix:** Home keeps showing the last scan (with its time at the top right) and does not rescan on every visit or page reload. Click the refresh button next to the auto-refresh menu to rescan now, or pick an interval (every 5–60 minutes) so File Browser rescans on that schedule while it's open. Scans pause while the browser tab is hidden. On very large drives, prefer a longer interval — each scan walks the whole tree.
 
+## Home Scan Takes Long or Never Finishes
+
+**Symptom:** On a large drive, Home keeps showing "Scanning…" or the numbers never appear.
+
+**Fix:** Scans run on the server in the background and Home checks on them every couple of seconds, showing how many files have been found so far. Leaving Home or reloading the page does not stop a scan — coming back picks it up. A few things to know:
+
+- Only one scan runs per user, and at most two at once on the server. Pressing refresh during a scan joins it rather than starting another.
+- A scan is stopped after one hour. If that happens, Home keeps the previous numbers.
+- Symbolic links are not followed, and folders hidden by your rules (or dotfiles, if hidden) are not counted.
+- Network shares (NFS/SMB) are much slower to walk than local disks. Excluding big folders you don't need counted with a rule speeds things up.
+- Results are kept in server memory, so restarting File Browser means the next visit scans again.
+
 ## File Browser Won't Load Inside Another Site
 
 **Symptom:** File Browser shows a blank or "refused to connect" frame when embedded in a dashboard (Organizr, Home Assistant, Heimdall, …) on a different domain.

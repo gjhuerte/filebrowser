@@ -51,6 +51,7 @@ File Browser provides a clean, intuitive web interface for managing files on you
 - **Default Settings** — Configure default permissions, scope, and locale for new users
 - **Storage Overview** — Monitor disk usage at a glance from the sidebar
 - **Home Dashboard Auto-Refresh** — Rescan file statistics in the background every 5–60 minutes
+- **Fast Server-Side Home Scans** — Statistics are computed on the server in parallel with live progress, so big drives don't time out
 - **Authentication Providers** — Support for proxy-based authentication, JSON auth, and more
 
 ### Deployment

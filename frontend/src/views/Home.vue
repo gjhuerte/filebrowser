@@ -14,7 +14,7 @@
           <p class="home__status" aria-live="polite">
             <template v-if="refreshing">
               <span class="home__pulse" aria-hidden="true"></span>
-              {{ t("home.updating") }}
+              {{ progressLabel }}
             </template>
             <template v-else-if="updatedLabel">
               {{ updatedLabel
@@ -199,7 +199,7 @@
             :status="scan.status"
             @retry="load"
             skeleton="list"
-            :message="t('home.scanning')"
+            :message="progressLabel"
           />
         </section>
 
@@ -230,7 +230,7 @@
             :status="scan.status"
             @retry="load"
             skeleton="list"
-            :message="t('home.scanning')"
+            :message="progressLabel"
           />
         </section>
 
@@ -259,7 +259,7 @@
             :status="scan.status"
             @retry="load"
             skeleton="list"
-            :message="t('home.scanning')"
+            :message="progressLabel"
           />
         </section>
       </div>
@@ -283,7 +283,8 @@ import { TYPE_ICONS, fileType } from "@/utils/fileStats";
 const { t, locale } = useI18n();
 const authStore = useAuthStore();
 const homeStore = useHomeStore();
-const { usage, scan, shares, users, refreshing } = storeToRefs(homeStore);
+const { usage, scan, shares, users, refreshing, progress } =
+  storeToRefs(homeStore);
 
 const isAdmin = computed(() => authStore.user?.perm.admin ?? false);
 const canShare = computed(
@@ -324,6 +325,19 @@ const nextLabel = computed(() => {
   const mins = Math.max(1, Math.ceil((at - homeStore.now) / 60_000));
   return t("home.nextScan", { n: mins });
 });
+
+/* "Scanning… 12,345 files found so far" while the server scan runs */
+const progressLabel = computed(() =>
+  progress.value && progress.value.files > 0
+    ? t(
+        "home.scanProgress",
+        { count: count(progress.value.files) },
+        progress.value.files
+      )
+    : refreshing.value
+      ? t("home.updating")
+      : t("home.scanning")
+);
 
 /* Formatting */
 const bytes = (n: number) => prettyBytes(n, { binary: true });

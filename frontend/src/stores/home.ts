@@ -1,8 +1,9 @@
 import { defineStore } from "pinia";
-import { files as filesApi } from "@/api";
-import { fetchJSON, fetchURL, StatusError } from "@/api/utils";
+import { files as filesApi, summary as summaryApi } from "@/api";
+import type { SummaryStatus } from "@/api/summary";
+import { fetchJSON, StatusError } from "@/api/utils";
 import { useAuthStore } from "@/stores/auth";
-import { summarize, type ScanSummary } from "@/utils/fileStats";
+import type { ScanSummary } from "@/utils/fileStats";
 
 /*
  * Home dashboard data.
@@ -11,6 +12,10 @@ import { summarize, type ScanSummary } from "@/utils/fileStats";
  * page shows it straight away without rescanning. A new scan runs only when
  * the user presses Refresh, on the auto-refresh schedule (if it is on), or
  * the very first time Home has nothing to show.
+ *
+ * The file scan runs on the server as a background job: we start it, then
+ * poll until it is done. Nothing waits on one long request, so a reverse
+ * proxy's timeout cannot cut it off, and only the small summary is sent.
  *
  * Sections load independently and in parallel. Scheduled scans run in the
  * background while the app is open (even on other pages) and pause while the
@@ -33,6 +38,24 @@ const STORAGE_KEY = "home-refresh-interval";
 // Also cleared on logout in utils/auth.ts
 const CACHE_KEY = "home-dashboard-cache";
 const TICK_MS = 30_000;
+const POLL_MS = 1500;
+/** Polls that may fail in a row (e.g. a proxy hiccup) before giving up. */
+const MAX_POLL_FAILURES = 5;
+
+/** Resolve after ms, or reject as soon as signal aborts. */
+function wait(ms: number, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const id = window.setTimeout(resolve, ms);
+    signal.addEventListener(
+      "abort",
+      () => {
+        window.clearTimeout(id);
+        reject(new StatusError("000 No connection", 0, true));
+      },
+      { once: true }
+    );
+  });
+}
 
 function readInterval(): number {
   try {
@@ -74,6 +97,8 @@ interface HomeState {
   shares: Section<number>;
   users: Section<number>;
   refreshing: boolean;
+  /** What the running server scan has found so far, or null. */
+  progress: SummaryStatus["progress"] | null;
   lastUpdated: number | null;
   /** Auto-refresh interval in minutes (0 = off). */
   interval: number;
@@ -93,6 +118,7 @@ export const useHomeStore = defineStore("home", {
     shares: emptySection(),
     users: emptySection(),
     refreshing: false,
+    progress: null,
     lastUpdated: null,
     interval: readInterval(),
     now: Date.now(),
@@ -120,6 +146,7 @@ export const useHomeStore = defineStore("home", {
       this.shares = restored(saved?.shares ?? null);
       this.users = restored(saved?.users ?? null);
       this.refreshing = false;
+      this.progress = null;
       this.lastUpdated = saved?.lastUpdated ?? null;
     },
 
@@ -185,12 +212,7 @@ export const useHomeStore = defineStore("home", {
       const perm = auth.user.perm;
       const jobs: Promise<void>[] = [
         run(this.usage, (s) => filesApi.usage("/files/", s) as Promise<Usage>),
-        run(this.scan, async (s) => {
-          const res = await fetchURL("/api/resources/recursive/", {
-            signal: s,
-          });
-          return summarize(await res.json());
-        }),
+        run(this.scan, (s) => this.scanOnServer(s)),
       ];
       if (perm.share && perm.download) {
         jobs.push(
@@ -217,6 +239,33 @@ export const useHomeStore = defineStore("home", {
       this.lastUpdated = Date.now();
       this.now = this.lastUpdated;
       this.save();
+    },
+
+    /**
+     * Start (or join) the server scan and poll until it finishes. If the
+     * user leaves, the server keeps going and the next visit picks it up.
+     */
+    async scanOnServer(signal: AbortSignal): Promise<ScanSummary> {
+      try {
+        let st = await summaryApi.start(signal);
+        let failures = 0;
+        while (st.scanning) {
+          this.progress = st.progress;
+          await wait(POLL_MS, signal);
+          try {
+            st = await summaryApi.status(signal);
+            failures = 0;
+          } catch (e) {
+            if (signal.aborted || ++failures >= MAX_POLL_FAILURES) throw e;
+          }
+        }
+        // A failed scan leaves the previous result in place; say so instead
+        // of passing it off as fresh.
+        if (st.error || !st.summary) throw new Error(st.error || "No result");
+        return st.summary;
+      } finally {
+        if (!signal.aborted) this.progress = null;
+      }
     },
 
     /** Start the background scheduler. Safe to call more than once. */
@@ -250,6 +299,7 @@ export const useHomeStore = defineStore("home", {
       controller?.abort();
       controller = null;
       this.refreshing = false;
+      this.progress = null;
     },
   },
 });

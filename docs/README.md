@@ -26,6 +26,7 @@ File Browser provides a file managing interface within a specified directory and
 - **FLV Playback** — Flash video files play in the browser (remuxed on the fly; not supported on iPhone)
 - **Download Progress** — Loading and buffering indicators with percentage and size
 - **Home Auto-Refresh** — Background rescans of the Home statistics on a chosen interval
+- **Faster Home Scans** — Home statistics are computed on the server as a background job (parallel, with live progress), so large drives no longer time out behind a reverse proxy. API: `POST /api/summary` starts a scan, `GET /api/summary` reports progress and the last result
 - **File Info Modal** — Redesigned with basic info and collapsible technical details (permissions, checksums)
 - **Favorites** — Star files and folders for quick sidebar access
 - **Flexible Passwords** — Allow simpler passwords with explicit confirmation

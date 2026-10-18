@@ -466,6 +466,7 @@
     "recent": "Recently modified",
     "largest": "Largest files",
     "scanning": "Scanning your files…",
+    "scanProgress": "Scanning… {count} file found so far | Scanning… {count} file found so far | Scanning… {count} files found so far",
     "noFiles": "No files yet.",
     "loadError": "Couldn't load this section.",
     "retry": "Retry",
